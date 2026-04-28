@@ -1,5 +1,5 @@
 # AI-Final-Project
-# 🚀 Project Name: (Final Project)
+# 🚀 Project Name: المشروع النهائي (Final Project)
 ## 🖥️ Dashboard (ASP.NET Core MVC) & Backend API
 
 ---
