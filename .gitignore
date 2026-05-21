@@ -1,0 +1,63 @@
+# Build outputs
+bin/
+obj/
+artifacts/
+
+# Visual Studio / IDE
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider / IntelliJ
+.idea/
+
+# NuGet
+packages/
+*.nupkg
+project.lock.json
+project.fragment.lock.json
+
+# Publish / deployment
+publish/
+publish_output/
+
+# ASP.NET Core / secrets / local settings
+secrets.json
+appsettings.*.Local
+appsettings.*.Secrets.json
+.env
+
+# Test results / coverage
+TestResults/
+*.trx
+*.coverage
+coverage/
+
+# Databases / local files
+*.mdf
+*.ldf
+*.db
+
+# Node / client-side
+node_modules/
+wwwroot/lib/    # if client libs are restored during build, adjust as needed
+
+# Logs / temp
+*.log
+*.tmp
+*.temp
+*.cache
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Misc / tooling
+_ReSharper*/
+*.DotSettings.user
+.vsconfig
+.vs/
+    ```

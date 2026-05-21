@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="Graduation-API/Graduation-API.csproj" />
+  <Project Path="Graduation-Application/Graduation-Application.csproj" />
+  <Project Path="Graduation-Domain/Graduation-Domain.csproj" />
+  <Project Path="Graduation-infrastructure/Graduation-infrastructure.csproj" />
+  <Project Path="Graduation-MVC/Graduation-MVC.csproj" />
+</Solution>
