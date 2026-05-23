@@ -1,11 +1,12 @@
-using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
 
-namespace Graduation_infrastructure.Entities
+namespace Graduation_domain.Entities
 {
     public class ApplicationUser : IdentityUser
     {
+        [Required(ErrorMessage = "FullName is required")]
         public string FullName { get; set; } = string.Empty;
         public string PreferredLanguage { get; set; } = "ar";
         public string ProfileImage { get; set; } = string.Empty;

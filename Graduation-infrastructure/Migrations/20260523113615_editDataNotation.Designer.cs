@@ -4,6 +4,7 @@ using Graduation_infrastructure.AppDbContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,18 +12,20 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Graduation_infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260523113615_editDataNotation")]
+    partial class editDataNotation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.7")
+                .HasAnnotation("ProductVersion", "10.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Graduation_domain.Entities.Address", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.Address", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -30,7 +33,7 @@ namespace Graduation_infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Area")
+                    b.Property<string>("AreaAr")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -38,7 +41,7 @@ namespace Graduation_infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("City")
+                    b.Property<string>("CityAr")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -76,7 +79,7 @@ namespace Graduation_infrastructure.Migrations
                     b.ToTable("Addresses");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.ApplicationUser", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
@@ -156,7 +159,7 @@ namespace Graduation_infrastructure.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.Cart", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.Cart", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -190,7 +193,7 @@ namespace Graduation_infrastructure.Migrations
                     b.ToTable("Carts");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.CartItem", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.CartItem", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -234,7 +237,7 @@ namespace Graduation_infrastructure.Migrations
                     b.ToTable("CartItems");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.Category", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.Category", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -274,7 +277,7 @@ namespace Graduation_infrastructure.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.Discount", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.Discount", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -319,7 +322,7 @@ namespace Graduation_infrastructure.Migrations
                     b.ToTable("Discounts");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.Favorite", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.Favorite", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -358,7 +361,7 @@ namespace Graduation_infrastructure.Migrations
                     b.ToTable("Favorites");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.FinalResultImage", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.FinalResultImage", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -402,7 +405,7 @@ namespace Graduation_infrastructure.Migrations
                     b.ToTable("FinalResultImages");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.Notification", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.Notification", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -447,7 +450,7 @@ namespace Graduation_infrastructure.Migrations
                     b.ToTable("Notifications");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.Order", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.Order", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -488,7 +491,7 @@ namespace Graduation_infrastructure.Migrations
                     b.ToTable("Orders");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.OrderItem", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.OrderItem", b =>
                 {
                     b.Property<int>("Id")
                         .HasColumnType("int");
@@ -524,7 +527,7 @@ namespace Graduation_infrastructure.Migrations
                     b.ToTable("OrderItems");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.OrderStatusHistory", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.OrderStatusHistory", b =>
                 {
                     b.Property<int>("Id")
                         .HasColumnType("int");
@@ -546,6 +549,9 @@ namespace Graduation_infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -557,7 +563,7 @@ namespace Graduation_infrastructure.Migrations
                     b.ToTable("OrderStatusHistory");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.Product", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.Product", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -614,7 +620,7 @@ namespace Graduation_infrastructure.Migrations
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.ProductImage", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.ProductImage", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -654,7 +660,7 @@ namespace Graduation_infrastructure.Migrations
                     b.ToTable("ProductImages");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.Review", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.Review", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -705,7 +711,7 @@ namespace Graduation_infrastructure.Migrations
                     b.ToTable("Reviews");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.Workshop", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.Workshop", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -901,9 +907,9 @@ namespace Graduation_infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.Address", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.Address", b =>
                 {
-                    b.HasOne("Graduation_domain.Entities.ApplicationUser", "User")
+                    b.HasOne("Graduation_Domain.Entities.ApplicationUser", "User")
                         .WithMany("Addresses")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -912,9 +918,9 @@ namespace Graduation_infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.Cart", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.Cart", b =>
                 {
-                    b.HasOne("Graduation_domain.Entities.ApplicationUser", "User")
+                    b.HasOne("Graduation_Domain.Entities.ApplicationUser", "User")
                         .WithMany("Carts")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -923,15 +929,15 @@ namespace Graduation_infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.CartItem", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.CartItem", b =>
                 {
-                    b.HasOne("Graduation_domain.Entities.Cart", "Cart")
+                    b.HasOne("Graduation_Domain.Entities.Cart", "Cart")
                         .WithMany("Items")
                         .HasForeignKey("CartId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Graduation_domain.Entities.Product", "Product")
+                    b.HasOne("Graduation_Domain.Entities.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -942,15 +948,15 @@ namespace Graduation_infrastructure.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.Favorite", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.Favorite", b =>
                 {
-                    b.HasOne("Graduation_domain.Entities.Product", "Product")
+                    b.HasOne("Graduation_Domain.Entities.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Graduation_domain.Entities.ApplicationUser", "User")
+                    b.HasOne("Graduation_Domain.Entities.ApplicationUser", "User")
                         .WithMany("Favorites")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -961,9 +967,9 @@ namespace Graduation_infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.FinalResultImage", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.FinalResultImage", b =>
                 {
-                    b.HasOne("Graduation_domain.Entities.Order", "Order")
+                    b.HasOne("Graduation_Domain.Entities.Order", "Order")
                         .WithMany("FinalResultImages")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -972,9 +978,9 @@ namespace Graduation_infrastructure.Migrations
                     b.Navigation("Order");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.Notification", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.Notification", b =>
                 {
-                    b.HasOne("Graduation_domain.Entities.ApplicationUser", "User")
+                    b.HasOne("Graduation_Domain.Entities.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -983,9 +989,9 @@ namespace Graduation_infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.Order", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.Order", b =>
                 {
-                    b.HasOne("Graduation_domain.Entities.ApplicationUser", "User")
+                    b.HasOne("Graduation_Domain.Entities.ApplicationUser", "User")
                         .WithMany("Orders")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -994,15 +1000,15 @@ namespace Graduation_infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.OrderItem", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.OrderItem", b =>
                 {
-                    b.HasOne("Graduation_domain.Entities.Order", "Order")
+                    b.HasOne("Graduation_Domain.Entities.Order", "Order")
                         .WithMany("Items")
                         .HasForeignKey("Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Graduation_domain.Entities.Product", "Product")
+                    b.HasOne("Graduation_Domain.Entities.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1013,9 +1019,9 @@ namespace Graduation_infrastructure.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.OrderStatusHistory", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.OrderStatusHistory", b =>
                 {
-                    b.HasOne("Graduation_domain.Entities.Order", "Order")
+                    b.HasOne("Graduation_Domain.Entities.Order", "Order")
                         .WithMany("StatusHistory")
                         .HasForeignKey("Id")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1024,15 +1030,15 @@ namespace Graduation_infrastructure.Migrations
                     b.Navigation("Order");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.Product", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.Product", b =>
                 {
-                    b.HasOne("Graduation_domain.Entities.Category", "Category")
+                    b.HasOne("Graduation_Domain.Entities.Category", "Category")
                         .WithMany()
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Graduation_domain.Entities.Workshop", "Workshop")
+                    b.HasOne("Graduation_Domain.Entities.Workshop", "Workshop")
                         .WithMany("Products")
                         .HasForeignKey("WorkshopId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1043,9 +1049,9 @@ namespace Graduation_infrastructure.Migrations
                     b.Navigation("Workshop");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.ProductImage", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.ProductImage", b =>
                 {
-                    b.HasOne("Graduation_domain.Entities.Product", "Product")
+                    b.HasOne("Graduation_Domain.Entities.Product", "Product")
                         .WithMany("Images")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1054,21 +1060,21 @@ namespace Graduation_infrastructure.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.Review", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.Review", b =>
                 {
-                    b.HasOne("Graduation_domain.Entities.Product", "Product")
+                    b.HasOne("Graduation_Domain.Entities.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Graduation_domain.Entities.ApplicationUser", "User")
+                    b.HasOne("Graduation_Domain.Entities.ApplicationUser", "User")
                         .WithMany("Reviews")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Graduation_domain.Entities.Workshop", null)
+                    b.HasOne("Graduation_Domain.Entities.Workshop", null)
                         .WithMany("Reviews")
                         .HasForeignKey("WorkshopId");
 
@@ -1077,9 +1083,9 @@ namespace Graduation_infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.Workshop", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.Workshop", b =>
                 {
-                    b.HasOne("Graduation_domain.Entities.ApplicationUser", "User")
+                    b.HasOne("Graduation_Domain.Entities.ApplicationUser", "User")
                         .WithMany("Workshops")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1099,7 +1105,7 @@ namespace Graduation_infrastructure.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("Graduation_domain.Entities.ApplicationUser", null)
+                    b.HasOne("Graduation_Domain.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1108,7 +1114,7 @@ namespace Graduation_infrastructure.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("Graduation_domain.Entities.ApplicationUser", null)
+                    b.HasOne("Graduation_Domain.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1123,7 +1129,7 @@ namespace Graduation_infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Graduation_domain.Entities.ApplicationUser", null)
+                    b.HasOne("Graduation_Domain.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1132,14 +1138,14 @@ namespace Graduation_infrastructure.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("Graduation_domain.Entities.ApplicationUser", null)
+                    b.HasOne("Graduation_Domain.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.ApplicationUser", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.ApplicationUser", b =>
                 {
                     b.Navigation("Addresses");
 
@@ -1154,12 +1160,12 @@ namespace Graduation_infrastructure.Migrations
                     b.Navigation("Workshops");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.Cart", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.Cart", b =>
                 {
                     b.Navigation("Items");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.Order", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.Order", b =>
                 {
                     b.Navigation("FinalResultImages");
 
@@ -1168,12 +1174,12 @@ namespace Graduation_infrastructure.Migrations
                     b.Navigation("StatusHistory");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.Product", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.Product", b =>
                 {
                     b.Navigation("Images");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.Workshop", b =>
+            modelBuilder.Entity("Graduation_Domain.Entities.Workshop", b =>
                 {
                     b.Navigation("Products");
 

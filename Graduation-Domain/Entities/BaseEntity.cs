@@ -1,6 +1,6 @@
 using System;
 
-namespace Graduation_infrastructure.Entities
+namespace Graduation_domain.Entities
 {
     public abstract class BaseEntity<TKey>
     {

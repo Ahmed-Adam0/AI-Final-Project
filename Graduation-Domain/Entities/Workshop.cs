@@ -1,16 +1,27 @@
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
-namespace Graduation_infrastructure.Entities
+namespace Graduation_domain.Entities
 {
     public class Workshop : BaseEntity<int>
     {
+        [Required(ErrorMessage = "UserId is required")]
         public string UserId { get; set; }
         public ApplicationUser User { get; set; }
 
+        [Required(ErrorMessage = "WorkshopNameAr is required")]
         public string WorkshopNameAr { get; set; }
+
+        [Required(ErrorMessage = "WorkshopNameEn is required")]
         public string WorkshopNameEn { get; set; }
+
+        [Required(ErrorMessage = "DescriptionAr is required")]
         public string DescriptionAr { get; set; }
+
+        [Required(ErrorMessage = "DescriptionEn is required")]
         public string DescriptionEn { get; set; }
+
+        [Required(ErrorMessage = "Address is required")]
         public string Address { get; set; }
         public string? LogoUrl { get; set; }
         public decimal? Rating { get; set; }
