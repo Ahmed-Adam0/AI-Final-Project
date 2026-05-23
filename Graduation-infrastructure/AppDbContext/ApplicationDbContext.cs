@@ -1,4 +1,4 @@
-﻿using Graduation_infrastructure.Entities;
+﻿using Graduation_domain.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
