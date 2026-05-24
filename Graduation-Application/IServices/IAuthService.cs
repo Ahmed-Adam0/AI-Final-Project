@@ -7,5 +7,8 @@ namespace Graduation_Application.IServices
     {
         Task<AuthResponseDto> RegisterAsync(RegisterDto dto);
         Task<AuthResponseDto> LoginAsync(LoginDto dto);
+        Task ForgotPasswordAsync(ForgotPasswordDto dto);
+        Task<bool> VerifyOtpAsync(VerifyOtpDto dto);
+        Task ResetPasswordAsync(ResetPasswordDto dto);
     }
 }

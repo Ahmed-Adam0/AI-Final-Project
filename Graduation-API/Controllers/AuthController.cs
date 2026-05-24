@@ -23,11 +23,11 @@ namespace Graduation_API.Controllers
             try
             {
                 var result = await _authService.RegisterAsync(dto);
-                return Ok(result);
+                return Ok(new { Success = true, Message = "Registration successful", Data = result });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { Message = ex.Message });
+                return BadRequest(new { Success = false, Message = ex.Message });
             }
         }
 
@@ -37,11 +37,57 @@ namespace Graduation_API.Controllers
             try
             {
                 var result = await _authService.LoginAsync(dto);
-                return Ok(result);
+                return Ok(new { Success = true, Message = "Login successful", Data = result });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { Message = ex.Message });
+                return BadRequest(new { Success = false, Message = ex.Message });
+            }
+        }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPasswordAsync([FromBody] ForgotPasswordDto dto)
+        {
+            try
+            {
+                await _authService.ForgotPasswordAsync(dto);
+                return Ok(new { Success = true, Message = "OTP code has been sent to your email" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Success = false, Message = ex.Message });
+            }
+        }
+
+        [HttpPost("verify-otp")]
+        public async Task<IActionResult> VerifyOtpAsync([FromBody] VerifyOtpDto dto)
+        {
+            try
+            {
+                var result = await _authService.VerifyOtpAsync(dto);
+                if (result)
+                {
+                    return Ok(new { Success = true, IsValid = result, Message = "OTP verified successfully" });
+                }
+                return BadRequest(new { Success = false, IsValid = result, Message = "Invalid OTP code or code has expired" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Success = false, Message = ex.Message });
+            }
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPasswordAsync([FromBody] ResetPasswordDto dto)
+        {
+            try
+            {
+                await _authService.ResetPasswordAsync(dto);
+                return Ok(new { Success = true, Message = "Password reset successfully" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Success = false, Message = ex.Message });
             }
         }
     }
