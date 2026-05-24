@@ -1,7 +1,7 @@
-
 using Graduation_infrastructure.AppDbContext;
 using Graduation_infrastructure.ProgramService.ServicesAPI;
 using Microsoft.AspNetCore.Identity;
+using Scalar.AspNetCore;
 
 namespace Graduation_API
 {
@@ -27,6 +27,7 @@ namespace Graduation_API
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();
+                app.MapScalarApiReference();
             }
 
             app.UseAuthentication();
