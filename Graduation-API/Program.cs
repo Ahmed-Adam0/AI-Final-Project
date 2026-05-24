@@ -22,6 +22,8 @@ namespace Graduation_API
             //    .AddEntityFrameworkStores<ApplicationDbContext>()
             //    .AddDefaultTokenProviders();
 
+           
+
             var app = builder.Build();
 
             using (var scope = app.Services.CreateScope())
@@ -42,10 +44,14 @@ namespace Graduation_API
             app.MapOpenApi();
             app.MapScalarApiReference();
 
+            app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.MapControllers();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
 
             app.Run();
         }
