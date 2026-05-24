@@ -29,8 +29,8 @@ namespace Graduation_API
                 app.MapOpenApi();
             }
 
+            app.UseAuthentication();
             app.UseAuthorization();
-
 
             app.MapControllers();
 

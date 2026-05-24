@@ -4,3 +4,47 @@ GET {{Graduation_API_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+
+GET {{Graduation_API_HostAddress}}/api/roles
+Accept: application/json
+###
+POST {{Graduation_API_HostAddress}}/api/roles/create
+Content-Type: application/json
+Accept: application/json
+
+{
+  "roleName": "SuperAdmin"
+}
+
+
+#### =========================
+# Register
+# =========================
+
+POST {{Graduation_API_HostAddress}}/api/auth/register
+Content-Type: application/json
+Accept: application/json
+
+{
+  "fullName": "Sultan Bashier",
+  "email": "sultan@gmail.com",
+  "password": "Sultan123!",
+  "confirmPassword": "Sultan123!",
+  "phoneNumber": "01012345678",
+  "preferredLanguage": "ar"
+}
+
+#### =========================
+# Login
+# =========================
+
+POST {{Graduation_API_HostAddress}}/api/auth/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "sultan@gmail.com",
+  "password": "Sultan123!"
+}
+
+###
