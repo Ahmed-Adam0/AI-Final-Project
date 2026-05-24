@@ -37,15 +37,12 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             //    ;
             //}
 
-            var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? configuration["ASPNETCORE_ENVIRONMENT"];
-
             services.AddDbContext<ApplicationDbContext>(options =>
             {
                 options.UseSqlServer(connectionString);
-                if (string.Equals(env, "Development", StringComparison.OrdinalIgnoreCase))
-                {
-                    options.EnableSensitiveDataLogging();
-                }
+#if DEBUG
+                options.EnableSensitiveDataLogging();
+#endif
             });
 
             services
@@ -85,6 +82,15 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<IFavoriteService, FavoriteService>();
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+
+            // Add CORS policy for development / frontend
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", builder => builder
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowAnyOrigin());
+            });
 
             var jwtSecret = configuration["Jwt:Secret"];
             var jwtIssuer = configuration["Jwt:Issuer"];

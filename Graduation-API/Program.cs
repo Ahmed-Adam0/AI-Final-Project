@@ -45,13 +45,13 @@ namespace Graduation_API
             app.MapScalarApiReference();
 
             app.UseRouting();
+
+            app.UseCors("AllowAll");
+
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
+            app.MapControllers();
 
             app.Run();
         }
