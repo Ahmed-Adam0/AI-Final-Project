@@ -1,3 +1,4 @@
+using Graduation_domain.Entities;
 using Graduation_infrastructure.AppDbContext;
 using Graduation_infrastructure.ProgramService.ServicesAPI;
 using Microsoft.AspNetCore.Identity;
@@ -7,7 +8,7 @@ namespace Graduation_API
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +23,17 @@ namespace Graduation_API
             //    .AddDefaultTokenProviders();
 
             var app = builder.Build();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+
+                var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+                var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+                var context = services.GetRequiredService<ApplicationDbContext>();
+
+                await ApplicationDbSeeder.SeedAsync(services, userManager, roleManager, context);
+            }
 
             // Configure the HTTP request pipeline.
             //if (app.Environment.IsDevelopment())

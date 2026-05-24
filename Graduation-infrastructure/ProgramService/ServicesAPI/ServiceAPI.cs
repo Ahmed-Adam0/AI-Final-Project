@@ -1,8 +1,12 @@
 ﻿using Graduation_Application.IServices;
+using Graduation_Application.IRepositories;
 using Graduation_Application.Mapper.UsersMapping;
+using Graduation_Application.Mapper.CategoryMapping;
+using Graduation_Application.Mapper.ProductMapping;
 using Graduation_Application.Services;
 using Graduation_domain.Entities;
 using Graduation_infrastructure.AppDbContext;
+using Graduation_infrastructure.Repositories;
 using Graduation_Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -39,10 +43,21 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
                 .AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
+
+            // Register Mapping Configurations
             RegisterMappingConfig.RegisterMappings();
             AuthResponseMappingConfig.Response();
+            CategoryMappingConfig.RegisterMappings();
+            ProductMappingConfig.RegisterMappings();
+
+            // Register Generic Repository
+            services.AddScoped(typeof(IGenaricRepositories<>), typeof(GenaricRepositories<>));
+
+            // Register Services
             services.AddScoped<IRoleService, RoleService>();
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<IProductService, ProductService>();
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
             var jwtSecret = configuration["Jwt:Secret"];
