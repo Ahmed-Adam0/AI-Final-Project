@@ -3,11 +3,13 @@ using Graduation_Application.DTOs.ProductDTO;
 using Graduation_Application.IServices;
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Graduation_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+
     public class ProductsController : ControllerBase
     {
         private readonly IProductService _productService;

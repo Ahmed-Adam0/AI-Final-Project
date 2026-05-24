@@ -35,9 +35,16 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             //    ;
             //}
 
+            var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? configuration["ASPNETCORE_ENVIRONMENT"];
+
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(connectionString).EnableSensitiveDataLogging()
-            );
+            {
+                options.UseSqlServer(connectionString);
+                if (string.Equals(env, "Development", StringComparison.OrdinalIgnoreCase))
+                {
+                    options.EnableSensitiveDataLogging();
+                }
+            });
 
             services
                 .AddIdentity<ApplicationUser, IdentityRole>()
@@ -58,28 +65,35 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<IFavoriteService, FavoriteService>();
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
             var jwtSecret = configuration["Jwt:Secret"];
             var jwtIssuer = configuration["Jwt:Issuer"];
             var jwtAudience = configuration["Jwt:Audience"];
 
-            services.AddAuthentication("Bearer")
-                .AddJwtBearer(options =>
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.RequireHttpsMetadata = false;
+                options.SaveToken = true;
+                options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    options.RequireHttpsMetadata = false;
-                    options.SaveToken = true;
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true,
-                        ValidIssuer = jwtIssuer,
-                        ValidAudience = jwtAudience,
-                        IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(jwtSecret))
-                    };
-                });
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = jwtIssuer,
+                    ValidAudience = jwtAudience,
+                    IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(jwtSecret))
+                };
+            });
+
+            services.AddAuthorization();
         }
     }
 }
