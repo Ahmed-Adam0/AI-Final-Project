@@ -4,6 +4,7 @@ using Graduation_Application.Services;
 using Graduation_domain.Entities;
 using Graduation_infrastructure.AppDbContext;
 using Graduation_Infrastructure.Identity;
+using Graduation_infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -44,6 +45,8 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             services.AddScoped<IRoleService, RoleService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+            services.AddScoped<ICartService, CartService>();
+            services.AddScoped<IOrderService, OrderService>();
 
             var jwtSecret = configuration["Jwt:Secret"];
             var jwtIssuer = configuration["Jwt:Issuer"];
