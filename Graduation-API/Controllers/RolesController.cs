@@ -1,81 +1,62 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
+using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Graduation_Application.IServices;
+using Graduation_Application.DTOs.RolesDTO;
 
 namespace Graduation_API.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class RolesController : ControllerBase
     {
-        private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly IRoleService _roleService;
 
-        public RolesController(
-            RoleManager<IdentityRole> roleManager,
-            UserManager<IdentityUser> userManager
-        )
+        public RolesController(IRoleService roleService)
         {
-            _roleManager = roleManager;
-            _userManager = userManager;
+            _roleService = roleService;
         }
 
-        [HttpPost("Create")]
-        public async Task<IActionResult> CreateRole(string roleName)
+        [HttpPost("create")]
+        public async Task<IActionResult> CreateRoleAsync([FromBody] CreateRoleDto dto)
         {
-            if (string.IsNullOrWhiteSpace(roleName))
+            try
             {
-                return BadRequest(new { Message = "Role Name Cannot be Empty" });
+                var role = await _roleService.CreateRoleAsync(dto);
+                return Ok(role);
             }
-            var roleExist = await _roleManager.RoleExistsAsync(roleName);
-            if (roleExist)
+            catch (Exception ex)
             {
-                return BadRequest(new { Message = "Role Already Exists" });
-            }
-            var result = await _roleManager.CreateAsync(new IdentityRole(roleName));
-            if (result.Succeeded)
-            {
-                return Ok(new { Message = "Role Created Successfully" });
-            }
-            else
-            {
-                return BadRequest(result.Errors);
+                return BadRequest(new { Message = ex.Message });
             }
         }
 
-        [HttpPost("AssignRole")]
-        public async Task<IActionResult> AssignRole(string userEmail, string roleName)
+        [HttpPost("assign")]
+        public async Task<IActionResult> AssignRoleAsync([FromBody] AssignRoleDto dto)
         {
-            var user = await _userManager.FindByEmailAsync(userEmail);
-            if (user == null)
+            try
             {
-                return NotFound(new { Message = "User Not Found" });
+                await _roleService.AssignRoleAsync(dto);
+                return Ok(new { Message = "Role assigned" });
             }
-            var roleExist = await _roleManager.RoleExistsAsync(roleName);
-            if (!roleExist)
+            catch (Exception ex)
             {
-                return NotFound(new { Message = "Role Not Found" });
-            }
-            var result = await _userManager.AddToRoleAsync(user, roleName);
-            if (result.Succeeded)
-            {
-                return Ok(new { Message = "Role Assigned Successfully" });
-            }
-            else
-            {
-                return BadRequest(result.Errors);
+                return BadRequest(new { Message = ex.Message });
             }
         }
 
-        [HttpGet("GetAllRoles")]
-        public async Task<IActionResult> GetRoles()
+        [HttpGet]
+        public async Task<IActionResult> GetAllRolesAsync()
         {
-            var roles = _roleManager.Roles.Select(r => r.Name).ToList();
-            if (roles == null || roles.Count == 0)
+            try
             {
-                return NotFound(new { Message = "No Roles Found" });
+                var roles = await _roleService.GetAllRolesAsync();
+                return Ok(roles);
             }
-            return Ok(roles);
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
         }
     }
 }
