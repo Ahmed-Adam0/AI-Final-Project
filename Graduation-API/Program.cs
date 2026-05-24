@@ -24,11 +24,11 @@ namespace Graduation_API
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.MapOpenApi();
-                app.MapScalarApiReference();
-            }
+            //if (app.Environment.IsDevelopment())
+            //{
+            //}
+            app.MapOpenApi();
+            app.MapScalarApiReference();
 
             app.UseAuthentication();
             app.UseAuthorization();
