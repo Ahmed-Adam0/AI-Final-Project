@@ -65,6 +65,14 @@ namespace Graduation_infrastructure.AppDbContext
                 .HasOne(h => h.Order)
                 .WithMany(o => o.StatusHistory)
                 .HasForeignKey(h => h.Id);
+
+            // Decimal precision configuration to avoid truncation
+            builder.Entity<CartItem>().Property(ci => ci.Price).HasColumnType("decimal(18,2)");
+            builder.Entity<Discount>().Property(d => d.DiscountValue).HasColumnType("decimal(18,2)");
+            builder.Entity<Order>().Property(o => o.TotalPrice).HasColumnType("decimal(18,2)");
+            builder.Entity<OrderItem>().Property(oi => oi.UnitPrice).HasColumnType("decimal(18,2)");
+            builder.Entity<Product>().Property(p => p.Price).HasColumnType("decimal(18,2)");
+            builder.Entity<Workshop>().Property(w => w.Rating).HasColumnType("decimal(18,2)");
         }
     }
 }
