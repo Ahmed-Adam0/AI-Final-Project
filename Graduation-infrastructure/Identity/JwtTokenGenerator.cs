@@ -31,10 +31,13 @@ namespace Graduation_Infrastructure.Identity
 
             var claims = new List<Claim>
             {
+                // ensure NameIdentifier claim exists so controllers can read User.FindFirst(ClaimTypes.NameIdentifier)
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
-                new Claim("name", user.FullName),
-                new Claim("lang", user.PreferredLanguage)
+                new Claim(ClaimTypes.Name, user.FullName ?? string.Empty),
+                new Claim("name", user.FullName ?? string.Empty),
+                new Claim("lang", user.PreferredLanguage ?? string.Empty)
             };
 
             foreach (var role in roles)
