@@ -59,6 +59,12 @@ namespace Graduation_Application.Services
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null) throw new System.Exception("User not found");
 
+            // Check if old password equals new password
+            if (dto.OldPassword == dto.NewPassword)
+            {
+                throw new System.Exception("New password must be different from old password");
+            }
+
             var result = await _userManager.ChangePasswordAsync(user, dto.OldPassword, dto.NewPassword);
             if (!result.Succeeded)
             {

@@ -85,6 +85,7 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             services.AddScoped<IFavoriteService, FavoriteService>();
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
             services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IProfileService, ProfileService>();
 
             // Add CORS policy for development / frontend
             services.AddCors(options =>
