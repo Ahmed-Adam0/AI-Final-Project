@@ -28,6 +28,7 @@ publish_output/
 secrets.json
 appsettings.*.Local
 appsettings.*.Secrets.json
+appsettings.Development.json
 .env
 
 # Test results / coverage

@@ -11,6 +11,8 @@ namespace Graduation_domain.Entities
         public string PreferredLanguage { get; set; } = "ar";
         public string ProfileImage { get; set; } = string.Empty;
         public bool IsActive { get; set; } = true;
+        public string? OtpCode { get; set; }
+        public DateTime? OtpExpiry { get; set; }
 
         public List<Address>? Addresses { get; set; }
         public List<Cart>? Carts { get; set; }
