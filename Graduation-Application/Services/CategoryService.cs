@@ -30,5 +30,57 @@ namespace Graduation_Application.Services
 
             return categories.Adapt<List<CategoryDto>>();
         }
+
+        public async Task<CategoryResponseDto> CreateCategoryAsync(CreateCategoryDto createCategoryDto)
+        {
+            if (createCategoryDto == null)
+                throw new ArgumentNullException(nameof(createCategoryDto));
+
+            var category = new Category
+            {
+                NameAr = createCategoryDto.NameAr,
+                NameEn = createCategoryDto.NameEn,
+                ImageUrl = createCategoryDto.ImageUrl,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _repository.AddAsync(category);
+            await _repository.SaveChangesAsync();
+
+            return category.Adapt<CategoryResponseDto>();
+        }
+
+        public async Task<CategoryResponseDto> UpdateCategoryAsync(int categoryId, UpdateCategoryDto updateCategoryDto)
+        {
+            if (updateCategoryDto == null)
+                throw new ArgumentNullException(nameof(updateCategoryDto));
+
+            var category = await _repository.GetByIdAsync(categoryId);
+            if (category == null)
+                throw new ArgumentException($"Category with ID {categoryId} not found.");
+
+            category.NameAr = updateCategoryDto.NameAr;
+            category.NameEn = updateCategoryDto.NameEn;
+            category.ImageUrl = updateCategoryDto.ImageUrl;
+            category.UpdatedAt = DateTime.UtcNow;
+
+            _repository.Update(category);
+            await _repository.SaveChangesAsync();
+
+            return category.Adapt<CategoryResponseDto>();
+        }
+
+        public async Task<bool> DeleteCategoryAsync(int categoryId)
+        {
+            var category = await _repository.GetByIdAsync(categoryId);
+            if (category == null)
+                return false;
+
+            _repository.Delete(category);
+            await _repository.SaveChangesAsync();
+
+            return true;
+        }
     }
 }

@@ -90,5 +90,112 @@ namespace Graduation_API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        /// <summary>
+        /// Create a new product (Vendor/Workshop only)
+        /// </summary>
+        /// <param name="createProductDto">Product creation data</param>
+        /// <returns>Created product details</returns>
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> CreateProduct([FromBody] CreateProductDto createProductDto)
+        {
+            try
+            {
+                if (createProductDto == null)
+                    return BadRequest(new { message = "Product data is required" });
+
+                // Get workshop ID from JWT claim or header
+                var workshopId = int.TryParse(User.FindFirst("WorkshopId")?.Value, out var id) ? id : 0;
+                if (workshopId <= 0)
+                    return Unauthorized(new { message = "Workshop ID not found in token" });
+
+                var result = await _productService.CreateProductAsync(workshopId, createProductDto);
+                return CreatedAtAction(nameof(GetProductDetails), new { id = result.Id }, result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Update an existing product (Vendor/Workshop only)
+        /// </summary>
+        /// <param name="id">Product ID</param>
+        /// <param name="updateProductDto">Updated product data</param>
+        /// <returns>Updated product details</returns>
+        [HttpPut("{id}")]
+        [Authorize]
+        public async Task<IActionResult> UpdateProduct(int id, [FromBody] UpdateProductDto updateProductDto)
+        {
+            try
+            {
+                if (id <= 0)
+                    return BadRequest(new { message = "Invalid product ID" });
+
+                if (updateProductDto == null)
+                    return BadRequest(new { message = "Product data is required" });
+
+                // Get workshop ID from JWT claim
+                var workshopId = int.TryParse(User.FindFirst("WorkshopId")?.Value, out var wId) ? wId : 0;
+                if (workshopId <= 0)
+                    return Unauthorized(new { message = "Workshop ID not found in token" });
+
+                var result = await _productService.UpdateProductAsync(id, workshopId, updateProductDto);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Forbid(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Delete a product (Vendor/Workshop only)
+        /// </summary>
+        /// <param name="id">Product ID</param>
+        /// <returns>Success or error message</returns>
+        [HttpDelete("{id}")]
+        [Authorize]
+        public async Task<IActionResult> DeleteProduct(int id)
+        {
+            try
+            {
+                if (id <= 0)
+                    return BadRequest(new { message = "Invalid product ID" });
+
+                // Get workshop ID from JWT claim
+                var workshopId = int.TryParse(User.FindFirst("WorkshopId")?.Value, out var wId) ? wId : 0;
+                if (workshopId <= 0)
+                    return Unauthorized(new { message = "Workshop ID not found in token" });
+
+                var result = await _productService.DeleteProductAsync(id, workshopId);
+                if (!result)
+                    return NotFound(new { message = "Product not found" });
+
+                return Ok(new { message = "Product deleted successfully" });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Forbid(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
     }
 }

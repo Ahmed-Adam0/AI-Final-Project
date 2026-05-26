@@ -73,7 +73,7 @@ namespace Graduation_infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Addresses");
+                    b.ToTable("Addresses", (string)null);
                 });
 
             modelBuilder.Entity("Graduation_domain.Entities.ApplicationUser", b =>
@@ -193,7 +193,7 @@ namespace Graduation_infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Carts");
+                    b.ToTable("Carts", (string)null);
                 });
 
             modelBuilder.Entity("Graduation_domain.Entities.CartItem", b =>
@@ -237,7 +237,7 @@ namespace Graduation_infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("CartItems");
+                    b.ToTable("CartItems", (string)null);
                 });
 
             modelBuilder.Entity("Graduation_domain.Entities.Category", b =>
@@ -277,7 +277,7 @@ namespace Graduation_infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("Graduation_domain.Entities.Discount", b =>
@@ -322,7 +322,7 @@ namespace Graduation_infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Discounts");
+                    b.ToTable("Discounts", (string)null);
                 });
 
             modelBuilder.Entity("Graduation_domain.Entities.Favorite", b =>
@@ -361,7 +361,7 @@ namespace Graduation_infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Favorites");
+                    b.ToTable("Favorites", (string)null);
                 });
 
             modelBuilder.Entity("Graduation_domain.Entities.FinalResultImage", b =>
@@ -405,7 +405,7 @@ namespace Graduation_infrastructure.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("FinalResultImages");
+                    b.ToTable("FinalResultImages", (string)null);
                 });
 
             modelBuilder.Entity("Graduation_domain.Entities.Notification", b =>
@@ -450,7 +450,7 @@ namespace Graduation_infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Notifications");
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("Graduation_domain.Entities.Order", b =>
@@ -491,7 +491,7 @@ namespace Graduation_infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Orders");
+                    b.ToTable("Orders", (string)null);
                 });
 
             modelBuilder.Entity("Graduation_domain.Entities.OrderItem", b =>
@@ -527,7 +527,7 @@ namespace Graduation_infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("OrderItems");
+                    b.ToTable("OrderItems", (string)null);
                 });
 
             modelBuilder.Entity("Graduation_domain.Entities.OrderStatusHistory", b =>
@@ -560,7 +560,7 @@ namespace Graduation_infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("OrderStatusHistory");
+                    b.ToTable("OrderStatusHistory", (string)null);
                 });
 
             modelBuilder.Entity("Graduation_domain.Entities.Product", b =>
@@ -617,7 +617,7 @@ namespace Graduation_infrastructure.Migrations
 
                     b.HasIndex("WorkshopId");
 
-                    b.ToTable("Products");
+                    b.ToTable("Products", (string)null);
                 });
 
             modelBuilder.Entity("Graduation_domain.Entities.ProductImage", b =>
@@ -657,7 +657,7 @@ namespace Graduation_infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductImages");
+                    b.ToTable("ProductImages", (string)null);
                 });
 
             modelBuilder.Entity("Graduation_domain.Entities.Review", b =>
@@ -708,7 +708,7 @@ namespace Graduation_infrastructure.Migrations
 
                     b.HasIndex("WorkshopId");
 
-                    b.ToTable("Reviews");
+                    b.ToTable("Reviews", (string)null);
                 });
 
             modelBuilder.Entity("Graduation_domain.Entities.Workshop", b =>
@@ -771,7 +771,7 @@ namespace Graduation_infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Workshops");
+                    b.ToTable("Workshops", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
