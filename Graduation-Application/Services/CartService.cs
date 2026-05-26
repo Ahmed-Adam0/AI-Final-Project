@@ -8,7 +8,7 @@ using Graduation_Application.IServices;
 using Graduation_domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Graduation_infrastructure.Services
+namespace Graduation_Application.Services
 {
     public class CartService : ICartService
     {

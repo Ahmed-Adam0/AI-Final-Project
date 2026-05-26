@@ -1,4 +1,7 @@
-﻿using Graduation_Application.ExternalServices.EmailServices;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using Graduation_Application.ExternalServices.EmailServices;
 using Graduation_Application.IRepositories;
 using Graduation_Application.IServices;
 using Graduation_Application.Mapper.CategoryMapping;
@@ -8,9 +11,8 @@ using Graduation_Application.Mapper.UsersMapping;
 using Graduation_Application.Services;
 using Graduation_domain.Entities;
 using Graduation_infrastructure.AppDbContext;
-using Graduation_infrastructure.Repositories;
-using Graduation_infrastructure.Services;
 using Graduation_Infrastructure.Identity;
+using Graduation_infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -18,9 +20,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Graduation_infrastructure.ProgramService.ServicesAPI
 {
@@ -43,9 +42,7 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             services.AddDbContext<ApplicationDbContext>(options =>
             {
                 options.UseSqlServer(connectionString);
-#if DEBUG
                 options.EnableSensitiveDataLogging();
-#endif
             });
 
             services
@@ -96,36 +93,39 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             // Add CORS policy for development / frontend
             services.AddCors(options =>
             {
-                options.AddPolicy("AllowAll", builder => builder
-                    .AllowAnyHeader()
-                    .AllowAnyMethod()
-                    .AllowAnyOrigin());
+                options.AddPolicy(
+                    "AllowAll",
+                    builder => builder.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin()
+                );
             });
 
             var jwtSecret = configuration["Jwt:Secret"];
             var jwtIssuer = configuration["Jwt:Issuer"];
             var jwtAudience = configuration["Jwt:Audience"];
 
-            services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(options =>
-            {
-                options.RequireHttpsMetadata = false;
-                options.SaveToken = true;
-                options.TokenValidationParameters = new TokenValidationParameters
+            services
+                .AddAuthentication(options =>
                 {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = jwtIssuer,
-                    ValidAudience = jwtAudience,
-                    IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(jwtSecret))
-                };
-            });
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(options =>
+                {
+                    options.RequireHttpsMetadata = false;
+                    options.SaveToken = true;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = jwtIssuer,
+                        ValidAudience = jwtAudience,
+                        IssuerSigningKey = new SymmetricSecurityKey(
+                            System.Text.Encoding.UTF8.GetBytes(jwtSecret)
+                        ),
+                    };
+                });
 
             services.AddAuthorization();
         }
