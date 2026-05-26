@@ -1,4 +1,6 @@
+using Graduation_domain.Entities;
 using System;
+using System.Collections.Generic;
 
 namespace Graduation_Application.DTOs.UserDTO
 {
@@ -11,5 +13,7 @@ namespace Graduation_Application.DTOs.UserDTO
         public string PreferredLanguage { get; set; } = "ar";
         public string? PhoneNumber { get; set; }
         public string? UserName { get; set; }
+        public List<AddressDto>? Addresses { get; set; }
+
     }
 }
