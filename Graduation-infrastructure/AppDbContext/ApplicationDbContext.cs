@@ -1,4 +1,4 @@
-﻿using Graduation_domain.Entities;
+using Graduation_domain.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -65,6 +65,27 @@ namespace Graduation_infrastructure.AppDbContext
                 .HasOne(h => h.Order)
                 .WithMany(o => o.StatusHistory)
                 .HasForeignKey(h => h.Id);
+
+            builder
+                .Entity<Review>()
+                .HasOne(r => r.Product)
+                .WithMany()
+                .HasForeignKey(r => r.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder
+                .Entity<Review>()
+                .HasOne(r => r.User)
+                .WithMany(u => u.Reviews)
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder
+                .Entity<Review>()
+                .HasOne(r => r.Workshop)
+                .WithMany(w => w.Reviews)
+                .HasForeignKey(r => r.WorkshopId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             // Decimal precision configuration to avoid truncation
             builder.Entity<CartItem>().Property(ci => ci.Price).HasColumnType("decimal(18,2)");

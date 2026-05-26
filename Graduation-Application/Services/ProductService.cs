@@ -116,5 +116,73 @@ namespace Graduation_Application.Services
 
             return product.Adapt<ProductDetailsDto>();
         }
+
+        public async Task<ProductResponseDto> CreateProductAsync(int workshopId, CreateProductDto createProductDto)
+        {
+            // Validate that product details are provided
+            if (createProductDto == null)
+                throw new ArgumentNullException(nameof(createProductDto));
+
+            // Create new product entity
+            var product = new Product
+            {
+                WorkshopId = workshopId,
+                CategoryId = createProductDto.CategoryId,
+                NameAr = createProductDto.NameAr,
+                NameEn = createProductDto.NameEn,
+                DescriptionAr = createProductDto.DescriptionAr,
+                DescriptionEn = createProductDto.DescriptionEn,
+                Price = createProductDto.Price,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _productRepository.AddAsync(product);
+            await _productRepository.SaveChangesAsync();
+
+            return product.Adapt<ProductResponseDto>();
+        }
+
+        public async Task<ProductResponseDto> UpdateProductAsync(int productId, int workshopId, UpdateProductDto updateProductDto)
+        {
+            // Get the product
+            var product = await _productRepository.GetByIdAsync(productId);
+            if (product == null)
+                throw new ArgumentException($"Product with ID {productId} not found.");
+
+            // Verify workshop ownership
+            if (product.WorkshopId != workshopId)
+                throw new UnauthorizedAccessException("You do not have permission to update this product.");
+
+            // Update product properties
+            product.CategoryId = updateProductDto.CategoryId;
+            product.NameAr = updateProductDto.NameAr;
+            product.NameEn = updateProductDto.NameEn;
+            product.DescriptionAr = updateProductDto.DescriptionAr;
+            product.DescriptionEn = updateProductDto.DescriptionEn;
+            product.Price = updateProductDto.Price;
+            product.UpdatedAt = DateTime.UtcNow;
+
+            _productRepository.Update(product);
+            await _productRepository.SaveChangesAsync();
+
+            return product.Adapt<ProductResponseDto>();
+        }
+
+        public async Task<bool> DeleteProductAsync(int productId, int workshopId)
+        {
+            var product = await _productRepository.GetByIdAsync(productId);
+            if (product == null)
+                return false;
+
+            // Verify workshop ownership
+            if (product.WorkshopId != workshopId)
+                throw new UnauthorizedAccessException("You do not have permission to delete this product.");
+
+            _productRepository.Delete(product);
+            await _productRepository.SaveChangesAsync();
+
+            return true;
+        }
     }
 }

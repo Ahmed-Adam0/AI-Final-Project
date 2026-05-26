@@ -3,6 +3,7 @@ using Graduation_Application.IRepositories;
 using Graduation_Application.IServices;
 using Graduation_Application.Mapper.CategoryMapping;
 using Graduation_Application.Mapper.ProductMapping;
+using Graduation_Application.Mapper.ReviewMapping;
 using Graduation_Application.Mapper.UsersMapping;
 using Graduation_Application.Services;
 using Graduation_domain.Entities;
@@ -73,6 +74,7 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             AuthResponseMappingConfig.Response();
             CategoryMappingConfig.RegisterMappings();
             ProductMappingConfig.RegisterMappings();
+            ReviewMappingConfig.RegisterMappings();
             UserProfileMappingConfig.RegisterMappings();
 
             // Register Generic Repository
@@ -86,11 +88,11 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             services.AddScoped<ICartService, CartService>();
             services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<IFavoriteService, FavoriteService>();
+            services.AddScoped<IReviewService, ReviewService>();
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IProfileService, ProfileService>();
             services.AddScoped<IProfileRepository, ProfileRepository>();
-
             // Add CORS policy for development / frontend
             services.AddCors(options =>
             {

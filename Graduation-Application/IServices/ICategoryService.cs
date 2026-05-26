@@ -8,6 +8,12 @@ namespace Graduation_Application.IServices
 {
     public interface ICategoryService
     {
+        // Read operations (existing)
         Task<List<CategoryDto>> GetAllCategoriesAsync();
+
+        // Write operations (admin)
+        Task<CategoryResponseDto> CreateCategoryAsync(CreateCategoryDto createCategoryDto);
+        Task<CategoryResponseDto> UpdateCategoryAsync(int categoryId, UpdateCategoryDto updateCategoryDto);
+        Task<bool> DeleteCategoryAsync(int categoryId);
     }
 }

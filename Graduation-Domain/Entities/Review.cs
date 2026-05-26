@@ -12,6 +12,9 @@ namespace Graduation_domain.Entities
         public int ProductId { get; set; }
         public Product Product { get; set; }
 
+        public int? WorkshopId { get; set; }
+        public Workshop Workshop { get; set; }
+
         [Required(ErrorMessage = "Rating is required")]
         public int Rating { get; set; }
         public string Comment { get; set; }

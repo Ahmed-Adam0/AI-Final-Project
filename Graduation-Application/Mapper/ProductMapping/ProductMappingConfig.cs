@@ -61,6 +61,29 @@ namespace Graduation_Application.Mapper.ProductMapping
                 .Map(dest => dest.Id, src => src.Id)
                 .Map(dest => dest.ImageUrl, src => src.ImageUrl)
                 .Map(dest => dest.IsPrimary, src => src.IsPrimary);
+
+            // Product to ProductResponseDto (for CRUD operations)
+            TypeAdapterConfig<Product, ProductResponseDto>
+                .NewConfig()
+                .Map(dest => dest.Id, src => src.Id)
+                .Map(dest => dest.WorkshopId, src => src.WorkshopId)
+                .Map(dest => dest.CategoryId, src => src.CategoryId)
+                .Map(dest => dest.NameAr, src => src.NameAr)
+                .Map(dest => dest.NameEn, src => src.NameEn)
+                .Map(dest => dest.DescriptionAr, src => src.DescriptionAr)
+                .Map(dest => dest.DescriptionEn, src => src.DescriptionEn)
+                .Map(dest => dest.Price, src => src.Price);
+
+            // CreateProductDto to Product (for creation)
+            TypeAdapterConfig<CreateProductDto, Product>
+                .NewConfig()
+                .Ignore(dest => dest.Id)
+                .Ignore(dest => dest.IsActive)
+                .Ignore(dest => dest.CreatedAt)
+                .Ignore(dest => dest.UpdatedAt)
+                .Ignore(dest => dest.Images)
+                .Ignore(dest => dest.Category)
+                .Ignore(dest => dest.Workshop);
         }
 
         private static string GetMainImageUrl(List<ProductImage> images)
