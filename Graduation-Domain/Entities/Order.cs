@@ -12,6 +12,10 @@ namespace Graduation_domain.Entities
         [Required(ErrorMessage = "TotalPrice is required")]
         public decimal TotalPrice { get; set; }
         public string Status { get; set; }
+        [Required(ErrorMessage = "Address is required")]
+        public string Address { get; set; }
+        public string? PhoneNumber { get; set; }
+        public string? Notes { get; set; }
         public List<OrderItem> Items { get; set; }
         public List<OrderStatusHistory> StatusHistory { get; set; }
         public List<FinalResultImage> FinalResultImages { get; set; }

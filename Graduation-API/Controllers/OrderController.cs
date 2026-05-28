@@ -1,6 +1,7 @@
 using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Graduation_Application.DTOs.OrderDTO;
 using Graduation_Application.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -51,12 +52,12 @@ namespace Graduation_API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateOrder()
+        public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto request)
         {
             try
             {
                 var userId = GetUserId();
-                var order = await _orderService.CreateOrderAsync(userId);
+                var order = await _orderService.CreateOrderAsync(userId, request, User);
                 return Ok(new { Message = "Order created successfully", Data = order });
             }
             catch (Exception ex)
@@ -95,7 +96,7 @@ namespace Graduation_API.Controllers
         }
 
         [HttpPut("{id}/status")]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateOrderStatus(
             int id,
             [FromBody] UpdateOrderStatusRequest request
@@ -105,6 +106,21 @@ namespace Graduation_API.Controllers
             {
                 await _orderService.UpdateOrderStatusAsync(id, request.Status);
                 return Ok(new { Message = "Order status updated" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+        [HttpPut("{id}/cancel")]
+        public async Task<IActionResult> CancelOrder(int id)
+        {
+            try
+            {
+                var userId = GetUserId();
+                await _orderService.CancelOrderAsync(id, userId);
+                return Ok(new { Message = "Order cancelled successfully" });
             }
             catch (Exception ex)
             {
