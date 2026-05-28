@@ -8,6 +8,7 @@ using Graduation_Application.Mapper.CategoryMapping;
 using Graduation_Application.Mapper.ProductMapping;
 using Graduation_Application.Mapper.ReviewMapping;
 using Graduation_Application.Mapper.UsersMapping;
+using Graduation_Application.Options;
 using Graduation_Application.Services;
 using Graduation_domain.Entities;
 using Graduation_infrastructure.AppDbContext;
@@ -88,8 +89,14 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             services.AddScoped<IReviewService, ReviewService>();
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
             services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IWhatsAppService, WhatsAppService>();
+            services.Configure<WhatsAppNotificationSettings>(
+                configuration.GetSection("WhatsAppNotification")
+            );
             services.AddScoped<IProfileService, ProfileService>();
             services.AddScoped<IProfileRepository, ProfileRepository>();
+            services.AddScoped<INotificationService, NotificationService>();
+            services.AddHttpClient();
             // Add CORS policy for development / frontend
             services.AddCors(options =>
             {

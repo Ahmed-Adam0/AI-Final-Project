@@ -19,7 +19,8 @@ namespace Graduation_Application.Services
         public CartService(
             IGenaricRepositories<Cart> cartRepository,
             IGenaricRepositories<CartItem> cartItemRepository,
-            IGenaricRepositories<Product> productRepository)
+            IGenaricRepositories<Product> productRepository
+        )
         {
             _cartRepository = cartRepository;
             _cartItemRepository = cartItemRepository;
@@ -31,27 +32,31 @@ namespace Graduation_Application.Services
             var cart = await _cartRepository
                 .Where(c => c.UserId == userId)
                 .Include(c => c.Items)
-                .ThenInclude(ci => ci.Product)
+                    .ThenInclude(ci => ci.Product)
                 .FirstOrDefaultAsync();
 
             if (cart == null)
             {
-                throw new Exception("Cart not found");
+                cart = new Cart { UserId = userId, Items = new List<CartItem>() };
+                await _cartRepository.AddAsync(cart);
+                await _cartRepository.SaveChangesAsync();
             }
 
             var cartDto = new CartResponseDto
             {
                 Id = cart.Id,
                 UserId = cart.UserId,
-                Items = cart.Items.Select(ci => new CartItemResponseDto
-                {
-                    Id = ci.Id,
-                    ProductId = ci.ProductId,
-                    ProductName = ci.Product.NameEn,
-                    Quantity = ci.Quantity,
-                    Price = ci.Price,
-                    TotalPrice = ci.Price * ci.Quantity
-                }).ToList()
+                Items = cart
+                    .Items.Select(ci => new CartItemResponseDto
+                    {
+                        Id = ci.Id,
+                        ProductId = ci.ProductId,
+                        ProductName = ci.Product.NameEn,
+                        Quantity = ci.Quantity,
+                        Price = ci.Price,
+                        TotalPrice = ci.Price * ci.Quantity,
+                    })
+                    .ToList(),
             };
 
             cartDto.TotalPrice = cartDto.Items.Sum(item => item.TotalPrice);
@@ -91,16 +96,20 @@ namespace Graduation_Application.Services
                     CartId = cart.Id,
                     ProductId = dto.ProductId,
                     Quantity = dto.Quantity,
-                    Price = product.Price
+                    Price = product.Price,
                 };
                 await _cartItemRepository.AddAsync(cartItem);
             }
 
             await _cartItemRepository.SaveChangesAsync();
 
-            var addedItem = existingItem ?? (await _cartItemRepository
-                .Where(ci => ci.CartId == cart.Id && ci.ProductId == dto.ProductId)
-                .FirstOrDefaultAsync());
+            var addedItem =
+                existingItem
+                ?? (
+                    await _cartItemRepository
+                        .Where(ci => ci.CartId == cart.Id && ci.ProductId == dto.ProductId)
+                        .FirstOrDefaultAsync()
+                );
 
             var cartItemResponseDto = new CartItemResponseDto
             {
@@ -109,7 +118,7 @@ namespace Graduation_Application.Services
                 ProductName = product.NameEn,
                 Quantity = addedItem.Quantity,
                 Price = product.Price,
-                TotalPrice = product.Price * addedItem.Quantity
+                TotalPrice = product.Price * addedItem.Quantity,
             };
 
             return cartItemResponseDto;

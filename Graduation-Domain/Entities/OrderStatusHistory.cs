@@ -5,6 +5,9 @@ namespace Graduation_domain.Entities
     public class OrderStatusHistory : BaseEntity<int>
     {
         [Required(ErrorMessage = "Order is required")]
+        public int OrderId { get; set; }
+
+        [Required(ErrorMessage = "Order is required")]
         public Order Order { get; set; }
 
         [Required(ErrorMessage = "Old status is required")]

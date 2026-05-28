@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Graduation_Application.DTOs.OrderDTO;
 using Graduation_Application.IRepositories;
@@ -17,13 +18,15 @@ namespace Graduation_Application.Services
         private readonly IGenaricRepositories<Cart> _cartRepository;
         private readonly IGenaricRepositories<CartItem> _cartItemRepository;
         private readonly ICartService _cartService;
+        private readonly INotificationService _notificationService;
 
         public OrderService(
             IGenaricRepositories<Order> orderRepository,
             IGenaricRepositories<OrderItem> orderItemRepository,
             IGenaricRepositories<Cart> cartRepository,
             IGenaricRepositories<CartItem> cartItemRepository,
-            ICartService cartService
+            ICartService cartService,
+            INotificationService notificationService
         )
         {
             _orderRepository = orderRepository;
@@ -31,6 +34,7 @@ namespace Graduation_Application.Services
             _cartRepository = cartRepository;
             _cartItemRepository = cartItemRepository;
             _cartService = cartService;
+            _notificationService = notificationService;
         }
 
         public async Task<List<OrderResponseDto>> GetAllOrdersAsync()
@@ -39,12 +43,17 @@ namespace Graduation_Application.Services
                 .Where(o => o.Status != "Cancelled")
                 .Include(o => o.Items)
                     .ThenInclude(oi => oi.Product)
+                .Include(o => o.StatusHistory)
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
             return orders.Select(MapToDto).ToList();
         }
 
-        public async Task<OrderResponseDto> CreateOrderAsync(string userId)
+        public async Task<OrderResponseDto> CreateOrderAsync(
+            string userId,
+            CreateOrderDto request,
+            ClaimsPrincipal user
+        )
         {
             var cart = await _cartRepository
                 .Where(c => c.UserId == userId)
@@ -59,15 +68,25 @@ namespace Graduation_Application.Services
 
             decimal totalPrice = cart.Items.Sum(ci => ci.Price * ci.Quantity);
 
+            var phoneNumber = request.PhoneNumber ?? user.FindFirst(ClaimTypes.MobilePhone)?.Value;
+
             var order = new Order
             {
                 UserId = userId,
                 TotalPrice = totalPrice,
                 Status = "Pending",
+                Address = request.Address,
+                PhoneNumber = phoneNumber,
+                Notes = request.Notes,
                 Items = new List<OrderItem>(),
                 StatusHistory = new List<OrderStatusHistory>
                 {
-                    new OrderStatusHistory { OldStatus = null, NewStatus = "Pending" },
+                    new OrderStatusHistory
+                    {
+                        OrderId = 0,
+                        OldStatus = "",
+                        NewStatus = "Pending",
+                    },
                 },
             };
 
@@ -89,6 +108,8 @@ namespace Graduation_Application.Services
             await _orderItemRepository.SaveChangesAsync();
             await _cartService.ClearCartAsync(userId);
 
+            await _notificationService.SendOrderConfirmationAsync(userId, order.Id);
+
             return await GetOrderByIdAsync(order.Id);
         }
 
@@ -98,6 +119,7 @@ namespace Graduation_Application.Services
                 .Where(o => o.Id == orderId)
                 .Include(o => o.Items)
                     .ThenInclude(oi => oi.Product)
+                .Include(o => o.StatusHistory)
                 .FirstOrDefaultAsync();
 
             if (order == null)
@@ -114,10 +136,39 @@ namespace Graduation_Application.Services
                 .Where(o => o.UserId == userId)
                 .Include(o => o.Items)
                     .ThenInclude(oi => oi.Product)
+                .Include(o => o.StatusHistory)
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
 
             return orders.Select(MapToDto).ToList();
+        }
+
+        public async Task CancelOrderAsync(int orderId, string userId)
+        {
+            var order = await _orderRepository
+                .Where(o => o.Id == orderId && o.UserId == userId)
+                .Include(o => o.StatusHistory)
+                .FirstOrDefaultAsync();
+
+            if (order == null)
+            {
+                throw new Exception("Order not found or you don't have permission to cancel it.");
+            }
+
+            if (order.Status == "Delivered" || order.Status == "Cancelled")
+            {
+                throw new Exception($"Cannot cancel order in '{order.Status}' status.");
+            }
+
+            var oldStatus = order.Status;
+            order.Status = "Cancelled";
+            order.StatusHistory.Add(
+                new OrderStatusHistory { OldStatus = oldStatus, NewStatus = "Cancelled" }
+            );
+
+            //_orderRepository.Update(order);
+            await _orderRepository.SaveChangesAsync();
+            await _notificationService.SendOrderCancellationAsync(userId, order.Id);
         }
 
         public async Task UpdateOrderStatusAsync(int orderId, string status)
@@ -151,8 +202,9 @@ namespace Graduation_Application.Services
                 new OrderStatusHistory { OldStatus = oldStatus, NewStatus = status }
             );
 
-            _orderRepository.Update(order);
+            //_orderRepository.Update(order);
             await _orderRepository.SaveChangesAsync();
+            await _notificationService.SendOrderStatusUpdateAsync(order.UserId, order.Id, status);
         }
 
         private OrderResponseDto MapToDto(Order order)
@@ -164,6 +216,9 @@ namespace Graduation_Application.Services
                 TotalPrice = order.TotalPrice,
                 Status = order.Status,
                 CreatedAt = order.CreatedAt,
+                Address = order.Address,
+                PhoneNumber = order.PhoneNumber,
+                Notes = order.Notes,
                 Items = order
                     .Items.Select(oi => new OrderItemResponseDto
                     {
@@ -174,6 +229,18 @@ namespace Graduation_Application.Services
                         UnitPrice = oi.UnitPrice,
                     })
                     .ToList(),
+                StatusHistory =
+                    order.StatusHistory != null
+                        ? order
+                            .StatusHistory.Select(sh => new OrderStatusHistoryResponseDto
+                            {
+                                Id = sh.Id,
+                                OldStatus = sh.OldStatus,
+                                NewStatus = sh.NewStatus,
+                                CreatedAt = sh.CreatedAt,
+                            })
+                            .ToList()
+                        : new List<OrderStatusHistoryResponseDto>(),
             };
         }
     }

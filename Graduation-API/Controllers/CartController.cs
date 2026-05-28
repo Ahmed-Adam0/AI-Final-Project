@@ -1,10 +1,10 @@
 using System;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using Graduation_Application.IServices;
-using Graduation_Application.DTOs.CartDTO;
 using System.Security.Claims;
+using System.Threading.Tasks;
+using Graduation_Application.DTOs.CartDTO;
+using Graduation_Application.IServices;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Graduation_API.Controllers
 {
@@ -23,10 +23,13 @@ namespace Graduation_API.Controllers
         private string GetUserId()
         {
             // Try standard NameIdentifier claim first, then fallback to JWT 'sub', then name or email
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                         ?? User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value
-                         ?? User.FindFirst(ClaimTypes.Name)?.Value
-                         ?? User.FindFirst(ClaimTypes.Email)?.Value;
+            var userId =
+                User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ?? User.FindFirst(
+                    System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub
+                )?.Value
+                ?? User.FindFirst(ClaimTypes.Name)?.Value
+                ?? User.FindFirst(ClaimTypes.Email)?.Value;
 
             if (string.IsNullOrWhiteSpace(userId))
                 throw new UnauthorizedAccessException("User ID not found");

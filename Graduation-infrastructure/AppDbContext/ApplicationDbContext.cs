@@ -64,7 +64,7 @@ namespace Graduation_infrastructure.AppDbContext
                 .Entity<OrderStatusHistory>()
                 .HasOne(h => h.Order)
                 .WithMany(o => o.StatusHistory)
-                .HasForeignKey(h => h.Id);
+                .HasForeignKey(h => h.OrderId);
 
             builder
                 .Entity<Review>()
