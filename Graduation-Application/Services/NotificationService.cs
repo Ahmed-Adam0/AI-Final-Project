@@ -35,7 +35,7 @@ namespace Graduation_Application.Services
             return Task.CompletedTask;
         }
 
-        public async Task SendOrderConfirmationAsync(string userId, int orderId)
+        public async Task SendOrderConfirmationAsync(string userId, int orderId, decimal totalPrice)
         {
             await SendNotificationAsync(
                 userId,
@@ -54,8 +54,14 @@ namespace Graduation_Application.Services
                     new WhatsAppNotificationRequest
                     {
                         To = user.PhoneNumber,
-                        TemplateName = _whatsAppSettings.DefaultTemplateName,
+                        TemplateName = "flow_after_create_order",
                         LanguageCode = _whatsAppSettings.DefaultLanguageCode,
+                        BodyParameters = new List<string>
+                        {
+                            user.FullName,
+                            orderId.ToString(),
+                            totalPrice.ToString(),
+                        },
                     }
                 );
             }
@@ -84,8 +90,14 @@ namespace Graduation_Application.Services
                     new WhatsAppNotificationRequest
                     {
                         To = user.PhoneNumber,
-                        TemplateName = _whatsAppSettings.DefaultTemplateName,
+                        TemplateName = "flow_order_status_update",
                         LanguageCode = _whatsAppSettings.DefaultLanguageCode,
+                        BodyParameters = new List<string>
+                        {
+                            user.FullName,
+                            orderId.ToString(),
+                            newStatus,
+                        },
                     }
                 );
             }
