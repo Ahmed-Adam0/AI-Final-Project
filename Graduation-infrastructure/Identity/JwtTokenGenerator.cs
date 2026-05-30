@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using Graduation_Application.IServices;
 using Graduation_domain.Entities;
+using Graduation_infrastructure.AppDbContext;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
@@ -13,10 +15,12 @@ namespace Graduation_Infrastructure.Identity
     public class JwtTokenGenerator : IJwtTokenGenerator
     {
         private readonly IConfiguration _configuration;
+        private readonly ApplicationDbContext _context;
 
-        public JwtTokenGenerator(IConfiguration configuration)
+        public JwtTokenGenerator(IConfiguration configuration, ApplicationDbContext context)
         {
             _configuration = configuration;
+            _context = context;
         }
 
         public string GenerateToken(ApplicationUser user, IList<string> roles)
@@ -39,6 +43,12 @@ namespace Graduation_Infrastructure.Identity
                 new Claim("name", user.FullName ?? string.Empty),
                 new Claim("lang", user.PreferredLanguage ?? string.Empty)
             };
+
+            var workshop = _context.Workshops.FirstOrDefault(w => w.UserId == user.Id);
+            if (workshop != null)
+            {
+                claims.Add(new Claim("WorkshopId", workshop.Id.ToString()));
+            }
 
             foreach (var role in roles)
             {

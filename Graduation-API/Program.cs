@@ -44,6 +44,7 @@ namespace Graduation_API
             app.MapOpenApi();
             app.MapScalarApiReference();
 
+            app.UseStaticFiles();
             app.UseRouting();
 
             app.UseCors("AllowAll");
