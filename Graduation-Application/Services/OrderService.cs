@@ -102,11 +102,13 @@ namespace Graduation_Application.Services
             await _orderRepository.SaveChangesAsync();
 
             await _cartService.ClearCartAsync(userId);
+
             await _notificationService.SendOrderConfirmationAsync(
                 userId,
                 order.Id,
                 order.TotalPrice
             );
+
             return await GetOrderByIdAsync(order.Id);
         }
 
