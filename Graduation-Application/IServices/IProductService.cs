@@ -23,5 +23,6 @@ namespace Graduation_Application.IServices
         Task<bool> RemoveProductImageAsync(int productId, int workshopId, int imageId);
         Task<ProductImageDto> ReplaceProductImageAsync(int productId, int workshopId, int imageId, string newImageUrl);
         Task<bool> SetPrimaryImageAsync(int productId, int workshopId, int imageId);
+        Task<ProductResponseDto> SetProductStatusAsync(int productId, int workshopId, bool isActive);
     }
 }

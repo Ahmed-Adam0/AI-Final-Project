@@ -9,6 +9,7 @@ namespace Graduation_Application.DTOs.ProductDTO
         public string DescriptionAr { get; set; }
         public string DescriptionEn { get; set; }
         public decimal Price { get; set; }
+        public bool IsActive { get; set; } = true;
     }
 
     public class UpdateProductDto
@@ -19,6 +20,7 @@ namespace Graduation_Application.DTOs.ProductDTO
         public string DescriptionAr { get; set; }
         public string DescriptionEn { get; set; }
         public decimal Price { get; set; }
+        public bool? IsActive { get; set; }
     }
 
     public class ProductResponseDto
@@ -31,5 +33,6 @@ namespace Graduation_Application.DTOs.ProductDTO
         public string DescriptionAr { get; set; }
         public string DescriptionEn { get; set; }
         public decimal Price { get; set; }
+        public bool IsActive { get; set; }
     }
 }
