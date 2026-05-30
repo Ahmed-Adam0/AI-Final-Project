@@ -56,7 +56,7 @@ namespace Graduation_Application.Services
         )
         {
             var cart = await _cartRepository
-                .Where(c => c.UserId == userId)
+                .WhereAsNoTracking(c => c.UserId == userId)
                 .Include(c => c.Items)
                     .ThenInclude(ci => ci.Product)
                 .FirstOrDefaultAsync();
@@ -78,12 +78,14 @@ namespace Graduation_Application.Services
                 Address = request.Address,
                 PhoneNumber = phoneNumber,
                 Notes = request.Notes,
-                Items = cart.Items.Select(ci => new OrderItem
-                {
-                    ProductId = ci.ProductId,
-                    Quantity = ci.Quantity,
-                    UnitPrice = ci.Price,
-                }).ToList(),
+                Items = cart
+                    .Items.Select(ci => new OrderItem
+                    {
+                        ProductId = ci.ProductId,
+                        Quantity = ci.Quantity,
+                        UnitPrice = ci.Price,
+                    })
+                    .ToList(),
                 StatusHistory = new List<OrderStatusHistory>
                 {
                     new OrderStatusHistory
@@ -100,8 +102,11 @@ namespace Graduation_Application.Services
             await _orderRepository.SaveChangesAsync();
 
             await _cartService.ClearCartAsync(userId);
-            await _notificationService.SendOrderConfirmationAsync(userId, order.Id);
-
+            await _notificationService.SendOrderConfirmationAsync(
+                userId,
+                order.Id,
+                order.TotalPrice
+            );
             return await GetOrderByIdAsync(order.Id);
         }
 
