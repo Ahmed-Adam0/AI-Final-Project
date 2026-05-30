@@ -37,6 +37,28 @@ namespace Graduation_Application.ExternalServices.EmailServices
             await SendEmailAsync(toEmail, subject, plainTextContent, htmlContent);
         }
 
+        public async Task SendEmailConfirmationOtpAsync(string toEmail, string otpCode, int expiryMinutes)
+        {
+            var subject = "تأكيد بريدك الإلكتروني";
+            var plainTextContent =
+                $"رمز تأكيد بريدك الإلكتروني: {otpCode}\nصلاحية الرمز: {expiryMinutes} دقائق\n\nلا تشارك هذا الرمز مع أحد.";
+            var htmlContent =
+                $@"
+                <html dir='rtl'>
+                <body style='font-family: Arial, sans-serif; direction: rtl;'>
+                    <h2>تأكيد بريدك الإلكتروني</h2>
+                    <p>استخدم الرمز التالي لتأكيد بريدك الإلكتروني:</p>
+                    <h1 style='color: #28a745; text-align: center;'>{otpCode}</h1>
+                    <p>صلاحية الرمز: <strong>{expiryMinutes} دقائق</strong></p>
+                    <p style='color: #666;'>لا تشارك هذا الرمز مع أحد.</p>
+                    <hr/>
+                    <p style='color: #999; font-size: 12px;'>إذا لم تطلب تأكيد بريدك الإلكتروني، يرجى تجاهل هذا البريد الإلكتروني.</p>
+                </body>
+                </html>";
+
+            await SendEmailAsync(toEmail, subject, plainTextContent, htmlContent);
+        }
+
         public async Task SendOrderCreatedEmailAsync(string toEmail, int orderId)
         {
             var subject = "تأكيد إنشاء الطلب";
@@ -86,18 +108,67 @@ namespace Graduation_Application.ExternalServices.EmailServices
             var fromEmail = _configuration["SendGrid:FromEmail"];
             var fromName = _configuration["SendGrid:FromName"];
 
-            var client = new SendGridClient(apiKey);
-            var from = new EmailAddress(fromEmail, fromName);
-            var to = new EmailAddress(toEmail);
+            if (string.IsNullOrWhiteSpace(apiKey))
+            {
+                // No SendGrid API key configured; log and skip sending email.
+                System.Console.Error.WriteLine("SendGrid ApiKey is not configured. Skipping email send.");
+                return;
+            }
 
-            var msg = MailHelper.CreateSingleEmail(
-                from,
-                to,
-                subject,
-                plainTextContent,
-                htmlContent
-            );
-            await client.SendEmailAsync(msg);
+            try
+            {
+                var client = new SendGridClient(apiKey);
+                var from = new EmailAddress(string.IsNullOrWhiteSpace(fromEmail) ? "no-reply@example.com" : fromEmail, string.IsNullOrWhiteSpace(fromName) ? "NoReply" : fromName);
+                var to = new EmailAddress(toEmail);
+
+                var msg = MailHelper.CreateSingleEmail(
+                    from,
+                    to,
+                    subject,
+                    plainTextContent,
+                    htmlContent
+                );
+
+                var response = await client.SendEmailAsync(msg);
+
+                // Log response for diagnostics
+                var statusCode = (int)response.StatusCode;
+
+                string responseBodyStr = string.Empty;
+                var responseBodyObj = response.Body as object;
+                if (responseBodyObj is string respString)
+                {
+                    responseBodyStr = respString;
+                }
+                else if (responseBodyObj is System.Net.Http.HttpContent httpContent)
+                {
+                    try
+                    {
+                        responseBodyStr = await httpContent.ReadAsStringAsync();
+                    }
+                    catch
+                    {
+                        responseBodyStr = response.ToString();
+                    }
+                }
+                else
+                {
+                    responseBodyStr = response.ToString();
+                }
+
+                if (statusCode >= 200 && statusCode < 300)
+                {
+                    System.Console.WriteLine($"SendGrid email sent to {toEmail} with status {statusCode}. Response: {responseBodyStr}");
+                }
+                else
+                {
+                    System.Console.Error.WriteLine($"SendGrid failed to send email to {toEmail}. Status: {statusCode}. Response: {responseBodyStr}");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                System.Console.Error.WriteLine($"Exception while sending email via SendGrid: {ex.Message}");
+            }
         }
     }
 }
