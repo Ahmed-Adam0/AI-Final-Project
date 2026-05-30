@@ -4,6 +4,8 @@ namespace Graduation_domain.Entities
 {
     public class OrderItem : BaseEntity<int>
     {
+        // Add explicit FK
+        public int OrderId { get; set; }
         public Order Order { get; set; }
 
         [Required(ErrorMessage = "ProductId is required")]
