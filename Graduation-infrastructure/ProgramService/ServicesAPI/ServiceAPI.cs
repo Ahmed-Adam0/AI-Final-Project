@@ -69,6 +69,7 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
 
             // Register Mapping Configurations
             RegisterMappingConfig.RegisterMappings();
+            GooglePayloadMappingConfig.RegisterMappings();
             AuthResponseMappingConfig.Response();
             CategoryMappingConfig.RegisterMappings();
             ProductMappingConfig.RegisterMappings();

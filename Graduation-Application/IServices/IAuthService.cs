@@ -10,5 +10,8 @@ namespace Graduation_Application.IServices
         Task ForgotPasswordAsync(ForgotPasswordDto dto);
         Task<bool> VerifyOtpAsync(VerifyOtpDto dto);
         Task ResetPasswordAsync(ResetPasswordDto dto);
+        Task ConfirmEmailOtpAsync(ConfirmEmailOtpDto dto);
+        Task ResendConfirmationEmailAsync(ResendConfirmationDto dto);
+        Task<AuthResponseDto> GoogleLoginAsync(GoogleLoginDto dto);
     }
 }
