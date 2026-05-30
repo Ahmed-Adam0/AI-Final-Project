@@ -48,23 +48,23 @@ namespace Graduation_Application.Services
                 await _emailService.SendOrderCreatedEmailAsync(user.Email, orderId);
             }
 
-            if (user != null && !string.IsNullOrWhiteSpace(user.PhoneNumber))
-            {
-                await _whatsAppService.SendTemplateAsync(
-                    new WhatsAppNotificationRequest
-                    {
-                        To = user.PhoneNumber,
-                        TemplateName = "flow_after_create_order",
-                        LanguageCode = _whatsAppSettings.DefaultLanguageCode,
-                        BodyParameters = new List<string>
-                        {
-                            user.FullName,
-                            orderId.ToString(),
-                            totalPrice.ToString(),
-                        },
-                    }
-                );
-            }
+            //if (user != null && !string.IsNullOrWhiteSpace(user.PhoneNumber))
+            //{
+            //    await _whatsAppService.SendTemplateAsync(
+            //        new WhatsAppNotificationRequest
+            //        {
+            //            To = user.PhoneNumber,
+            //            TemplateName = "flow_after_create_order",
+            //            LanguageCode = _whatsAppSettings.DefaultLanguageCode,
+            //            BodyParameters = new List<string>
+            //            {
+            //                user.FullName,
+            //                orderId.ToString(),
+            //                totalPrice.ToString(),
+            //            },
+            //        }
+            //    );
+            //}
         }
 
         public async Task SendOrderStatusUpdateAsync(string userId, int orderId, string newStatus)
@@ -84,23 +84,23 @@ namespace Graduation_Application.Services
                 );
             }
 
-            if (user != null && !string.IsNullOrWhiteSpace(user.PhoneNumber))
-            {
-                await _whatsAppService.SendTemplateAsync(
-                    new WhatsAppNotificationRequest
-                    {
-                        To = user.PhoneNumber,
-                        TemplateName = "flow_order_status_update",
-                        LanguageCode = _whatsAppSettings.DefaultLanguageCode,
-                        BodyParameters = new List<string>
-                        {
-                            user.FullName,
-                            orderId.ToString(),
-                            newStatus,
-                        },
-                    }
-                );
-            }
+            //if (user != null && !string.IsNullOrWhiteSpace(user.PhoneNumber))
+            //{
+            //    await _whatsAppService.SendTemplateAsync(
+            //        new WhatsAppNotificationRequest
+            //        {
+            //            To = user.PhoneNumber,
+            //            TemplateName = "flow_order_status_update",
+            //            LanguageCode = _whatsAppSettings.DefaultLanguageCode,
+            //            BodyParameters = new List<string>
+            //            {
+            //                user.FullName,
+            //                orderId.ToString(),
+            //                newStatus,
+            //            },
+            //        }
+            //    );
+            //}
         }
 
         public async Task SendOrderCancellationAsync(string userId, int orderId)

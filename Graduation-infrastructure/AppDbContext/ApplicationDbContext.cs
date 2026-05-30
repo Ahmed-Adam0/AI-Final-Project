@@ -54,11 +54,12 @@ namespace Graduation_infrastructure.AppDbContext
                 .WithMany(c => c.Items)
                 .HasForeignKey(ci => ci.CartId);
 
+            // FIX: use OrderId as the foreign key (not Id)
             builder
                 .Entity<OrderItem>()
                 .HasOne(oi => oi.Order)
                 .WithMany(o => o.Items)
-                .HasForeignKey(oi => oi.Id);
+                .HasForeignKey(oi => oi.OrderId);
 
             builder
                 .Entity<OrderStatusHistory>()

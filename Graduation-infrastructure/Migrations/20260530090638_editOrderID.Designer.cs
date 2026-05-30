@@ -4,6 +4,7 @@ using Graduation_infrastructure.AppDbContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Graduation_infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260530090638_editOrderID")]
+    partial class editOrderID
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -99,9 +102,6 @@ namespace Graduation_infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("GoogleId")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
@@ -121,12 +121,6 @@ namespace Graduation_infrastructure.Migrations
 
                     b.Property<string>("OtpCode")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("OtpEmail")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("OtpEmailExpiry")
-                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("OtpExpiry")
                         .HasColumnType("datetime2");

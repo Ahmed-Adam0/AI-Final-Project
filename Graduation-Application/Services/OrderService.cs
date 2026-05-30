@@ -55,6 +55,7 @@ namespace Graduation_Application.Services
             ClaimsPrincipal user
         )
         {
+            // Read cart WITHOUT tracking to avoid EF tracking collisions
             var cart = await _cartRepository
                 .WhereAsNoTracking(c => c.UserId == userId)
                 .Include(c => c.Items)
@@ -78,6 +79,7 @@ namespace Graduation_Application.Services
                 Address = request.Address,
                 PhoneNumber = phoneNumber,
                 Notes = request.Notes,
+                // Create new OrderItem instances (fresh objects)
                 Items = cart
                     .Items.Select(ci => new OrderItem
                     {
@@ -97,10 +99,11 @@ namespace Graduation_Application.Services
                 },
             };
 
-            // Add the order (with its items) and save once to avoid duplicate tracking
+            // Add only the order (EF will track the order + its new items)
             await _orderRepository.AddAsync(order);
             await _orderRepository.SaveChangesAsync();
 
+            // Clear the cart (this uses the cart service which will operate with its own tracked entities)
             await _cartService.ClearCartAsync(userId);
 
             await _notificationService.SendOrderConfirmationAsync(
