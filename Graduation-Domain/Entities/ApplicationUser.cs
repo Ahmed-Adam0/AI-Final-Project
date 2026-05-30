@@ -13,6 +13,9 @@ namespace Graduation_domain.Entities
         public bool IsActive { get; set; } = true;
         public string? OtpCode { get; set; }
         public DateTime? OtpExpiry { get; set; }
+        public string? OtpEmail { get; set; }
+        public DateTime? OtpEmailExpiry { get; set; }
+        public string? GoogleId { get; set; }
 
         public List<Address>? Addresses { get; set; }
         public List<Cart>? Carts { get; set; }

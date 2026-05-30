@@ -95,6 +95,21 @@ namespace Graduation_Application.Services
                 throw new Exception("User account is inactive");
             }
 
+            // Check if email is confirmed
+            if (!user.EmailConfirmed)
+            {
+                int expiry = int.Parse(_configuration["OtpSettings:ExpiryInMinutes"]!);
+                string otp = new Random().Next(100000, 999999).ToString();
+
+                user.OtpEmail = otp;
+                user.OtpEmailExpiry = DateTime.UtcNow.AddMinutes(expiry);
+
+                await _userManager.UpdateAsync(user);
+                await _emailService.SendEmailConfirmationOtpAsync(dto.Email, otp, expiry);
+
+                throw new Exception("OTP sent to your email to confirm your account.");
+            }
+
             var roles = await _userManager.GetRolesAsync(user);
 
             var token = _jwtTokenGenerator.GenerateToken(user, roles);
@@ -181,6 +196,136 @@ namespace Graduation_Application.Services
             user.OtpExpiry = null;
 
             await _userManager.UpdateAsync(user);
+        }
+
+        public async Task ConfirmEmailOtpAsync(ConfirmEmailOtpDto dto)
+        {
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+
+            if (user == null)
+            {
+                throw new Exception($"User with email '{dto.Email}' not found");
+            }
+
+            if (user.EmailConfirmed)
+            {
+                throw new Exception("Email is already confirmed");
+            }
+
+            if (user.OtpEmail != dto.OtpCodeEmail)
+            {
+                throw new Exception("Invalid OTP code");
+            }
+
+            if (user.OtpEmailExpiry <= DateTime.UtcNow)
+            {
+                throw new Exception("OTP code has expired");
+            }
+
+            user.EmailConfirmed = true;
+            user.OtpEmail = null;
+            user.OtpEmailExpiry = null;
+
+            await _userManager.UpdateAsync(user);
+        }
+
+        public async Task ResendConfirmationEmailAsync(ResendConfirmationDto dto)
+        {
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+
+            if (user == null)
+            {
+                throw new Exception($"User with email '{dto.Email}' not found");
+            }
+
+            if (user.EmailConfirmed)
+            {
+                throw new Exception("Email is already confirmed");
+            }
+
+            int expiry = int.Parse(_configuration["OtpSettings:ExpiryInMinutes"]!);
+            string otp = new Random().Next(100000, 999999).ToString();
+
+            user.OtpEmail = otp;
+            user.OtpEmailExpiry = DateTime.UtcNow.AddMinutes(expiry);
+
+            await _userManager.UpdateAsync(user);
+            await _emailService.SendEmailConfirmationOtpAsync(dto.Email, otp, expiry);
+        }
+
+        public async Task<AuthResponseDto> GoogleLoginAsync(GoogleLoginDto dto)
+        {
+            // Validate Google IdToken
+            var settingsClientId = _configuration["Google:ClientId"];
+            if (string.IsNullOrWhiteSpace(settingsClientId))
+            {
+                throw new Exception("Google ClientId is not configured.");
+            }
+
+            Google.Apis.Auth.GoogleJsonWebSignature.Payload payload;
+            try
+            {
+                var validationSettings = new Google.Apis.Auth.GoogleJsonWebSignature.ValidationSettings()
+                {
+                    Audience = new[] { settingsClientId }
+                };
+
+                payload = await Google.Apis.Auth.GoogleJsonWebSignature.ValidateAsync(dto.IdToken, validationSettings);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Invalid Google Id token: " + ex.Message);
+            }
+
+            if (payload == null || string.IsNullOrWhiteSpace(payload.Email))
+            {
+                throw new Exception("Google token does not contain email.");
+            }
+
+            var user = await _userManager.FindByEmailAsync(payload.Email);
+
+            if (user != null)
+            {
+                // Existing user: update GoogleId if not set
+                if (string.IsNullOrWhiteSpace(user.GoogleId))
+                {
+                    user.GoogleId = payload.Subject; // sub claim
+                    await _userManager.UpdateAsync(user);
+                }
+
+                if (!user.IsActive)
+                {
+                    throw new Exception("User account is inactive");
+                }
+
+                var rolesExisting = await _userManager.GetRolesAsync(user);
+                var tokenExisting = _jwtTokenGenerator.GenerateToken(user, rolesExisting);
+                return (user, tokenExisting, rolesExisting).Adapt<AuthResponseDto>();
+            }
+
+            // Auto-register new user via Mapster mapping from Google payload
+            var newUser = payload.Adapt<ApplicationUser>();
+
+            var createResult = await _userManager.CreateAsync(newUser);
+            if (!createResult.Succeeded)
+            {
+                var errors = string.Join(" ; ", createResult.Errors.Select(e => e.Description));
+                throw new Exception(errors);
+            }
+
+            // Ensure Customer role exists and assign
+            var roleExists = await _roleManager.RoleExistsAsync("Customer");
+            if (!roleExists)
+            {
+                await _roleManager.CreateAsync(new IdentityRole("Customer"));
+            }
+
+            await _userManager.AddToRoleAsync(newUser, "Customer");
+
+            var roles = await _userManager.GetRolesAsync(newUser);
+            var token = _jwtTokenGenerator.GenerateToken(newUser, roles);
+
+            return (newUser, token, roles).Adapt<AuthResponseDto>();
         }
     }
 }

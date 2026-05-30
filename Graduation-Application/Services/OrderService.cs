@@ -105,6 +105,7 @@ namespace Graduation_Application.Services
 
             // Clear the cart (this uses the cart service which will operate with its own tracked entities)
             await _cartService.ClearCartAsync(userId);
+
             await _notificationService.SendOrderConfirmationAsync(
                 userId,
                 order.Id,
