@@ -2,8 +2,11 @@ using Microsoft.AspNetCore.Mvc;
 using Graduation_Application.DTOs.ProductDTO;
 using Graduation_Application.IServices;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 
 namespace Graduation_API.Controllers
 {
@@ -13,10 +16,12 @@ namespace Graduation_API.Controllers
     public class ProductsController : ControllerBase
     {
         private readonly IProductService _productService;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public ProductsController(IProductService productService)
+        public ProductsController(IProductService productService, IWebHostEnvironment webHostEnvironment)
         {
             _productService = productService;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         /// <summary>
@@ -97,7 +102,7 @@ namespace Graduation_API.Controllers
         /// <param name="createProductDto">Product creation data</param>
         /// <returns>Created product details</returns>
         [HttpPost]
-        [Authorize]
+        [Authorize(Roles = "Workshop")]
         public async Task<IActionResult> CreateProduct([FromBody] CreateProductDto createProductDto)
         {
             try
@@ -130,7 +135,7 @@ namespace Graduation_API.Controllers
         /// <param name="updateProductDto">Updated product data</param>
         /// <returns>Updated product details</returns>
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Roles = "Workshop")]
         public async Task<IActionResult> UpdateProduct(int id, [FromBody] UpdateProductDto updateProductDto)
         {
             try
@@ -169,7 +174,7 @@ namespace Graduation_API.Controllers
         /// <param name="id">Product ID</param>
         /// <returns>Success or error message</returns>
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Roles = "Workshop")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
             try
@@ -195,6 +200,204 @@ namespace Graduation_API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Upload and add an image to a product (Vendor only)
+        /// </summary>
+        [HttpPost("{productId}/images")]
+        [Authorize(Roles = "Workshop")]
+        public async Task<IActionResult> UploadImage(int productId, IFormFile file, [FromQuery] bool isPrimary = false)
+        {
+            try
+            {
+                if (productId <= 0)
+                    return BadRequest(new { message = "Invalid product ID" });
+
+                if (file == null || file.Length == 0)
+                    return BadRequest(new { message = "File is required" });
+
+                var workshopId = int.TryParse(User.FindFirst("WorkshopId")?.Value, out var wId) ? wId : 0;
+                if (workshopId <= 0)
+                    return Unauthorized(new { message = "Workshop ID not found in token" });
+
+                var imageUrl = await SaveImageAsync(file);
+                var result = await _productService.AddProductImageAsync(productId, workshopId, imageUrl, isPrimary);
+
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Forbid(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Delete a product image (Vendor only)
+        /// </summary>
+        [HttpDelete("{productId}/images/{imageId}")]
+        [Authorize(Roles = "Workshop")]
+        public async Task<IActionResult> RemoveImage(int productId, int imageId)
+        {
+            try
+            {
+                if (productId <= 0 || imageId <= 0)
+                    return BadRequest(new { message = "Invalid request parameters" });
+
+                var workshopId = int.TryParse(User.FindFirst("WorkshopId")?.Value, out var wId) ? wId : 0;
+                if (workshopId <= 0)
+                    return Unauthorized(new { message = "Workshop ID not found in token" });
+
+                var productDetails = await _productService.GetProductDetailsAsync(productId);
+                var imageDto = productDetails?.Images?.Find(img => img.Id == imageId);
+
+                var result = await _productService.RemoveProductImageAsync(productId, workshopId, imageId);
+                if (!result)
+                    return NotFound(new { message = "Image not found for this product" });
+
+                if (imageDto != null)
+                {
+                    DeleteImageFromDisk(imageDto.ImageUrl);
+                }
+
+                return Ok(new { message = "Image removed successfully" });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Forbid(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Replace a product image (Vendor only)
+        /// </summary>
+        [HttpPut("{productId}/images/{imageId}")]
+        [Authorize(Roles = "Workshop")]
+        public async Task<IActionResult> ReplaceImage(int productId, int imageId, IFormFile file)
+        {
+            try
+            {
+                if (productId <= 0 || imageId <= 0)
+                    return BadRequest(new { message = "Invalid request parameters" });
+
+                if (file == null || file.Length == 0)
+                    return BadRequest(new { message = "File is required" });
+
+                var workshopId = int.TryParse(User.FindFirst("WorkshopId")?.Value, out var wId) ? wId : 0;
+                if (workshopId <= 0)
+                    return Unauthorized(new { message = "Workshop ID not found in token" });
+
+                var productDetails = await _productService.GetProductDetailsAsync(productId);
+                var oldImageDto = productDetails?.Images?.Find(img => img.Id == imageId);
+
+                var newImageUrl = await SaveImageAsync(file);
+                var result = await _productService.ReplaceProductImageAsync(productId, workshopId, imageId, newImageUrl);
+
+                if (oldImageDto != null)
+                {
+                    DeleteImageFromDisk(oldImageDto.ImageUrl);
+                }
+
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Forbid(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Set primary image for a product (Vendor only)
+        /// </summary>
+        [HttpPut("{productId}/images/{imageId}/primary")]
+        [Authorize(Roles = "Workshop")]
+        public async Task<IActionResult> SetPrimaryImage(int productId, int imageId)
+        {
+            try
+            {
+                if (productId <= 0 || imageId <= 0)
+                    return BadRequest(new { message = "Invalid request parameters" });
+
+                var workshopId = int.TryParse(User.FindFirst("WorkshopId")?.Value, out var wId) ? wId : 0;
+                if (workshopId <= 0)
+                    return Unauthorized(new { message = "Workshop ID not found in token" });
+
+                var result = await _productService.SetPrimaryImageAsync(productId, workshopId, imageId);
+                if (!result)
+                    return NotFound(new { message = "Image not found for this product" });
+
+                return Ok(new { message = "Primary image updated successfully" });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Forbid(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        private async Task<string> SaveImageAsync(IFormFile file)
+        {
+            var webRootPath = _webHostEnvironment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var productsFolder = Path.Combine(webRootPath, "images", "products");
+
+            if (!Directory.Exists(productsFolder))
+            {
+                Directory.CreateDirectory(productsFolder);
+            }
+
+            var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
+            var filePath = Path.Combine(productsFolder, uniqueFileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            return $"/images/products/{uniqueFileName}";
+        }
+
+        private void DeleteImageFromDisk(string imageUrl)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(imageUrl)) return;
+
+                var webRootPath = _webHostEnvironment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                var relativePath = imageUrl.TrimStart('/');
+                var physicalPath = Path.Combine(webRootPath, relativePath);
+
+                if (System.IO.File.Exists(physicalPath))
+                {
+                    System.IO.File.Delete(physicalPath);
+                }
+            }
+            catch
+            {
+                // Soft fail disk write error to prevent DB rollback
             }
         }
     }

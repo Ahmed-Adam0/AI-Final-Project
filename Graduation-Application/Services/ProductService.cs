@@ -16,10 +16,17 @@ namespace Graduation_Application.Services
     public class ProductService : IProductService
     {
         private readonly IGenaricRepositories<Product> _productRepository;
+        private readonly IGenaricRepositories<Category> _categoryRepository;
+        private readonly IGenaricRepositories<ProductImage> _productImageRepository;
 
-        public ProductService(IGenaricRepositories<Product> productRepository)
+        public ProductService(
+            IGenaricRepositories<Product> productRepository,
+            IGenaricRepositories<Category> categoryRepository,
+            IGenaricRepositories<ProductImage> productImageRepository)
         {
             _productRepository = productRepository;
+            _categoryRepository = categoryRepository;
+            _productImageRepository = productImageRepository;
         }
 
         public async Task<PaginatedResult<ProductDto>> GetProductsAsync(ProductFilterDto filter)
@@ -123,6 +130,11 @@ namespace Graduation_Application.Services
             if (createProductDto == null)
                 throw new ArgumentNullException(nameof(createProductDto));
 
+            // Validate Category exists
+            var categoryExists = await _categoryRepository.AnyAsync(c => c.Id == createProductDto.CategoryId);
+            if (!categoryExists)
+                throw new ArgumentException($"Category with ID {createProductDto.CategoryId} does not exist.");
+
             // Create new product entity
             var product = new Product
             {
@@ -154,6 +166,11 @@ namespace Graduation_Application.Services
             if (product.WorkshopId != workshopId)
                 throw new UnauthorizedAccessException("You do not have permission to update this product.");
 
+            // Validate Category exists
+            var categoryExists = await _categoryRepository.AnyAsync(c => c.Id == updateProductDto.CategoryId);
+            if (!categoryExists)
+                throw new ArgumentException($"Category with ID {updateProductDto.CategoryId} does not exist.");
+
             // Update product properties
             product.CategoryId = updateProductDto.CategoryId;
             product.NameAr = updateProductDto.NameAr;
@@ -181,6 +198,129 @@ namespace Graduation_Application.Services
 
             _productRepository.Delete(product);
             await _productRepository.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<ProductImageDto> AddProductImageAsync(int productId, int workshopId, string imageUrl, bool isPrimary)
+        {
+            var product = await _productRepository.GetByIdAsync(productId);
+            if (product == null)
+                throw new ArgumentException($"Product with ID {productId} not found.");
+
+            if (product.WorkshopId != workshopId)
+                throw new UnauthorizedAccessException("You do not have permission to manage this product.");
+
+            // Check if this is the first image for this product
+            var hasImages = await _productImageRepository.AnyAsync(pi => pi.ProductId == productId);
+            if (!hasImages)
+            {
+                isPrimary = true;
+            }
+            else if (isPrimary)
+            {
+                // Set all other images to false
+                var existingImages = await _productImageRepository.Where(pi => pi.ProductId == productId).ToListAsync();
+                foreach (var img in existingImages)
+                {
+                    if (img.IsPrimary)
+                    {
+                        img.IsPrimary = false;
+                        _productImageRepository.Update(img);
+                    }
+                }
+            }
+
+            var newImage = new ProductImage
+            {
+                ProductId = productId,
+                ImageUrl = imageUrl,
+                IsPrimary = isPrimary,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _productImageRepository.AddAsync(newImage);
+            await _productImageRepository.SaveChangesAsync();
+
+            return newImage.Adapt<ProductImageDto>();
+        }
+
+        public async Task<bool> RemoveProductImageAsync(int productId, int workshopId, int imageId)
+        {
+            var image = await _productImageRepository.GetByIdAsync(imageId);
+            if (image == null || image.ProductId != productId)
+                return false;
+
+            var product = await _productRepository.GetByIdAsync(productId);
+            if (product == null || product.WorkshopId != workshopId)
+                throw new UnauthorizedAccessException("You do not have permission to manage this product.");
+
+            bool wasPrimary = image.IsPrimary;
+
+            _productImageRepository.Delete(image);
+            await _productImageRepository.SaveChangesAsync();
+
+            // If we deleted the primary image, set another remaining image as primary (if any)
+            if (wasPrimary)
+            {
+                var remainingImages = await _productImageRepository.Where(pi => pi.ProductId == productId).ToListAsync();
+                var firstRemaining = remainingImages.FirstOrDefault();
+                if (firstRemaining != null)
+                {
+                    firstRemaining.IsPrimary = true;
+                    firstRemaining.UpdatedAt = DateTime.UtcNow;
+                    _productImageRepository.Update(firstRemaining);
+                    await _productImageRepository.SaveChangesAsync();
+                }
+            }
+
+            return true;
+        }
+
+        public async Task<ProductImageDto> ReplaceProductImageAsync(int productId, int workshopId, int imageId, string newImageUrl)
+        {
+            var image = await _productImageRepository.GetByIdAsync(imageId);
+            if (image == null || image.ProductId != productId)
+                throw new ArgumentException($"Image with ID {imageId} not found for this product.");
+
+            var product = await _productRepository.GetByIdAsync(productId);
+            if (product == null || product.WorkshopId != workshopId)
+                throw new UnauthorizedAccessException("You do not have permission to manage this product.");
+
+            image.ImageUrl = newImageUrl;
+            image.UpdatedAt = DateTime.UtcNow;
+
+            _productImageRepository.Update(image);
+            await _productImageRepository.SaveChangesAsync();
+
+            return image.Adapt<ProductImageDto>();
+        }
+
+        public async Task<bool> SetPrimaryImageAsync(int productId, int workshopId, int imageId)
+        {
+            var image = await _productImageRepository.GetByIdAsync(imageId);
+            if (image == null || image.ProductId != productId)
+                return false;
+
+            var product = await _productRepository.GetByIdAsync(productId);
+            if (product == null || product.WorkshopId != workshopId)
+                throw new UnauthorizedAccessException("You do not have permission to manage this product.");
+
+            var otherImages = await _productImageRepository.Where(pi => pi.ProductId == productId && pi.Id != imageId).ToListAsync();
+            foreach (var img in otherImages)
+            {
+                if (img.IsPrimary)
+                {
+                    img.IsPrimary = false;
+                    _productImageRepository.Update(img);
+                }
+            }
+
+            image.IsPrimary = true;
+            image.UpdatedAt = DateTime.UtcNow;
+
+            _productImageRepository.Update(image);
+            await _productImageRepository.SaveChangesAsync();
 
             return true;
         }

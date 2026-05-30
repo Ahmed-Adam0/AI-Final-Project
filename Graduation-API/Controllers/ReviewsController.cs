@@ -89,6 +89,10 @@ namespace Graduation_API.Controllers
                 if (string.IsNullOrEmpty(userId))
                     return Unauthorized(new { message = "User ID not found in token" });
 
+                // Block vendors from creating reviews
+                if (User.IsInRole("Workshop"))
+                    return StatusCode(403, new { message = "Vendors are not allowed to create reviews." });
+
                 var result = await _reviewService.CreateReviewAsync(userId, createReviewDto);
                 return CreatedAtAction(nameof(GetReviewDetails), new { id = result.Id }, result);
             }
@@ -165,6 +169,100 @@ namespace Graduation_API.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get all reviews for products owned by the logged-in vendor
+        /// </summary>
+        [HttpGet("vendor")]
+        [Authorize(Roles = "Workshop")]
+        public async Task<IActionResult> GetVendorReviews()
+        {
+            try
+            {
+                var workshopId = int.TryParse(User.FindFirst("WorkshopId")?.Value, out var wId) ? wId : 0;
+                if (workshopId <= 0)
+                    return Unauthorized(new { message = "Workshop ID not found in token" });
+
+                var reviews = await _reviewService.GetVendorReviewsAsync(workshopId);
+                return Ok(reviews);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Vendor reply to a product review
+        /// </summary>
+        [HttpPost("{reviewId}/reply")]
+        [Authorize(Roles = "Workshop")]
+        public async Task<IActionResult> ReplyToReview(int reviewId, [FromBody] VendorReplyDto replyDto)
+        {
+            try
+            {
+                if (reviewId <= 0)
+                    return BadRequest(new { message = "Invalid review ID" });
+
+                if (replyDto == null || string.IsNullOrWhiteSpace(replyDto.Reply))
+                    return BadRequest(new { message = "Reply content is required" });
+
+                var workshopId = int.TryParse(User.FindFirst("WorkshopId")?.Value, out var wId) ? wId : 0;
+                if (workshopId <= 0)
+                    return Unauthorized(new { message = "Workshop ID not found in token" });
+
+                var result = await _reviewService.ReplyToReviewAsync(reviewId, workshopId, replyDto.Reply);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Forbid(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Vendor report a product review
+        /// </summary>
+        [HttpPost("{reviewId}/report")]
+        [Authorize(Roles = "Workshop")]
+        public async Task<IActionResult> ReportReview(int reviewId, [FromBody] ReportReviewDto reportDto)
+        {
+            try
+            {
+                if (reviewId <= 0)
+                    return BadRequest(new { message = "Invalid review ID" });
+
+                if (reportDto == null || string.IsNullOrWhiteSpace(reportDto.Reason))
+                    return BadRequest(new { message = "Report reason is required" });
+
+                var workshopId = int.TryParse(User.FindFirst("WorkshopId")?.Value, out var wId) ? wId : 0;
+                if (workshopId <= 0)
+                    return Unauthorized(new { message = "Workshop ID not found in token" });
+
+                var result = await _reviewService.ReportReviewAsync(reviewId, workshopId, reportDto.Reason);
+                return Ok(new { message = "Review reported successfully" });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Forbid(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
             }
         }
     }

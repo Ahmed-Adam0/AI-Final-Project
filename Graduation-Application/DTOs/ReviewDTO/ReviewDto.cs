@@ -11,6 +11,8 @@ namespace Graduation_Application.DTOs.ReviewDTO
         public int Rating { get; set; }
         public string Comment { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string? VendorReply { get; set; }
+        public DateTime? ReplyCreatedAt { get; set; }
     }
 
     public class CreateReviewDto
@@ -30,6 +32,8 @@ namespace Graduation_Application.DTOs.ReviewDTO
         public int Rating { get; set; }
         public string Comment { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string? VendorReply { get; set; }
+        public DateTime? ReplyCreatedAt { get; set; }
     }
 
     public class AverageRatingDto
@@ -37,5 +41,15 @@ namespace Graduation_Application.DTOs.ReviewDTO
         public int ProductId { get; set; }
         public decimal AverageRating { get; set; }
         public int TotalReviews { get; set; }
+    }
+
+    public class VendorReplyDto
+    {
+        public string Reply { get; set; }
+    }
+
+    public class ReportReviewDto
+    {
+        public string Reason { get; set; }
     }
 }

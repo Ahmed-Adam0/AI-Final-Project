@@ -17,5 +17,11 @@ namespace Graduation_Application.IServices
         Task<ProductResponseDto> CreateProductAsync(int workshopId, CreateProductDto createProductDto);
         Task<ProductResponseDto> UpdateProductAsync(int productId, int workshopId, UpdateProductDto updateProductDto);
         Task<bool> DeleteProductAsync(int productId, int workshopId);
+
+        // Product Image System
+        Task<ProductImageDto> AddProductImageAsync(int productId, int workshopId, string imageUrl, bool isPrimary);
+        Task<bool> RemoveProductImageAsync(int productId, int workshopId, int imageId);
+        Task<ProductImageDto> ReplaceProductImageAsync(int productId, int workshopId, int imageId, string newImageUrl);
+        Task<bool> SetPrimaryImageAsync(int productId, int workshopId, int imageId);
     }
 }
