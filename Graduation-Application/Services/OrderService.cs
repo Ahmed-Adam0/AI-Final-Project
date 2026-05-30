@@ -56,7 +56,7 @@ namespace Graduation_Application.Services
         )
         {
             var cart = await _cartRepository
-                .Where(c => c.UserId == userId)
+                .WhereAsNoTracking(c => c.UserId == userId)
                 .Include(c => c.Items)
                     .ThenInclude(ci => ci.Product)
                 .FirstOrDefaultAsync();
@@ -78,7 +78,14 @@ namespace Graduation_Application.Services
                 Address = request.Address,
                 PhoneNumber = phoneNumber,
                 Notes = request.Notes,
-                Items = new List<OrderItem>(),
+                Items = cart
+                    .Items.Select(ci => new OrderItem
+                    {
+                        ProductId = ci.ProductId,
+                        Quantity = ci.Quantity,
+                        UnitPrice = ci.Price,
+                    })
+                    .ToList(),
                 StatusHistory = new List<OrderStatusHistory>
                 {
                     new OrderStatusHistory
@@ -90,22 +97,10 @@ namespace Graduation_Application.Services
                 },
             };
 
+            // Add the order (with its items) and save once to avoid duplicate tracking
             await _orderRepository.AddAsync(order);
             await _orderRepository.SaveChangesAsync();
 
-            foreach (var cartItem in cart.Items)
-            {
-                var orderItem = new OrderItem
-                {
-                    ProductId = cartItem.ProductId,
-                    Quantity = cartItem.Quantity,
-                    UnitPrice = cartItem.Price,
-                };
-                order.Items.Add(orderItem);
-                await _orderItemRepository.AddAsync(orderItem);
-            }
-
-            await _orderItemRepository.SaveChangesAsync();
             await _cartService.ClearCartAsync(userId);
 
             await _notificationService.SendOrderConfirmationAsync(
