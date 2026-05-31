@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Graduation_Application.DTOs.VendorDTO;
+using Graduation_Application.DTOs.UserDTO;
 using Graduation_Application.IServices;
 using Graduation_Application.IRepositories;
 using Graduation_domain.Entities;
@@ -21,6 +22,7 @@ namespace Graduation_Application.Services
         private readonly IGenaricRepositories<Product> _productRepository;
         private readonly IFileService _fileService;
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
+        private readonly IAuthService _authService;
 
         public VendorService(
             UserManager<ApplicationUser> userManager,
@@ -28,7 +30,8 @@ namespace Graduation_Application.Services
             IGenaricRepositories<Workshop> workshopRepository,
             IGenaricRepositories<Product> productRepository,
             IFileService fileService,
-            IJwtTokenGenerator jwtTokenGenerator)
+            IJwtTokenGenerator jwtTokenGenerator,
+            IAuthService authService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -36,6 +39,7 @@ namespace Graduation_Application.Services
             _productRepository = productRepository;
             _fileService = fileService;
             _jwtTokenGenerator = jwtTokenGenerator;
+            _authService = authService;
         }
 
         public async Task CreateVendorAsync(CreateVendorDto dto)
@@ -84,6 +88,10 @@ namespace Graduation_Application.Services
                 var errors = string.Join(" ; ", assignRoleResult.Errors.Select(e => e.Description));
                 throw new Exception($"Failed to assign Vendor role: {errors}");
             }
+
+            await _authService.ResendConfirmationEmailAsync(
+                new ResendConfirmationDto { Email = dto.Email }
+            );
 
             // Map CreateVendorDto → Workshop using Mapster
             var workshop = dto.Adapt<Workshop>();
@@ -135,10 +143,21 @@ namespace Graduation_Application.Services
                 throw new Exception("Invalid email or password");
             }
 
+            // Check email confirmation first
+            if (!user.EmailConfirmed)
+            {
+                await _authService.ResendConfirmationEmailAsync(
+                    new ResendConfirmationDto { Email = dto.Email }
+                );
+                throw new Exception("Email not confirmed. OTP sent to your email.");
+            }
+
+            // Check admin approval
             if (!user.IsActive)
             {
-                throw new Exception("Account is inactive");
+                throw new Exception("Your account is pending admin approval.");
             }
+
 
             var isVendor = await _userManager.IsInRoleAsync(user, "Vendor");
             if (!isVendor)
@@ -161,13 +180,13 @@ namespace Graduation_Application.Services
 
             var workshop = await _workshopRepository.Where(w => w.UserId == userId).Include(w => w.WorkshopAddress).FirstOrDefaultAsync();
             if (workshop == null) throw new Exception("Workshop not found");
+            if (!user.EmailConfirmed)
+                throw new Exception("Email not confirmed.");
 
+            if (!user.IsActive)
+                throw new Exception("Your account is pending admin approval.");
             var dto = (user, workshop).Adapt<VendorProfileDto>();
-            if (workshop.WorkshopAddress != null)
-            {
-                dto.WorkshopAddress = workshop.WorkshopAddress.Adapt<WorkshopAddressDto>();
-            }
-
+            dto.WorkshopAddress = workshop.WorkshopAddress?.Adapt<WorkshopAddressDto>();
             return dto;
         }
 
@@ -178,52 +197,45 @@ namespace Graduation_Application.Services
 
             var workshop = await _workshopRepository.Where(w => w.UserId == userId).Include(w => w.WorkshopAddress).FirstOrDefaultAsync();
             if (workshop == null) throw new Exception("Workshop not found");
+            if (!user.EmailConfirmed)
+                throw new Exception("Email not confirmed.");
 
-            // Update user fields if not null (FullName, PhoneNumber, PreferredLanguage)
-            if (!string.IsNullOrWhiteSpace(dto.FullName))
+            if (!user.IsActive)
+                throw new Exception("Your account is pending admin approval.");
+            // 1. Update non-email user fields via Mapster
+            dto.Adapt(user);
+
+            // 2. Update Email via Identity if provided
+            if (!string.IsNullOrWhiteSpace(dto.Email))
             {
-                user.FullName = dto.FullName;
+                var setEmailResult = await _userManager.SetEmailAsync(user, dto.Email);
+                if (!setEmailResult.Succeeded)
+                {
+                    var errors = string.Join(" ; ", setEmailResult.Errors.Select(e => e.Description));
+                    throw new Exception($"Failed to set email: {errors}");
+                }
+
+                var setUserNameResult = await _userManager.SetUserNameAsync(user, dto.Email);
+                if (!setUserNameResult.Succeeded)
+                {
+                    var errors = string.Join(" ; ", setUserNameResult.Errors.Select(e => e.Description));
+                    throw new Exception($"Failed to set username: {errors}");
+                }
+            }
+            else
+            {
+                var updateUserResult = await _userManager.UpdateAsync(user);
+                if (!updateUserResult.Succeeded)
+                {
+                    var errors = string.Join(" ; ", updateUserResult.Errors.Select(e => e.Description));
+                    throw new Exception($"Failed to update user: {errors}");
+                }
             }
 
-            if (!string.IsNullOrWhiteSpace(dto.PhoneNumber))
-            {
-                user.PhoneNumber = dto.PhoneNumber;
-            }
+            // 3. Update workshop fields via Mapster
+            dto.Adapt(workshop);
 
-            if (!string.IsNullOrWhiteSpace(dto.PreferredLanguage))
-            {
-                user.PreferredLanguage = dto.PreferredLanguage;
-            }
-
-            var updateUserResult = await _userManager.UpdateAsync(user);
-            if (!updateUserResult.Succeeded)
-            {
-                var errors = string.Join(" ; ", updateUserResult.Errors.Select(e => e.Description));
-                throw new Exception($"Failed to update user: {errors}");
-            }
-
-            // Update workshop fields if not null
-            if (!string.IsNullOrWhiteSpace(dto.WorkshopNameAr))
-            {
-                workshop.WorkshopNameAr = dto.WorkshopNameAr;
-            }
-
-            if (!string.IsNullOrWhiteSpace(dto.WorkshopNameEn))
-            {
-                workshop.WorkshopNameEn = dto.WorkshopNameEn;
-            }
-
-            if (!string.IsNullOrWhiteSpace(dto.DescriptionAr))
-            {
-                workshop.DescriptionAr = dto.DescriptionAr;
-            }
-
-            if (!string.IsNullOrWhiteSpace(dto.DescriptionEn))
-            {
-                workshop.DescriptionEn = dto.DescriptionEn;
-            }
-
-            // Handle WorkshopAddress updates
+            // 4. WorkshopAddress — keep existing logic unchanged
             if (dto.WorkshopAddress != null)
             {
                 if (workshop.WorkshopAddress != null)
@@ -242,16 +254,11 @@ namespace Graduation_Application.Services
                 }
             }
 
+            // 5. Save and return
             _workshopRepository.Update(workshop);
             await _workshopRepository.SaveChangesAsync();
-
-            // Return updated VendorProfileDto
             var result = (user, workshop).Adapt<VendorProfileDto>();
-            if (workshop.WorkshopAddress != null)
-            {
-                result.WorkshopAddress = workshop.WorkshopAddress.Adapt<WorkshopAddressDto>();
-            }
-
+            result.WorkshopAddress = workshop.WorkshopAddress?.Adapt<WorkshopAddressDto>();
             return result;
         }
 
