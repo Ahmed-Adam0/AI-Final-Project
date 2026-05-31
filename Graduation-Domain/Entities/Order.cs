@@ -9,6 +9,9 @@ namespace Graduation_domain.Entities
         public string UserId { get; set; }
         public ApplicationUser User { get; set; }
 
+        public int? WorkshopId { get; set; }
+        public Workshop Workshop { get; set; }
+
         [Required(ErrorMessage = "TotalPrice is required")]
         public decimal TotalPrice { get; set; }
         public string Status { get; set; }
