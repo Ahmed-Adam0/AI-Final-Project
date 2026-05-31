@@ -1,0 +1,289 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using Graduation_Application.DTOs.OrderDTO;
+using Graduation_Application.IRepositories;
+using Graduation_Application.IServices;
+using Graduation_domain.Entities;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Graduation_API.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize]
+    public class VendorOrdersController : ControllerBase
+    {
+        private readonly IVendorOrderService _vendorOrderService;
+        private readonly IGenaricRepositories<Workshop> _workshopRepository;
+
+        public VendorOrdersController(
+            IVendorOrderService vendorOrderService,
+            IGenaricRepositories<Workshop> workshopRepository
+        )
+        {
+            _vendorOrderService = vendorOrderService;
+            _workshopRepository = workshopRepository;
+        }
+
+        private string GetUserId()
+        {
+            var userId =
+                User.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? User.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)
+                ?? User.FindFirstValue(ClaimTypes.Name)
+                ?? User.FindFirstValue(ClaimTypes.Email);
+
+            if (string.IsNullOrWhiteSpace(userId))
+                throw new UnauthorizedAccessException("Authenticated user ID not found");
+
+            return userId;
+        }
+
+        private async Task<int> GetVendorWorkshopIdAsync()
+        {
+            var workshopIdClaim = User.FindFirstValue("WorkshopId");
+            if (int.TryParse(workshopIdClaim, out var workshopId))
+                return workshopId;
+
+            var userId = GetUserId();
+            var workshop = await _workshopRepository.FirstOrDefaultAsync(w => w.UserId == userId);
+
+            if (workshop == null)
+                throw new KeyNotFoundException("Workshop not found for the authenticated user");
+
+            return workshop.Id;
+        }
+
+        /// <summary>
+        /// Get vendor orders with filtering and pagination
+        /// </summary>
+        [HttpPost("orders/filter")]
+        public async Task<IActionResult> GetVendorOrders([FromBody] VendorOrdersFilterDto filter)
+        {
+            try
+            {
+                var workshopId = await GetVendorWorkshopIdAsync();
+                var (orders, totalCount) = await _vendorOrderService.GetVendorOrdersAsync(
+                    workshopId,
+                    filter
+                );
+
+                return Ok(
+                    new
+                    {
+                        data = orders,
+                        totalCount,
+                        pageNumber = filter.PageNumber,
+                        pageSize = filter.PageSize,
+                        totalPages = (int)System.Math.Ceiling((double)totalCount / filter.PageSize),
+                    }
+                );
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get specific order details
+        /// </summary>
+        [HttpGet("orders/{orderId}")]
+        public async Task<IActionResult> GetOrderDetails(int orderId)
+        {
+            try
+            {
+                var workshopId = await GetVendorWorkshopIdAsync();
+                var orderDetails = await _vendorOrderService.GetVendorOrderDetailsAsync(
+                    orderId,
+                    workshopId
+                );
+                return Ok(orderDetails);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Update order status
+        /// </summary>
+        [HttpPut("orders/{orderId}/status")]
+        public async Task<IActionResult> UpdateOrderStatus(
+            int orderId,
+            [FromBody] UpdateStatusDto request
+        )
+        {
+            try
+            {
+                var workshopId = await GetVendorWorkshopIdAsync();
+                await _vendorOrderService.UpdateVendorOrderStatusAsync(
+                    orderId,
+                    workshopId,
+                    request.NewStatus
+                );
+                return Ok(new { message = "Status updated successfully" });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get revenue statistics
+        /// </summary>
+        [HttpGet("analytics/revenue")]
+        public async Task<IActionResult> GetRevenueStatistics(
+            [FromQuery] DateTime? startDate,
+            [FromQuery] DateTime? endDate
+        )
+        {
+            try
+            {
+                var workshopId = await GetVendorWorkshopIdAsync();
+                var statistics = await _vendorOrderService.GetVendorRevenueStatisticsAsync(
+                    workshopId,
+                    startDate,
+                    endDate
+                );
+                return Ok(statistics);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get orders analytics
+        /// </summary>
+        [HttpGet("analytics/orders")]
+        public async Task<IActionResult> GetOrdersAnalytics(
+            [FromQuery] DateTime? startDate,
+            [FromQuery] DateTime? endDate
+        )
+        {
+            try
+            {
+                var workshopId = await GetVendorWorkshopIdAsync();
+                var analytics = await _vendorOrderService.GetVendorOrderAnalyticsAsync(
+                    workshopId,
+                    startDate,
+                    endDate
+                );
+                return Ok(analytics);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get dashboard metrics
+        /// </summary>
+        [HttpGet("dashboard/metrics")]
+        public async Task<IActionResult> GetDashboardMetrics()
+        {
+            try
+            {
+                var workshopId = await GetVendorWorkshopIdAsync();
+                var metrics = await _vendorOrderService.GetVendorDashboardMetricsAsync(workshopId);
+                return Ok(metrics);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get activity report
+        /// </summary>
+        [HttpGet("reports/activity")]
+        public async Task<IActionResult> GetActivityReport(
+            [FromQuery] string reportType,
+            [FromQuery] DateTime startDate,
+            [FromQuery] DateTime endDate
+        )
+        {
+            try
+            {
+                var workshopId = await GetVendorWorkshopIdAsync();
+                var report = await _vendorOrderService.GetVendorActivityReportAsync(
+                    workshopId,
+                    reportType,
+                    startDate,
+                    endDate
+                );
+                return Ok(report);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+    }
+}

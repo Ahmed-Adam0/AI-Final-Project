@@ -86,6 +86,7 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<ICartService, CartService>();
             services.AddScoped<IOrderService, OrderService>();
+            services.AddScoped<IVendorOrderService, VendorOrderService>();
             services.AddScoped<IFavoriteService, FavoriteService>();
             services.AddScoped<IReviewService, ReviewService>();
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();

@@ -9,7 +9,8 @@ public class ApplicationDbSeeder
         IServiceProvider serviceProvider,
         UserManager<ApplicationUser> userManager,
         RoleManager<IdentityRole> roleManager,
-        ApplicationDbContext context)
+        ApplicationDbContext context
+    )
     {
         await context.Database.MigrateAsync();
 
@@ -35,7 +36,7 @@ public class ApplicationDbSeeder
             {
                 UserName = "workshop@test.com",
                 Email = "workshop@test.com",
-                EmailConfirmed = true
+                EmailConfirmed = true,
             };
 
             await userManager.CreateAsync(workshopUser, "Password123!");
@@ -53,10 +54,9 @@ public class ApplicationDbSeeder
                 WorkshopNameEn = "Modern Furniture Workshop",
                 DescriptionAr = "أفضل ورشة أثاث",
                 DescriptionEn = "Best furniture workshop",
-                Address = "Cairo",
                 IsVerified = true,
                 IsActive = true,
-                UserId = workshopUser.Id
+                UserId = workshopUser.Id,
             };
 
             context.Workshops.Add(workshop);
@@ -90,18 +90,20 @@ public class ApplicationDbSeeder
 
             for (int i = 1; i <= 20; i++)
             {
-                products.Add(new Product
-                {
-                    NameAr = $"منتج {i}",
-                    NameEn = $"Product {i}",
-                    DescriptionAr = "وصف المنتج",
-                    DescriptionEn = "Product description",
-                    Price = 1000 + (i * 100),
-                    CategoryId = categoryId,
-                    WorkshopId = workshopId,
-                    IsActive = true,
-                    CreatedAt = DateTime.Now
-                });
+                products.Add(
+                    new Product
+                    {
+                        NameAr = $"منتج {i}",
+                        NameEn = $"Product {i}",
+                        DescriptionAr = "وصف المنتج",
+                        DescriptionEn = "Product description",
+                        Price = 1000 + (i * 100),
+                        CategoryId = categoryId,
+                        WorkshopId = workshopId,
+                        IsActive = true,
+                        CreatedAt = DateTime.Now,
+                    }
+                );
             }
 
             context.Products.AddRange(products);
