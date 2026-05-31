@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Graduation_Application.DTOs.VendorDTO;
+using Graduation_Application.DTOs.UserDTO;
 using Graduation_Application.IServices;
 using Graduation_Application.IRepositories;
 using Graduation_domain.Entities;
@@ -21,6 +22,7 @@ namespace Graduation_Application.Services
         private readonly IGenaricRepositories<Product> _productRepository;
         private readonly IFileService _fileService;
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
+        private readonly IAuthService _authService;
 
         public VendorService(
             UserManager<ApplicationUser> userManager,
@@ -28,7 +30,8 @@ namespace Graduation_Application.Services
             IGenaricRepositories<Workshop> workshopRepository,
             IGenaricRepositories<Product> productRepository,
             IFileService fileService,
-            IJwtTokenGenerator jwtTokenGenerator)
+            IJwtTokenGenerator jwtTokenGenerator,
+            IAuthService authService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -36,6 +39,7 @@ namespace Graduation_Application.Services
             _productRepository = productRepository;
             _fileService = fileService;
             _jwtTokenGenerator = jwtTokenGenerator;
+            _authService = authService;
         }
 
         public async Task CreateVendorAsync(CreateVendorDto dto)
@@ -84,6 +88,10 @@ namespace Graduation_Application.Services
                 var errors = string.Join(" ; ", assignRoleResult.Errors.Select(e => e.Description));
                 throw new Exception($"Failed to assign Vendor role: {errors}");
             }
+
+            await _authService.ResendConfirmationEmailAsync(
+                new ResendConfirmationDto { Email = dto.Email }
+            );
 
             // Map CreateVendorDto → Workshop using Mapster
             var workshop = dto.Adapt<Workshop>();
@@ -135,10 +143,21 @@ namespace Graduation_Application.Services
                 throw new Exception("Invalid email or password");
             }
 
+            // Check email confirmation first
+            if (!user.EmailConfirmed)
+            {
+                await _authService.ResendConfirmationEmailAsync(
+                    new ResendConfirmationDto { Email = dto.Email }
+                );
+                throw new Exception("Email not confirmed. OTP sent to your email.");
+            }
+
+            // Check admin approval
             if (!user.IsActive)
             {
-                throw new Exception("Account is inactive");
+                throw new Exception("Your account is pending admin approval.");
             }
+
 
             var isVendor = await _userManager.IsInRoleAsync(user, "Vendor");
             if (!isVendor)
@@ -161,7 +180,11 @@ namespace Graduation_Application.Services
 
             var workshop = await _workshopRepository.Where(w => w.UserId == userId).Include(w => w.WorkshopAddress).FirstOrDefaultAsync();
             if (workshop == null) throw new Exception("Workshop not found");
+            if (!user.EmailConfirmed)
+                throw new Exception("Email not confirmed.");
 
+            if (!user.IsActive)
+                throw new Exception("Your account is pending admin approval.");
             var dto = (user, workshop).Adapt<VendorProfileDto>();
             dto.WorkshopAddress = workshop.WorkshopAddress?.Adapt<WorkshopAddressDto>();
             return dto;
@@ -174,7 +197,11 @@ namespace Graduation_Application.Services
 
             var workshop = await _workshopRepository.Where(w => w.UserId == userId).Include(w => w.WorkshopAddress).FirstOrDefaultAsync();
             if (workshop == null) throw new Exception("Workshop not found");
+            if (!user.EmailConfirmed)
+                throw new Exception("Email not confirmed.");
 
+            if (!user.IsActive)
+                throw new Exception("Your account is pending admin approval.");
             // 1. Update non-email user fields via Mapster
             dto.Adapt(user);
 

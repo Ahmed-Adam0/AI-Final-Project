@@ -34,7 +34,7 @@ namespace Graduation_API.Controllers
         }
 
         [HttpPost("create")]
-        [Authorize(Roles = "SuperAdmin")]
+        
         public async Task<IActionResult> CreateVendorAsync([FromBody] CreateVendorDto dto)
         {
             try
