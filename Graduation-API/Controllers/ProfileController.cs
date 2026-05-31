@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 using Graduation_Application.DTOs.UserDTO;
 using Graduation_Application.IServices;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Graduation_API.Controllers
 {
@@ -27,7 +27,8 @@ namespace Graduation_API.Controllers
             try
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (userId == null) return Unauthorized();
+                if (userId == null)
+                    return Unauthorized();
 
                 var result = await _profileService.GetProfileAsync(userId);
                 return Ok(result);
@@ -44,7 +45,8 @@ namespace Graduation_API.Controllers
             try
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (userId == null) return Unauthorized();
+                if (userId == null)
+                    return Unauthorized();
 
                 var result = await _profileService.UpdateProfileAsync(userId, dto);
                 return Ok(result);
@@ -56,13 +58,15 @@ namespace Graduation_API.Controllers
         }
 
         [HttpPut("image")]
-        public async Task<IActionResult> UpdateProfileImage([FromForm] IFormFile file)
+        public async Task<IActionResult> UpdateProfileImage(IFormFile file)
         {
             try
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (userId == null) return Unauthorized();
-                if (file == null || file.Length == 0) return BadRequest(new { Message = "No file provided" });
+                if (userId == null)
+                    return Unauthorized();
+                if (file == null || file.Length == 0)
+                    return BadRequest(new { Message = "No file provided" });
 
                 var result = await _profileService.UpdateProfileImageAsync(userId, file);
                 return Ok(result);
@@ -79,7 +83,8 @@ namespace Graduation_API.Controllers
             try
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (userId == null) return Unauthorized();
+                if (userId == null)
+                    return Unauthorized();
 
                 await _profileService.ChangePasswordAsync(userId, dto);
                 return Ok(new { Message = "Password changed successfully" });

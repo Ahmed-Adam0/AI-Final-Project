@@ -1,14 +1,13 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using Graduation_Application.IServices;
-using Graduation_Application.DTOs.VendorDTO;
 using System.Security.Claims;
+using Graduation_Application.DTOs.VendorDTO;
+using Graduation_Application.IServices;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Graduation_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-
     public class VendorsController : ControllerBase
     {
         private readonly IVendorService _vendorService;
@@ -34,13 +33,15 @@ namespace Graduation_API.Controllers
         }
 
         [HttpPost("create")]
-        
         public async Task<IActionResult> CreateVendorAsync([FromBody] CreateVendorDto dto)
         {
             try
             {
                 await _vendorService.CreateVendorAsync(dto);
-                return Created(string.Empty, new { Success = true, Message = "Vendor created successfully" });
+                return Created(
+                    string.Empty,
+                    new { Success = true, Message = "Vendor created successfully" }
+                );
             }
             catch (Exception ex)
             {
@@ -50,13 +51,15 @@ namespace Graduation_API.Controllers
 
         [HttpPut("logo")]
         [Authorize(Roles = "Vendor")]
-        public async Task<IActionResult> UpdateLogo([FromForm] IFormFile logo)
+        public async Task<IActionResult> UpdateLogo(IFormFile logo)
         {
             try
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (userId == null) return Unauthorized();
-                if (logo == null || logo.Length == 0) return BadRequest(new { Message = "No file provided" });
+                if (userId == null)
+                    return Unauthorized();
+                if (logo == null || logo.Length == 0)
+                    return BadRequest(new { Message = "No file provided" });
 
                 await _vendorService.UpdateVendorLogoAsync(userId, logo);
                 return Ok(new { Message = "Logo updated successfully" });
@@ -74,7 +77,8 @@ namespace Graduation_API.Controllers
             try
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (userId == null) return Unauthorized();
+                if (userId == null)
+                    return Unauthorized();
 
                 var profile = await _vendorService.GetVendorProfileAsync(userId);
                 return Ok(profile);
@@ -92,7 +96,8 @@ namespace Graduation_API.Controllers
             try
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (userId == null) return Unauthorized();
+                if (userId == null)
+                    return Unauthorized();
 
                 var updated = await _vendorService.UpdateVendorProfileAsync(userId, dto);
                 return Ok(updated);
