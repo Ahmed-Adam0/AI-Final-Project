@@ -91,6 +91,7 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             services.AddScoped<IVendorService, VendorService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<IVendorProductService, VendorProductService>();
             services.AddScoped<ICartService, CartService>();
             services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<IVendorOrderService, VendorOrderService>();

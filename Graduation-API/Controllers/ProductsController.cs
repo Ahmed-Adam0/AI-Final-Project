@@ -14,15 +14,20 @@ namespace Graduation_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-   
+
     public class ProductsController : ControllerBase
     {
         private readonly IProductService _productService;
+        private readonly IVendorProductService _vendorProductService;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public ProductsController(IProductService productService, IWebHostEnvironment webHostEnvironment)
+        public ProductsController(
+            IProductService productService, 
+            IVendorProductService vendorProductService,
+            IWebHostEnvironment webHostEnvironment)
         {
             _productService = productService;
+            _vendorProductService = vendorProductService;
             _webHostEnvironment = webHostEnvironment;
         }
 
@@ -440,5 +445,114 @@ namespace Graduation_API.Controllers
                 return StatusCode(500, new { message = ex.Message });
             }
         }
+
+        // ==================== VENDOR DASHBOARD ENDPOINTS ====================
+
+        /// <summary>
+        /// Get paginated list of products owned by logged-in vendor
+        /// Vendor-only endpoint for product management
+        /// </summary>
+        [HttpGet("my-products")]
+        [Authorize(Roles = "Vendor")]
+        public async Task<IActionResult> GetMyProducts([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized(new { message = "User ID not found in token" });
+
+                var filter = new ProductFilterDto
+                {
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    IsActive = null // Show all products (active and inactive)
+                };
+
+                var result = await _vendorProductService.GetVendorProductsAsync(userId, filter);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get vendor product statistics for dashboard
+        /// Shows total products, active/inactive count, average rating, etc.
+        /// </summary>
+        [HttpGet("my-products/stats")]
+        [Authorize(Roles = "Vendor")]
+        public async Task<IActionResult> GetMyProductStats()
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized(new { message = "User ID not found in token" });
+
+                var stats = await _vendorProductService.GetVendorProductStatsAsync(userId);
+                return Ok(stats);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get top-rated products owned by vendor
+        /// Used for vendor dashboard highlights
+        /// </summary>
+        [HttpGet("my-products/top")]
+        [Authorize(Roles = "Vendor")]
+        public async Task<IActionResult> GetMyTopProducts([FromQuery] int topCount = 5)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized(new { message = "User ID not found in token" });
+
+                var products = await _vendorProductService.GetVendorTopProductsAsync(userId, topCount);
+                return Ok(products);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get details of a specific vendor product
+        /// Vendor can only see their own product details with management info
+        /// </summary>
+        [HttpGet("my-products/{id}")]
+        [Authorize(Roles = "Vendor")]
+        public async Task<IActionResult> GetMyProductDetails(int id)
+        {
+            try
+            {
+                if (id <= 0)
+                    return BadRequest(new { message = "Invalid product ID" });
+
+                var userId = GetCurrentUserId();
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized(new { message = "User ID not found in token" });
+
+                var product = await _vendorProductService.GetVendorProductDetailsAsync(userId, id);
+                if (product == null)
+                    return NotFound(new { message = "Product not found" });
+
+                return Ok(product);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        // =====================================================================
     }
 }
