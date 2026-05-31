@@ -11,5 +11,7 @@ namespace Graduation_Application.IServices
         Task<VendorAuthResponseDto> VendorLoginAsync(VendorLoginDto dto);
         Task<VendorProfileDto> GetVendorProfileAsync(string userId);
         Task<VendorProfileDto> UpdateVendorProfileAsync(string userId, UpdateVendorProfileDto dto);
+        Task<int> GetVendorProductCountAsync(string userId);
+        Task LinkVendorProductsAsync(string userId);
     }
 }

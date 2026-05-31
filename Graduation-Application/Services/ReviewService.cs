@@ -129,29 +129,25 @@ namespace Graduation_Application.Services
             return review.Adapt<ReviewDetailsDto>();
         }
 
-        public async Task<IEnumerable<ReviewDetailsDto>> GetVendorReviewsAsync(int workshopId)
+        public async Task<IEnumerable<ReviewDetailsDto>> GetVendorReviewsAsync(string userId)
         {
+            if (string.IsNullOrWhiteSpace(userId))
+                throw new ArgumentException("User ID is required.");
+
             var reviews = await _reviewRepository.GetAllAsNoTracking()
                 .Include(r => r.Product)
                 .Include(r => r.User)
-                .Where(r => r.Product.WorkshopId == workshopId)
+                .Where(r => r.Product != null && r.Product.UserId == userId)
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync();
 
             return reviews.Adapt<List<ReviewDetailsDto>>();
         }
 
-        public async Task<ReviewDetailsDto> ReplyToReviewAsync(int reviewId, int workshopId, string reply)
+        public async Task<ReviewDetailsDto> ReplyToReviewAsync(int reviewId, string userId, string reply)
         {
-            var review = await _reviewRepository.GetAll()
-                .Include(r => r.Product)
-                .FirstOrDefaultAsync(r => r.Id == reviewId);
-
-            if (review == null)
-                throw new ArgumentException($"Review with ID {reviewId} not found.");
-
-            if (review.Product == null || review.Product.WorkshopId != workshopId)
-                throw new UnauthorizedAccessException("You do not have permission to reply to this review.");
+            var review = await LoadReviewForVendorActionAsync(reviewId);
+            EnsureVendorOwnsReview(review, userId);
 
             review.VendorReply = reply;
             review.ReplyCreatedAt = DateTime.UtcNow;
@@ -160,25 +156,13 @@ namespace Graduation_Application.Services
             _reviewRepository.Update(review);
             await _reviewRepository.SaveChangesAsync();
 
-            var updatedReview = await _reviewRepository.GetAllAsNoTracking()
-                .Include(r => r.Product)
-                .Include(r => r.User)
-                .FirstOrDefaultAsync(r => r.Id == review.Id);
-
-            return updatedReview.Adapt<ReviewDetailsDto>();
+            return await LoadReviewDetailsAsync(review.Id);
         }
 
-        public async Task<bool> ReportReviewAsync(int reviewId, int workshopId, string reason)
+        public async Task<bool> ReportReviewAsync(int reviewId, string userId, string reason)
         {
-            var review = await _reviewRepository.GetAll()
-                .Include(r => r.Product)
-                .FirstOrDefaultAsync(r => r.Id == reviewId);
-
-            if (review == null)
-                throw new ArgumentException($"Review with ID {reviewId} not found.");
-
-            if (review.Product == null || review.Product.WorkshopId != workshopId)
-                throw new UnauthorizedAccessException("You do not have permission to report this review.");
+            var review = await LoadReviewForVendorActionAsync(reviewId);
+            EnsureVendorOwnsReview(review, userId);
 
             review.IsReported = true;
             review.ReportReason = reason;
@@ -188,6 +172,34 @@ namespace Graduation_Application.Services
             await _reviewRepository.SaveChangesAsync();
 
             return true;
+        }
+
+        private async Task<Review> LoadReviewForVendorActionAsync(int reviewId)
+        {
+            var review = await _reviewRepository.GetAll()
+                .Include(r => r.Product)
+                .FirstOrDefaultAsync(r => r.Id == reviewId);
+
+            if (review == null)
+                throw new ArgumentException($"Review with ID {reviewId} not found.");
+
+            return review;
+        }
+
+        private async Task<ReviewDetailsDto> LoadReviewDetailsAsync(int reviewId)
+        {
+            var updatedReview = await _reviewRepository.GetAllAsNoTracking()
+                .Include(r => r.Product)
+                .Include(r => r.User)
+                .FirstOrDefaultAsync(r => r.Id == reviewId);
+
+            return updatedReview.Adapt<ReviewDetailsDto>();
+        }
+
+        private static void EnsureVendorOwnsReview(Review review, string userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId) || review.Product == null || review.Product.UserId != userId)
+                throw new UnauthorizedAccessException("You do not have permission to manage this review.");
         }
     }
 }

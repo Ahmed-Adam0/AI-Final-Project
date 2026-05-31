@@ -11,8 +11,10 @@ namespace Graduation_Application.IServices
         Task<AverageRatingDto> GetProductAverageRatingAsync(int productId);
         Task<bool> DeleteReviewAsync(int reviewId, string userId);
         Task<ReviewDetailsDto> GetReviewDetailsAsync(int reviewId);
-        Task<IEnumerable<ReviewDetailsDto>> GetVendorReviewsAsync(int workshopId);
-        Task<ReviewDetailsDto> ReplyToReviewAsync(int reviewId, int workshopId, string reply);
-        Task<bool> ReportReviewAsync(int reviewId, int workshopId, string reason);
+
+        // Vendor review operations (ownership via Product.UserId)
+        Task<IEnumerable<ReviewDetailsDto>> GetVendorReviewsAsync(string userId);
+        Task<ReviewDetailsDto> ReplyToReviewAsync(int reviewId, string userId, string reply);
+        Task<bool> ReportReviewAsync(int reviewId, string userId, string reason);
     }
 }

@@ -13,16 +13,16 @@ namespace Graduation_Application.IServices
         Task<PaginatedResult<ProductDto>> GetProductsAsync(ProductFilterDto filter);
         Task<ProductDetailsDto> GetProductDetailsAsync(int id);
 
-        // Write operations (vendor)
-        Task<ProductResponseDto> CreateProductAsync(int workshopId, CreateProductDto createProductDto);
-        Task<ProductResponseDto> UpdateProductAsync(int productId, int workshopId, UpdateProductDto updateProductDto);
-        Task<bool> DeleteProductAsync(int productId, int workshopId);
+        // Write operations (vendor — ownership via UserId)
+        Task<ProductResponseDto> CreateProductAsync(string userId, CreateProductDto createProductDto);
+        Task<ProductResponseDto> UpdateProductAsync(int productId, string userId, UpdateProductDto updateProductDto);
+        Task<bool> DeleteProductAsync(int productId, string userId);
 
-        // Product Image System
-        Task<ProductImageDto> AddProductImageAsync(int productId, int workshopId, string imageUrl, bool isPrimary);
-        Task<bool> RemoveProductImageAsync(int productId, int workshopId, int imageId);
-        Task<ProductImageDto> ReplaceProductImageAsync(int productId, int workshopId, int imageId, string newImageUrl);
-        Task<bool> SetPrimaryImageAsync(int productId, int workshopId, int imageId);
-        Task<ProductResponseDto> SetProductStatusAsync(int productId, int workshopId, bool isActive);
+        // Product Image System (ownership via UserId)
+        Task<ProductImageDto> AddProductImageAsync(int productId, string userId, string imageUrl, bool isPrimary);
+        Task<bool> RemoveProductImageAsync(int productId, string userId, int imageId);
+        Task<ProductImageDto> ReplaceProductImageAsync(int productId, string userId, int imageId, string newImageUrl);
+        Task<bool> SetPrimaryImageAsync(int productId, string userId, int imageId);
+        Task<ProductResponseDto> SetProductStatusAsync(int productId, string userId, bool isActive);
     }
 }

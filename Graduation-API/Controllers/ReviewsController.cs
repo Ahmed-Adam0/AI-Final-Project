@@ -90,7 +90,7 @@ namespace Graduation_API.Controllers
                     return Unauthorized(new { message = "User ID not found in token" });
 
                 // Block vendors from creating reviews
-                if (User.IsInRole("Workshop"))
+                if (User.IsInRole("Vendor"))
                     return StatusCode(403, new { message = "Vendors are not allowed to create reviews." });
 
                 var result = await _reviewService.CreateReviewAsync(userId, createReviewDto);
@@ -139,7 +139,7 @@ namespace Graduation_API.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Forbid(ex.Message);
+                return StatusCode(403, new { message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -176,16 +176,16 @@ namespace Graduation_API.Controllers
         /// Get all reviews for products owned by the logged-in vendor
         /// </summary>
         [HttpGet("vendor")]
-        [Authorize(Roles = "Workshop")]
+        [Authorize(Roles = "Vendor")]
         public async Task<IActionResult> GetVendorReviews()
         {
             try
             {
-                var workshopId = int.TryParse(User.FindFirst("WorkshopId")?.Value, out var wId) ? wId : 0;
-                if (workshopId <= 0)
-                    return Unauthorized(new { message = "Workshop ID not found in token" });
+                var userId = GetCurrentUserId();
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized(new { message = "User ID not found in token" });
 
-                var reviews = await _reviewService.GetVendorReviewsAsync(workshopId);
+                var reviews = await _reviewService.GetVendorReviewsAsync(userId);
                 return Ok(reviews);
             }
             catch (Exception ex)
@@ -198,7 +198,7 @@ namespace Graduation_API.Controllers
         /// Vendor reply to a product review
         /// </summary>
         [HttpPost("{reviewId}/reply")]
-        [Authorize(Roles = "Workshop")]
+        [Authorize(Roles = "Vendor")]
         public async Task<IActionResult> ReplyToReview(int reviewId, [FromBody] VendorReplyDto replyDto)
         {
             try
@@ -209,11 +209,11 @@ namespace Graduation_API.Controllers
                 if (replyDto == null || string.IsNullOrWhiteSpace(replyDto.Reply))
                     return BadRequest(new { message = "Reply content is required" });
 
-                var workshopId = int.TryParse(User.FindFirst("WorkshopId")?.Value, out var wId) ? wId : 0;
-                if (workshopId <= 0)
-                    return Unauthorized(new { message = "Workshop ID not found in token" });
+                var userId = GetCurrentUserId();
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized(new { message = "User ID not found in token" });
 
-                var result = await _reviewService.ReplyToReviewAsync(reviewId, workshopId, replyDto.Reply);
+                var result = await _reviewService.ReplyToReviewAsync(reviewId, userId, replyDto.Reply);
                 return Ok(result);
             }
             catch (ArgumentException ex)
@@ -222,7 +222,7 @@ namespace Graduation_API.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Forbid(ex.Message);
+                return StatusCode(403, new { message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -234,7 +234,7 @@ namespace Graduation_API.Controllers
         /// Vendor report a product review
         /// </summary>
         [HttpPost("{reviewId}/report")]
-        [Authorize(Roles = "Workshop")]
+        [Authorize(Roles = "Vendor")]
         public async Task<IActionResult> ReportReview(int reviewId, [FromBody] ReportReviewDto reportDto)
         {
             try
@@ -245,11 +245,11 @@ namespace Graduation_API.Controllers
                 if (reportDto == null || string.IsNullOrWhiteSpace(reportDto.Reason))
                     return BadRequest(new { message = "Report reason is required" });
 
-                var workshopId = int.TryParse(User.FindFirst("WorkshopId")?.Value, out var wId) ? wId : 0;
-                if (workshopId <= 0)
-                    return Unauthorized(new { message = "Workshop ID not found in token" });
+                var userId = GetCurrentUserId();
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized(new { message = "User ID not found in token" });
 
-                var result = await _reviewService.ReportReviewAsync(reviewId, workshopId, reportDto.Reason);
+                var result = await _reviewService.ReportReviewAsync(reviewId, userId, reportDto.Reason);
                 return Ok(new { message = "Review reported successfully" });
             }
             catch (ArgumentException ex)
@@ -258,12 +258,18 @@ namespace Graduation_API.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Forbid(ex.Message);
+                return StatusCode(403, new { message = ex.Message });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = ex.Message });
             }
+        }
+
+        private string GetCurrentUserId()
+        {
+            return User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
         }
     }
 }
