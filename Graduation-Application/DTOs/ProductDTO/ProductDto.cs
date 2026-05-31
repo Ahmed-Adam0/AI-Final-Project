@@ -19,6 +19,7 @@ namespace Graduation_Application.DTOs.ProductDTO
         public string WorkshopNameAr { get; set; }
         public string WorkshopNameEn { get; set; }
         public DateTime CreatedAt { get; set; }
+        public bool IsActive { get; set; }
         public string MainImageUrl { get; set; }
     }
 }

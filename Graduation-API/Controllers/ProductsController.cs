@@ -44,6 +44,7 @@ namespace Graduation_API.Controllers
             [FromQuery] decimal? maxPrice = null,
             [FromQuery] string material = null,
             [FromQuery] int? workshopId = null,
+            [FromQuery] bool? isActive = null,
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10)
         {
@@ -57,6 +58,7 @@ namespace Graduation_API.Controllers
                     MaxPrice = maxPrice,
                     Material = material,
                     WorkshopId = workshopId,
+                    IsActive = isActive,
                     PageNumber = pageNumber,
                     PageSize = pageSize
                 };
@@ -398,6 +400,39 @@ namespace Graduation_API.Controllers
             catch
             {
                 // Soft fail disk write error to prevent DB rollback
+            }
+        }
+
+        /// <summary>
+        /// Set product status (Active / Inactive) (Vendor only)
+        /// </summary>
+        [HttpPut("{id}/status")]
+        [Authorize(Roles = "Workshop")]
+        public async Task<IActionResult> SetProductStatus(int id, [FromQuery] bool isActive)
+        {
+            try
+            {
+                if (id <= 0)
+                    return BadRequest(new { message = "Invalid product ID" });
+
+                var workshopId = int.TryParse(User.FindFirst("WorkshopId")?.Value, out var wId) ? wId : 0;
+                if (workshopId <= 0)
+                    return Unauthorized(new { message = "Workshop ID not found in token" });
+
+                var result = await _productService.SetProductStatusAsync(id, workshopId, isActive);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Forbid(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
             }
         }
     }

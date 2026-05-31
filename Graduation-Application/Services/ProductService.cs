@@ -36,11 +36,14 @@ namespace Graduation_Application.Services
             int pageSize = filter.PageSize <= 0 ? 10 : filter.PageSize;
 
             // Start with base query (AsNoTracking for performance)
-            var query = _productRepository.GetAllAsNoTracking()
+            IQueryable<Product> query = _productRepository.GetAllAsNoTracking()
                 .Include(p => p.Category)
                 .Include(p => p.Workshop)
-                .Include(p => p.Images)
-                .Where(p => p.IsActive);
+                .Include(p => p.Images);
+
+            // Apply IsActive status filter: default to showing only active products
+            bool activeFilter = filter.IsActive ?? true;
+            query = query.Where(p => p.IsActive == activeFilter);
 
             // Apply Search Filter (Name and Description)
             if (!string.IsNullOrWhiteSpace(filter.Search))
@@ -179,6 +182,11 @@ namespace Graduation_Application.Services
             product.DescriptionEn = updateProductDto.DescriptionEn;
             product.Price = updateProductDto.Price;
             product.UpdatedAt = DateTime.UtcNow;
+
+            if (updateProductDto.IsActive.HasValue)
+            {
+                product.IsActive = updateProductDto.IsActive.Value;
+            }
 
             _productRepository.Update(product);
             await _productRepository.SaveChangesAsync();
@@ -323,6 +331,26 @@ namespace Graduation_Application.Services
             await _productImageRepository.SaveChangesAsync();
 
             return true;
+        }
+
+        public async Task<ProductResponseDto> SetProductStatusAsync(int productId, int workshopId, bool isActive)
+        {
+            var product = await _productRepository.GetByIdAsync(productId);
+            if (product == null)
+                throw new ArgumentException($"Product with ID {productId} not found.");
+
+            // Enforce ownership only when a workshopId is provided (workshop auth/claims may not be available yet)
+            // TODO (Vendor Phase): Enforce strict ownership and use [Authorize(Roles = "Workshop")] in controllers
+            if (workshopId > 0 && product.WorkshopId != workshopId)
+                throw new UnauthorizedAccessException("You do not have permission to manage this product.");
+
+            product.IsActive = isActive;
+            product.UpdatedAt = DateTime.UtcNow;
+
+            _productRepository.Update(product);
+            await _productRepository.SaveChangesAsync();
+
+            return product.Adapt<ProductResponseDto>();
         }
     }
 }
