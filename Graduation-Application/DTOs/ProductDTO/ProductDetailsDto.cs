@@ -25,6 +25,7 @@ namespace Graduation_Application.DTOs.ProductDTO
         public decimal? WorkshopRating { get; set; }
         public bool WorkshopIsVerified { get; set; }
         public DateTime CreatedAt { get; set; }
+        public bool IsActive { get; set; }
         public List<ProductImageDto> Images { get; set; }
 
         public ProductDetailsDto()

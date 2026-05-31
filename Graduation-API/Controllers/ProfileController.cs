@@ -5,6 +5,7 @@ using Graduation_Application.DTOs.UserDTO;
 using Graduation_Application.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace Graduation_API.Controllers
 {
@@ -54,7 +55,24 @@ namespace Graduation_API.Controllers
             }
         }
 
-        
+        [HttpPut("image")]
+        public async Task<IActionResult> UpdateProfileImage([FromForm] IFormFile file)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (userId == null) return Unauthorized();
+                if (file == null || file.Length == 0) return BadRequest(new { Message = "No file provided" });
+
+                var result = await _profileService.UpdateProfileImageAsync(userId, file);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
         [HttpPut("change-password")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
         {

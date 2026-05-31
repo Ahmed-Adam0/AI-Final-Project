@@ -38,12 +38,12 @@ namespace Graduation_Application.Mapper.ProductMapping
                     src => src.Workshop != null ? src.Workshop.WorkshopNameEn : string.Empty
                 )
                 .Map(dest => dest.CreatedAt, src => src.CreatedAt)
-                .AfterMapping(
-                    (src, dest) =>
-                    {
-                        dest.MainImageUrl = GetMainImageUrl(src.Images);
-                    }
-                );
+                
+                .Map(dest => dest.IsActive, src => src.IsActive)
+                .AfterMapping((src, dest) => 
+                {
+                    dest.MainImageUrl = GetMainImageUrl(src.Images);
+                });
 
             // Product to ProductDetailsDto
             TypeAdapterConfig<Product, ProductDetailsDto>
@@ -64,43 +64,17 @@ namespace Graduation_Application.Mapper.ProductMapping
                     src => src.Category != null ? src.Category.NameEn : string.Empty
                 )
                 .Map(dest => dest.WorkshopId, src => src.WorkshopId)
-                .Map(
-                    dest => dest.WorkshopNameAr,
-                    src => src.Workshop != null ? src.Workshop.WorkshopNameAr : string.Empty
-                )
-                .Map(
-                    dest => dest.WorkshopNameEn,
-                    src => src.Workshop != null ? src.Workshop.WorkshopNameEn : string.Empty
-                )
-                .Map(
-                    dest => dest.WorkshopDescriptionAr,
-                    src => src.Workshop != null ? src.Workshop.DescriptionAr : string.Empty
-                )
-                .Map(
-                    dest => dest.WorkshopDescriptionEn,
-                    src => src.Workshop != null ? src.Workshop.DescriptionEn : string.Empty
-                )
-                .Map(
-                    dest => dest.WorkshopLogoUrl,
-                    src =>
-                        src.Workshop != null ? src.Workshop.LogoUrl ?? string.Empty : string.Empty
-                )
-                .Map(
-                    dest => dest.WorkshopRating,
-                    src => src.Workshop != null ? src.Workshop.Rating : null
-                )
-                .Map(
-                    dest => dest.WorkshopIsVerified,
-                    src => src.Workshop != null && src.Workshop.IsVerified
-                )
+                .Map(dest => dest.WorkshopNameAr, src => src.Workshop != null ? src.Workshop.WorkshopNameAr : string.Empty)
+                .Map(dest => dest.WorkshopNameEn, src => src.Workshop != null ? src.Workshop.WorkshopNameEn : string.Empty)
+                .Map(dest => dest.WorkshopDescriptionAr, src => src.Workshop != null ? src.Workshop.DescriptionAr : string.Empty)
+                .Map(dest => dest.WorkshopDescriptionEn, src => src.Workshop != null ? src.Workshop.DescriptionEn : string.Empty)
+                .Map(dest => dest.WorkshopAddress, src => src.Workshop != null && src.Workshop.WorkshopAddress != null ? (src.Workshop.WorkshopAddress.Street ?? string.Empty) : string.Empty)
+                .Map(dest => dest.WorkshopLogoUrl, src => src.Workshop != null ? src.Workshop.LogoUrl ?? string.Empty : string.Empty)
+                .Map(dest => dest.WorkshopRating, src => src.Workshop != null ? src.Workshop.Rating : null)
+                .Map(dest => dest.WorkshopIsVerified, src => src.Workshop != null && src.Workshop.IsVerified)
                 .Map(dest => dest.CreatedAt, src => src.CreatedAt)
-                .Map(
-                    dest => dest.Images,
-                    src =>
-                        src.Images != null
-                            ? src.Images.Adapt<List<ProductImageDto>>()
-                            : new List<ProductImageDto>()
-                );
+                .Map(dest => dest.IsActive, src => src.IsActive)
+                .Map(dest => dest.Images, src => src.Images != null ? src.Images.Adapt<List<ProductImageDto>>() : new List<ProductImageDto>());
 
             // ProductImage to ProductImageDto
             TypeAdapterConfig<ProductImage, ProductImageDto>
@@ -119,7 +93,8 @@ namespace Graduation_Application.Mapper.ProductMapping
                 .Map(dest => dest.NameEn, src => src.NameEn)
                 .Map(dest => dest.DescriptionAr, src => src.DescriptionAr)
                 .Map(dest => dest.DescriptionEn, src => src.DescriptionEn)
-                .Map(dest => dest.Price, src => src.Price);
+                .Map(dest => dest.Price, src => src.Price)
+                .Map(dest => dest.IsActive, src => src.IsActive);
 
             // CreateProductDto to Product (for creation)
             TypeAdapterConfig<CreateProductDto, Product>

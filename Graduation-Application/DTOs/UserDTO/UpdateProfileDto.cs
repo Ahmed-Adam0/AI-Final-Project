@@ -13,7 +13,6 @@ namespace Graduation_Application.DTOs.UserDTO
         [EmailAddress]
         public string? Email { get; set; }
 
-        public string? ProfileImage { get; set; }
 
         [Required]
         public string PreferredLanguage { get; set; } = "ar";

@@ -10,6 +10,7 @@ namespace Graduation_infrastructure.AppDbContext
             : base(options) { }
 
         public DbSet<Workshop> Workshops { get; set; }
+        public DbSet<WorkshopAddress> WorkshopAddresses { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<ProductImage> ProductImages { get; set; }
@@ -87,6 +88,13 @@ namespace Graduation_infrastructure.AppDbContext
                 .WithMany(w => w.Reviews)
                 .HasForeignKey(r => r.WorkshopId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            builder
+                .Entity<WorkshopAddress>()
+                .HasOne(wa => wa.Workshop)
+                .WithOne(w => w.WorkshopAddress)
+                .HasForeignKey<WorkshopAddress>(wa => wa.WorkshopId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Decimal precision configuration to avoid truncation
             builder.Entity<CartItem>().Property(ci => ci.Price).HasColumnType("decimal(18,2)");

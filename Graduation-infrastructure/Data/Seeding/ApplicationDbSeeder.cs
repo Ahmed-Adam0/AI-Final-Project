@@ -61,6 +61,21 @@ public class ApplicationDbSeeder
 
             context.Workshops.Add(workshop);
             await context.SaveChangesAsync();
+
+            // Add WorkshopAddress
+            var workshopAddress = new WorkshopAddress
+            {
+                WorkshopId = workshop.Id,
+                City = "Cairo",
+                Area = "Downtown",
+                Street = "Main Street",
+                BuildingNumber = "123",
+                Notes = "Near the main square",
+                IsActive = true
+            };
+
+            context.WorkshopAddresses.Add(workshopAddress);
+            await context.SaveChangesAsync();
         }
 
         var workshopId = context.Workshops.First().Id;

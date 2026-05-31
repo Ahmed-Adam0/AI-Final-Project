@@ -51,7 +51,7 @@ namespace Graduation_Application.Mapper.UsersMapping
                 .Map(dest => dest.Email, src => src.Email)
                 .Map(dest => dest.NormalizedEmail,
                     src => src.Email == null ? null : src.Email.ToUpper())
-                .Map(dest => dest.ProfileImage, src => src.ProfileImage)
+                //.Map(dest => dest.ProfileImage, src => src.ProfileImage)
                 .Map(dest => dest.PhoneNumber, src => src.PhoneNumber)
                 .Map(dest => dest.UserName, src => src.UserName)
                 .Map(dest => dest.NormalizedUserName,

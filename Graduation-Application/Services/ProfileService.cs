@@ -3,6 +3,7 @@ using Graduation_Application.IRepositories;
 using Graduation_Application.IServices;
 using Graduation_domain.Entities;
 using Mapster;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,11 +14,13 @@ namespace Graduation_Application.Services
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IProfileRepository _profileRepository;
+        private readonly IFileService _fileService;
 
-        public ProfileService(UserManager<ApplicationUser> userManager,IProfileRepository profileRepository)
+        public ProfileService(UserManager<ApplicationUser> userManager,IProfileRepository profileRepository, IFileService fileService)
         {
             _userManager = userManager;
             _profileRepository = profileRepository;
+            _fileService = fileService;
         }
 
         public async Task<UserProfileDto> GetProfileAsync(string userId)
@@ -40,10 +43,10 @@ namespace Graduation_Application.Services
                 if (exists) throw new System.Exception("Username already taken.");
             }
 
-            // Mapster بيعدل بس الـ properties المحددة في الـ config
+            // Mapster will update allowed properties
             dto.Adapt(user, typeof(UpdateProfileDto), typeof(ApplicationUser));
 
-            // عدّل الـ Addresses لو موجودة
+            // Update Addresses if present
             List<Address>? newAddresses = null;
             if (dto.Addresses != null)
             {
@@ -52,6 +55,25 @@ namespace Graduation_Application.Services
             }
 
             await _profileRepository.UpdateProfileAsync(user, newAddresses);
+
+            var updatedUser = await _profileRepository.GetWithAddressesAsync(userId);
+            return updatedUser!.Adapt<UserProfileDto>();
+        }
+
+        public async Task<UserProfileDto> UpdateProfileImageAsync(string userId, Microsoft.AspNetCore.Http.IFormFile file)
+        {
+            var user = await _profileRepository.GetWithAddressesAsync(userId);
+            if (user == null) throw new System.Exception("User not found");
+
+            var newUrl = await _fileService.SaveImageAsync(file, "profiles", user.ProfileImage);
+            user.ProfileImage = newUrl;
+
+            var identityResult = await _userManager.UpdateAsync(user);
+            if (!identityResult.Succeeded)
+            {
+                var errors = string.Join(" ; ", identityResult.Errors.Select(e => e.Description));
+                throw new System.Exception(errors);
+            }
 
             var updatedUser = await _profileRepository.GetWithAddressesAsync(userId);
             return updatedUser!.Adapt<UserProfileDto>();
