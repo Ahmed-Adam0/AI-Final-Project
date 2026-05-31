@@ -37,6 +37,15 @@ namespace Graduation_infrastructure.AppDbContext
                 .HasForeignKey(p => p.WorkshopId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Add Product-User relationship for vendor ownership
+            builder
+                .Entity<Product>()
+                .HasOne(p => p.User)
+                .WithMany()
+                .HasForeignKey(p => p.UserId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
             builder
                 .Entity<Product>()
                 .HasOne(p => p.Category)

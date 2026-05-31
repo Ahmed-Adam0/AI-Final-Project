@@ -3,7 +3,9 @@ using Graduation_Application.DTOs.ProductDTO;
 using Graduation_Application.IServices;
 using System;
 using System.IO;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -104,7 +106,7 @@ namespace Graduation_API.Controllers
         /// <param name="createProductDto">Product creation data</param>
         /// <returns>Created product details</returns>
         [HttpPost]
-        [Authorize(Roles = "Workshop")]
+        [Authorize(Roles = "Vendor")]
         public async Task<IActionResult> CreateProduct([FromBody] CreateProductDto createProductDto)
         {
             try
@@ -112,12 +114,11 @@ namespace Graduation_API.Controllers
                 if (createProductDto == null)
                     return BadRequest(new { message = "Product data is required" });
 
-                // Get workshop ID from JWT claim or header
-                var workshopId = int.TryParse(User.FindFirst("WorkshopId")?.Value, out var id) ? id : 0;
-                if (workshopId <= 0)
-                    return Unauthorized(new { message = "Workshop ID not found in token" });
+                var userId = GetCurrentUserId();
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized(new { message = "User ID not found in token" });
 
-                var result = await _productService.CreateProductAsync(workshopId, createProductDto);
+                var result = await _productService.CreateProductAsync(userId, createProductDto);
                 return CreatedAtAction(nameof(GetProductDetails), new { id = result.Id }, result);
             }
             catch (ArgumentException ex)
@@ -137,7 +138,7 @@ namespace Graduation_API.Controllers
         /// <param name="updateProductDto">Updated product data</param>
         /// <returns>Updated product details</returns>
         [HttpPut("{id}")]
-        [Authorize(Roles = "Workshop")]
+        [Authorize(Roles = "Vendor")]
         public async Task<IActionResult> UpdateProduct(int id, [FromBody] UpdateProductDto updateProductDto)
         {
             try
@@ -148,12 +149,11 @@ namespace Graduation_API.Controllers
                 if (updateProductDto == null)
                     return BadRequest(new { message = "Product data is required" });
 
-                // Get workshop ID from JWT claim
-                var workshopId = int.TryParse(User.FindFirst("WorkshopId")?.Value, out var wId) ? wId : 0;
-                if (workshopId <= 0)
-                    return Unauthorized(new { message = "Workshop ID not found in token" });
+                var userId = GetCurrentUserId();
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized(new { message = "User ID not found in token" });
 
-                var result = await _productService.UpdateProductAsync(id, workshopId, updateProductDto);
+                var result = await _productService.UpdateProductAsync(id, userId, updateProductDto);
                 return Ok(result);
             }
             catch (ArgumentException ex)
@@ -162,7 +162,7 @@ namespace Graduation_API.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Forbid(ex.Message);
+                return StatusCode(403, new { message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -176,7 +176,7 @@ namespace Graduation_API.Controllers
         /// <param name="id">Product ID</param>
         /// <returns>Success or error message</returns>
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Workshop")]
+        [Authorize(Roles = "Vendor")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
             try
@@ -184,12 +184,11 @@ namespace Graduation_API.Controllers
                 if (id <= 0)
                     return BadRequest(new { message = "Invalid product ID" });
 
-                // Get workshop ID from JWT claim
-                var workshopId = int.TryParse(User.FindFirst("WorkshopId")?.Value, out var wId) ? wId : 0;
-                if (workshopId <= 0)
-                    return Unauthorized(new { message = "Workshop ID not found in token" });
+                var userId = GetCurrentUserId();
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized(new { message = "User ID not found in token" });
 
-                var result = await _productService.DeleteProductAsync(id, workshopId);
+                var result = await _productService.DeleteProductAsync(id, userId);
                 if (!result)
                     return NotFound(new { message = "Product not found" });
 
@@ -197,7 +196,7 @@ namespace Graduation_API.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Forbid(ex.Message);
+                return StatusCode(403, new { message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -209,7 +208,7 @@ namespace Graduation_API.Controllers
         /// Upload and add an image to a product (Vendor only)
         /// </summary>
         [HttpPost("{productId}/images")]
-        [Authorize(Roles = "Workshop")]
+        [Authorize(Roles = "Vendor")]
         public async Task<IActionResult> UploadImage(int productId, IFormFile file, [FromQuery] bool isPrimary = false)
         {
             try
@@ -220,12 +219,12 @@ namespace Graduation_API.Controllers
                 if (file == null || file.Length == 0)
                     return BadRequest(new { message = "File is required" });
 
-                var workshopId = int.TryParse(User.FindFirst("WorkshopId")?.Value, out var wId) ? wId : 0;
-                if (workshopId <= 0)
-                    return Unauthorized(new { message = "Workshop ID not found in token" });
+                var userId = GetCurrentUserId();
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized(new { message = "User ID not found in token" });
 
                 var imageUrl = await SaveImageAsync(file);
-                var result = await _productService.AddProductImageAsync(productId, workshopId, imageUrl, isPrimary);
+                var result = await _productService.AddProductImageAsync(productId, userId, imageUrl, isPrimary);
 
                 return Ok(result);
             }
@@ -235,7 +234,7 @@ namespace Graduation_API.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Forbid(ex.Message);
+                return StatusCode(403, new { message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -247,7 +246,7 @@ namespace Graduation_API.Controllers
         /// Delete a product image (Vendor only)
         /// </summary>
         [HttpDelete("{productId}/images/{imageId}")]
-        [Authorize(Roles = "Workshop")]
+        [Authorize(Roles = "Vendor")]
         public async Task<IActionResult> RemoveImage(int productId, int imageId)
         {
             try
@@ -255,14 +254,14 @@ namespace Graduation_API.Controllers
                 if (productId <= 0 || imageId <= 0)
                     return BadRequest(new { message = "Invalid request parameters" });
 
-                var workshopId = int.TryParse(User.FindFirst("WorkshopId")?.Value, out var wId) ? wId : 0;
-                if (workshopId <= 0)
-                    return Unauthorized(new { message = "Workshop ID not found in token" });
+                var userId = GetCurrentUserId();
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized(new { message = "User ID not found in token" });
 
                 var productDetails = await _productService.GetProductDetailsAsync(productId);
                 var imageDto = productDetails?.Images?.Find(img => img.Id == imageId);
 
-                var result = await _productService.RemoveProductImageAsync(productId, workshopId, imageId);
+                var result = await _productService.RemoveProductImageAsync(productId, userId, imageId);
                 if (!result)
                     return NotFound(new { message = "Image not found for this product" });
 
@@ -275,7 +274,7 @@ namespace Graduation_API.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Forbid(ex.Message);
+                return StatusCode(403, new { message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -287,7 +286,7 @@ namespace Graduation_API.Controllers
         /// Replace a product image (Vendor only)
         /// </summary>
         [HttpPut("{productId}/images/{imageId}")]
-        [Authorize(Roles = "Workshop")]
+        [Authorize(Roles = "Vendor")]
         public async Task<IActionResult> ReplaceImage(int productId, int imageId, IFormFile file)
         {
             try
@@ -298,15 +297,15 @@ namespace Graduation_API.Controllers
                 if (file == null || file.Length == 0)
                     return BadRequest(new { message = "File is required" });
 
-                var workshopId = int.TryParse(User.FindFirst("WorkshopId")?.Value, out var wId) ? wId : 0;
-                if (workshopId <= 0)
-                    return Unauthorized(new { message = "Workshop ID not found in token" });
+                var userId = GetCurrentUserId();
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized(new { message = "User ID not found in token" });
 
                 var productDetails = await _productService.GetProductDetailsAsync(productId);
                 var oldImageDto = productDetails?.Images?.Find(img => img.Id == imageId);
 
                 var newImageUrl = await SaveImageAsync(file);
-                var result = await _productService.ReplaceProductImageAsync(productId, workshopId, imageId, newImageUrl);
+                var result = await _productService.ReplaceProductImageAsync(productId, userId, imageId, newImageUrl);
 
                 if (oldImageDto != null)
                 {
@@ -321,7 +320,7 @@ namespace Graduation_API.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Forbid(ex.Message);
+                return StatusCode(403, new { message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -333,7 +332,7 @@ namespace Graduation_API.Controllers
         /// Set primary image for a product (Vendor only)
         /// </summary>
         [HttpPut("{productId}/images/{imageId}/primary")]
-        [Authorize(Roles = "Workshop")]
+        [Authorize(Roles = "Vendor")]
         public async Task<IActionResult> SetPrimaryImage(int productId, int imageId)
         {
             try
@@ -341,11 +340,11 @@ namespace Graduation_API.Controllers
                 if (productId <= 0 || imageId <= 0)
                     return BadRequest(new { message = "Invalid request parameters" });
 
-                var workshopId = int.TryParse(User.FindFirst("WorkshopId")?.Value, out var wId) ? wId : 0;
-                if (workshopId <= 0)
-                    return Unauthorized(new { message = "Workshop ID not found in token" });
+                var userId = GetCurrentUserId();
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized(new { message = "User ID not found in token" });
 
-                var result = await _productService.SetPrimaryImageAsync(productId, workshopId, imageId);
+                var result = await _productService.SetPrimaryImageAsync(productId, userId, imageId);
                 if (!result)
                     return NotFound(new { message = "Image not found for this product" });
 
@@ -353,12 +352,18 @@ namespace Graduation_API.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Forbid(ex.Message);
+                return StatusCode(403, new { message = ex.Message });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = ex.Message });
             }
+        }
+
+        private string GetCurrentUserId()
+        {
+            return User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
         }
 
         private async Task<string> SaveImageAsync(IFormFile file)
@@ -407,7 +412,7 @@ namespace Graduation_API.Controllers
         /// Set product status (Active / Inactive) (Vendor only)
         /// </summary>
         [HttpPut("{id}/status")]
-        [Authorize(Roles = "Workshop")]
+        [Authorize(Roles = "Vendor")]
         public async Task<IActionResult> SetProductStatus(int id, [FromQuery] bool isActive)
         {
             try
@@ -415,11 +420,11 @@ namespace Graduation_API.Controllers
                 if (id <= 0)
                     return BadRequest(new { message = "Invalid product ID" });
 
-                var workshopId = int.TryParse(User.FindFirst("WorkshopId")?.Value, out var wId) ? wId : 0;
-                if (workshopId <= 0)
-                    return Unauthorized(new { message = "Workshop ID not found in token" });
+                var userId = GetCurrentUserId();
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized(new { message = "User ID not found in token" });
 
-                var result = await _productService.SetProductStatusAsync(id, workshopId, isActive);
+                var result = await _productService.SetProductStatusAsync(id, userId, isActive);
                 return Ok(result);
             }
             catch (ArgumentException ex)
@@ -428,7 +433,7 @@ namespace Graduation_API.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Forbid(ex.Message);
+                return StatusCode(403, new { message = ex.Message });
             }
             catch (Exception ex)
             {

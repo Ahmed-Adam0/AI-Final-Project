@@ -9,6 +9,11 @@ namespace Graduation_domain.Entities
         public int WorkshopId { get; set; }
         public Workshop Workshop { get; set; }
 
+        // Vendor (User) ownership - Added for direct vendor management
+        // Optional for backward compatibility; will be populated via migration
+        public string UserId { get; set; }
+        public ApplicationUser User { get; set; }
+
         [Required(ErrorMessage = "CategoryId is required")]
         public int CategoryId { get; set; }
         public Category Category { get; set; }

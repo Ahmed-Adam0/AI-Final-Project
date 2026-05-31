@@ -18,15 +18,18 @@ namespace Graduation_Application.Services
         private readonly IGenaricRepositories<Product> _productRepository;
         private readonly IGenaricRepositories<Category> _categoryRepository;
         private readonly IGenaricRepositories<ProductImage> _productImageRepository;
+        private readonly IGenaricRepositories<Workshop> _workshopRepository;
 
         public ProductService(
             IGenaricRepositories<Product> productRepository,
             IGenaricRepositories<Category> categoryRepository,
-            IGenaricRepositories<ProductImage> productImageRepository)
+            IGenaricRepositories<ProductImage> productImageRepository,
+            IGenaricRepositories<Workshop> workshopRepository)
         {
             _productRepository = productRepository;
             _categoryRepository = categoryRepository;
             _productImageRepository = productImageRepository;
+            _workshopRepository = workshopRepository;
         }
 
         public async Task<PaginatedResult<ProductDto>> GetProductsAsync(ProductFilterDto filter)
@@ -127,21 +130,26 @@ namespace Graduation_Application.Services
             return product.Adapt<ProductDetailsDto>();
         }
 
-        public async Task<ProductResponseDto> CreateProductAsync(int workshopId, CreateProductDto createProductDto)
+        public async Task<ProductResponseDto> CreateProductAsync(string userId, CreateProductDto createProductDto)
         {
-            // Validate that product details are provided
+            if (string.IsNullOrWhiteSpace(userId))
+                throw new ArgumentException("User ID is required.");
+
             if (createProductDto == null)
                 throw new ArgumentNullException(nameof(createProductDto));
 
-            // Validate Category exists
+            var workshop = await _workshopRepository.FirstOrDefaultAsync(w => w.UserId == userId);
+            if (workshop == null)
+                throw new ArgumentException("Workshop not found for vendor.");
+
             var categoryExists = await _categoryRepository.AnyAsync(c => c.Id == createProductDto.CategoryId);
             if (!categoryExists)
                 throw new ArgumentException($"Category with ID {createProductDto.CategoryId} does not exist.");
 
-            // Create new product entity
             var product = new Product
             {
-                WorkshopId = workshopId,
+                UserId = userId,
+                WorkshopId = workshop.Id,
                 CategoryId = createProductDto.CategoryId,
                 NameAr = createProductDto.NameAr,
                 NameEn = createProductDto.NameEn,
@@ -158,16 +166,13 @@ namespace Graduation_Application.Services
             return product.Adapt<ProductResponseDto>();
         }
 
-        public async Task<ProductResponseDto> UpdateProductAsync(int productId, int workshopId, UpdateProductDto updateProductDto)
+        public async Task<ProductResponseDto> UpdateProductAsync(int productId, string userId, UpdateProductDto updateProductDto)
         {
-            // Get the product
             var product = await _productRepository.GetByIdAsync(productId);
             if (product == null)
                 throw new ArgumentException($"Product with ID {productId} not found.");
 
-            // Verify workshop ownership
-            if (product.WorkshopId != workshopId)
-                throw new UnauthorizedAccessException("You do not have permission to update this product.");
+            EnsureProductOwnership(product, userId);
 
             // Validate Category exists
             var categoryExists = await _categoryRepository.AnyAsync(c => c.Id == updateProductDto.CategoryId);
@@ -194,15 +199,13 @@ namespace Graduation_Application.Services
             return product.Adapt<ProductResponseDto>();
         }
 
-        public async Task<bool> DeleteProductAsync(int productId, int workshopId)
+        public async Task<bool> DeleteProductAsync(int productId, string userId)
         {
             var product = await _productRepository.GetByIdAsync(productId);
             if (product == null)
                 return false;
 
-            // Verify workshop ownership
-            if (product.WorkshopId != workshopId)
-                throw new UnauthorizedAccessException("You do not have permission to delete this product.");
+            EnsureProductOwnership(product, userId);
 
             _productRepository.Delete(product);
             await _productRepository.SaveChangesAsync();
@@ -210,14 +213,13 @@ namespace Graduation_Application.Services
             return true;
         }
 
-        public async Task<ProductImageDto> AddProductImageAsync(int productId, int workshopId, string imageUrl, bool isPrimary)
+        public async Task<ProductImageDto> AddProductImageAsync(int productId, string userId, string imageUrl, bool isPrimary)
         {
             var product = await _productRepository.GetByIdAsync(productId);
             if (product == null)
                 throw new ArgumentException($"Product with ID {productId} not found.");
 
-            if (product.WorkshopId != workshopId)
-                throw new UnauthorizedAccessException("You do not have permission to manage this product.");
+            EnsureProductOwnership(product, userId);
 
             // Check if this is the first image for this product
             var hasImages = await _productImageRepository.AnyAsync(pi => pi.ProductId == productId);
@@ -253,15 +255,17 @@ namespace Graduation_Application.Services
             return newImage.Adapt<ProductImageDto>();
         }
 
-        public async Task<bool> RemoveProductImageAsync(int productId, int workshopId, int imageId)
+        public async Task<bool> RemoveProductImageAsync(int productId, string userId, int imageId)
         {
             var image = await _productImageRepository.GetByIdAsync(imageId);
             if (image == null || image.ProductId != productId)
                 return false;
 
             var product = await _productRepository.GetByIdAsync(productId);
-            if (product == null || product.WorkshopId != workshopId)
-                throw new UnauthorizedAccessException("You do not have permission to manage this product.");
+            if (product == null)
+                return false;
+
+            EnsureProductOwnership(product, userId);
 
             bool wasPrimary = image.IsPrimary;
 
@@ -285,15 +289,17 @@ namespace Graduation_Application.Services
             return true;
         }
 
-        public async Task<ProductImageDto> ReplaceProductImageAsync(int productId, int workshopId, int imageId, string newImageUrl)
+        public async Task<ProductImageDto> ReplaceProductImageAsync(int productId, string userId, int imageId, string newImageUrl)
         {
             var image = await _productImageRepository.GetByIdAsync(imageId);
             if (image == null || image.ProductId != productId)
                 throw new ArgumentException($"Image with ID {imageId} not found for this product.");
 
             var product = await _productRepository.GetByIdAsync(productId);
-            if (product == null || product.WorkshopId != workshopId)
-                throw new UnauthorizedAccessException("You do not have permission to manage this product.");
+            if (product == null)
+                throw new ArgumentException($"Product with ID {productId} not found.");
+
+            EnsureProductOwnership(product, userId);
 
             image.ImageUrl = newImageUrl;
             image.UpdatedAt = DateTime.UtcNow;
@@ -304,15 +310,17 @@ namespace Graduation_Application.Services
             return image.Adapt<ProductImageDto>();
         }
 
-        public async Task<bool> SetPrimaryImageAsync(int productId, int workshopId, int imageId)
+        public async Task<bool> SetPrimaryImageAsync(int productId, string userId, int imageId)
         {
             var image = await _productImageRepository.GetByIdAsync(imageId);
             if (image == null || image.ProductId != productId)
                 return false;
 
             var product = await _productRepository.GetByIdAsync(productId);
-            if (product == null || product.WorkshopId != workshopId)
-                throw new UnauthorizedAccessException("You do not have permission to manage this product.");
+            if (product == null)
+                return false;
+
+            EnsureProductOwnership(product, userId);
 
             var otherImages = await _productImageRepository.Where(pi => pi.ProductId == productId && pi.Id != imageId).ToListAsync();
             foreach (var img in otherImages)
@@ -333,16 +341,13 @@ namespace Graduation_Application.Services
             return true;
         }
 
-        public async Task<ProductResponseDto> SetProductStatusAsync(int productId, int workshopId, bool isActive)
+        public async Task<ProductResponseDto> SetProductStatusAsync(int productId, string userId, bool isActive)
         {
             var product = await _productRepository.GetByIdAsync(productId);
             if (product == null)
                 throw new ArgumentException($"Product with ID {productId} not found.");
 
-            // Enforce ownership only when a workshopId is provided (workshop auth/claims may not be available yet)
-            // TODO (Vendor Phase): Enforce strict ownership and use [Authorize(Roles = "Workshop")] in controllers
-            if (workshopId > 0 && product.WorkshopId != workshopId)
-                throw new UnauthorizedAccessException("You do not have permission to manage this product.");
+            EnsureProductOwnership(product, userId);
 
             product.IsActive = isActive;
             product.UpdatedAt = DateTime.UtcNow;
@@ -351,6 +356,12 @@ namespace Graduation_Application.Services
             await _productRepository.SaveChangesAsync();
 
             return product.Adapt<ProductResponseDto>();
+        }
+
+        private static void EnsureProductOwnership(Product product, string userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId) || product.UserId != userId)
+                throw new UnauthorizedAccessException("You do not have permission to manage this product.");
         }
     }
 }

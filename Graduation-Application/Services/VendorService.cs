@@ -18,6 +18,7 @@ namespace Graduation_Application.Services
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IGenaricRepositories<Workshop> _workshopRepository;
+        private readonly IGenaricRepositories<Product> _productRepository;
         private readonly IFileService _fileService;
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
 
@@ -25,12 +26,14 @@ namespace Graduation_Application.Services
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
             IGenaricRepositories<Workshop> workshopRepository,
+            IGenaricRepositories<Product> productRepository,
             IFileService fileService,
             IJwtTokenGenerator jwtTokenGenerator)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _workshopRepository = workshopRepository;
+            _productRepository = productRepository;
             _fileService = fileService;
             _jwtTokenGenerator = jwtTokenGenerator;
         }
@@ -250,6 +253,37 @@ namespace Graduation_Application.Services
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Get total product count for vendor
+        /// </summary>
+        public async Task<int> GetVendorProductCountAsync(string userId)
+        {
+            var count = await _productRepository.CountAsync(p => p.UserId == userId);
+            return count;
+        }
+
+        /// <summary>
+        /// Link existing products to vendor by UserId
+        /// Useful for migration from WorkshopId-based to UserId-based ownership
+        /// </summary>
+        public async Task LinkVendorProductsAsync(string userId)
+        {
+            var workshop = await _workshopRepository.FirstOrDefaultAsync(w => w.UserId == userId);
+            if (workshop == null)
+                throw new Exception("Workshop not found for user");
+
+            var products = await _productRepository.Where(p => p.WorkshopId == workshop.Id && p.UserId == null).ToListAsync();
+
+            foreach (var product in products)
+            {
+                product.UserId = userId;
+                _productRepository.Update(product);
+            }
+
+            if (products.Count > 0)
+                await _productRepository.SaveChangesAsync();
         }
     }
 }
