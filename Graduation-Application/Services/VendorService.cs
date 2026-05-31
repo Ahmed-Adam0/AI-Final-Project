@@ -163,11 +163,7 @@ namespace Graduation_Application.Services
             if (workshop == null) throw new Exception("Workshop not found");
 
             var dto = (user, workshop).Adapt<VendorProfileDto>();
-            if (workshop.WorkshopAddress != null)
-            {
-                dto.WorkshopAddress = workshop.WorkshopAddress.Adapt<WorkshopAddressDto>();
-            }
-
+            dto.WorkshopAddress = workshop.WorkshopAddress?.Adapt<WorkshopAddressDto>();
             return dto;
         }
 
@@ -179,51 +175,40 @@ namespace Graduation_Application.Services
             var workshop = await _workshopRepository.Where(w => w.UserId == userId).Include(w => w.WorkshopAddress).FirstOrDefaultAsync();
             if (workshop == null) throw new Exception("Workshop not found");
 
-            // Update user fields if not null (FullName, PhoneNumber, PreferredLanguage)
-            if (!string.IsNullOrWhiteSpace(dto.FullName))
+            // 1. Update non-email user fields via Mapster
+            dto.Adapt(user);
+
+            // 2. Update Email via Identity if provided
+            if (!string.IsNullOrWhiteSpace(dto.Email))
             {
-                user.FullName = dto.FullName;
+                var setEmailResult = await _userManager.SetEmailAsync(user, dto.Email);
+                if (!setEmailResult.Succeeded)
+                {
+                    var errors = string.Join(" ; ", setEmailResult.Errors.Select(e => e.Description));
+                    throw new Exception($"Failed to set email: {errors}");
+                }
+
+                var setUserNameResult = await _userManager.SetUserNameAsync(user, dto.Email);
+                if (!setUserNameResult.Succeeded)
+                {
+                    var errors = string.Join(" ; ", setUserNameResult.Errors.Select(e => e.Description));
+                    throw new Exception($"Failed to set username: {errors}");
+                }
+            }
+            else
+            {
+                var updateUserResult = await _userManager.UpdateAsync(user);
+                if (!updateUserResult.Succeeded)
+                {
+                    var errors = string.Join(" ; ", updateUserResult.Errors.Select(e => e.Description));
+                    throw new Exception($"Failed to update user: {errors}");
+                }
             }
 
-            if (!string.IsNullOrWhiteSpace(dto.PhoneNumber))
-            {
-                user.PhoneNumber = dto.PhoneNumber;
-            }
+            // 3. Update workshop fields via Mapster
+            dto.Adapt(workshop);
 
-            if (!string.IsNullOrWhiteSpace(dto.PreferredLanguage))
-            {
-                user.PreferredLanguage = dto.PreferredLanguage;
-            }
-
-            var updateUserResult = await _userManager.UpdateAsync(user);
-            if (!updateUserResult.Succeeded)
-            {
-                var errors = string.Join(" ; ", updateUserResult.Errors.Select(e => e.Description));
-                throw new Exception($"Failed to update user: {errors}");
-            }
-
-            // Update workshop fields if not null
-            if (!string.IsNullOrWhiteSpace(dto.WorkshopNameAr))
-            {
-                workshop.WorkshopNameAr = dto.WorkshopNameAr;
-            }
-
-            if (!string.IsNullOrWhiteSpace(dto.WorkshopNameEn))
-            {
-                workshop.WorkshopNameEn = dto.WorkshopNameEn;
-            }
-
-            if (!string.IsNullOrWhiteSpace(dto.DescriptionAr))
-            {
-                workshop.DescriptionAr = dto.DescriptionAr;
-            }
-
-            if (!string.IsNullOrWhiteSpace(dto.DescriptionEn))
-            {
-                workshop.DescriptionEn = dto.DescriptionEn;
-            }
-
-            // Handle WorkshopAddress updates
+            // 4. WorkshopAddress — keep existing logic unchanged
             if (dto.WorkshopAddress != null)
             {
                 if (workshop.WorkshopAddress != null)
@@ -242,16 +227,11 @@ namespace Graduation_Application.Services
                 }
             }
 
+            // 5. Save and return
             _workshopRepository.Update(workshop);
             await _workshopRepository.SaveChangesAsync();
-
-            // Return updated VendorProfileDto
             var result = (user, workshop).Adapt<VendorProfileDto>();
-            if (workshop.WorkshopAddress != null)
-            {
-                result.WorkshopAddress = workshop.WorkshopAddress.Adapt<WorkshopAddressDto>();
-            }
-
+            result.WorkshopAddress = workshop.WorkshopAddress?.Adapt<WorkshopAddressDto>();
             return result;
         }
 
