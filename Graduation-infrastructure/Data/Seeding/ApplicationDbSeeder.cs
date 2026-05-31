@@ -53,13 +53,27 @@ public class ApplicationDbSeeder
                 WorkshopNameEn = "Modern Furniture Workshop",
                 DescriptionAr = "أفضل ورشة أثاث",
                 DescriptionEn = "Best furniture workshop",
-                Address = "Cairo",
                 IsVerified = true,
                 IsActive = true,
                 UserId = workshopUser.Id
             };
 
             context.Workshops.Add(workshop);
+            await context.SaveChangesAsync();
+
+            // Add WorkshopAddress
+            var workshopAddress = new WorkshopAddress
+            {
+                WorkshopId = workshop.Id,
+                City = "Cairo",
+                Area = "Downtown",
+                Street = "Main Street",
+                BuildingNumber = "123",
+                Notes = "Near the main square",
+                IsActive = true
+            };
+
+            context.WorkshopAddresses.Add(workshopAddress);
             await context.SaveChangesAsync();
         }
 

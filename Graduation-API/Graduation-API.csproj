@@ -21,4 +21,8 @@
     <ProjectReference Include="..\Graduation-infrastructure\Graduation-infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\uploads\profiles\" />
+  </ItemGroup>
+
 </Project>
