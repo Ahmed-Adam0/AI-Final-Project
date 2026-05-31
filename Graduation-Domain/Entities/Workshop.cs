@@ -21,12 +21,11 @@ namespace Graduation_domain.Entities
         [Required(ErrorMessage = "DescriptionEn is required")]
         public string DescriptionEn { get; set; }
 
-        [Required(ErrorMessage = "Address is required")]
-        public string Address { get; set; }
         public string? LogoUrl { get; set; }
         public decimal? Rating { get; set; }
         public bool IsVerified { get; set; }
 
+        public WorkshopAddress? WorkshopAddress { get; set; }
         public List<Product>? Products { get; set; }
         public List<Review>? Reviews { get; set; }
     }

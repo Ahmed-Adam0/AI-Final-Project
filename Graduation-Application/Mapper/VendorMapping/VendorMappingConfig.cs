@@ -1,0 +1,76 @@
+using Mapster;
+using Graduation_Application.DTOs.VendorDTO;
+using Graduation_domain.Entities;
+
+namespace Graduation_Application.Mapper.VendorMapping
+{
+    public static class VendorMappingConfig
+    {
+        public static void RegisterMappings()
+        {
+            // WorkshopAddressDto → WorkshopAddress
+            TypeAdapterConfig<WorkshopAddressDto, WorkshopAddress>
+                .NewConfig()
+                .Map(dest => dest.City, src => src.City)
+                .Map(dest => dest.Area, src => src.Area)
+                .Map(dest => dest.Street, src => src.Street)
+                .Map(dest => dest.BuildingNumber, src => src.BuildingNumber)
+                .Map(dest => dest.Notes, src => src.Notes)
+                .Ignore(dest => dest.Id)
+                .Ignore(dest => dest.WorkshopId)
+                .Ignore(dest => dest.Workshop)
+                .Ignore(dest => dest.CreatedAt)
+                .Ignore(dest => dest.UpdatedAt)
+                .Ignore(dest => dest.CreatedBy)
+                .Ignore(dest => dest.UpdatedBy)
+                .Ignore(dest => dest.IsActive);
+
+            // WorkshopAddress → WorkshopAddressDto
+            TypeAdapterConfig<WorkshopAddress, WorkshopAddressDto>
+                .NewConfig()
+                .Map(dest => dest.City, src => src.City)
+                .Map(dest => dest.Area, src => src.Area)
+                .Map(dest => dest.Street, src => src.Street)
+                .Map(dest => dest.BuildingNumber, src => src.BuildingNumber)
+                .Map(dest => dest.Notes, src => src.Notes);
+
+            // CreateVendorDto → ApplicationUser
+            TypeAdapterConfig<CreateVendorDto, ApplicationUser>
+                .NewConfig()
+                .Map(dest => dest.Email, src => src.Email)
+                .Map(dest => dest.UserName, src => src.Email)
+                .Map(dest => dest.FullName, src => src.FullName)
+                .Map(dest => dest.PhoneNumber, src => src.PhoneNumber)
+                .Map(dest => dest.PreferredLanguage, src => src.PreferredLanguage)
+                .Map(dest => dest.EmailConfirmed, src => true)
+                .Map(dest => dest.IsActive, src => true)
+                .Ignore(dest => dest.PasswordHash)
+                .Ignore(dest => dest.Id)
+                .Ignore(dest => dest.NormalizedEmail)
+                .Ignore(dest => dest.NormalizedUserName)
+                .Ignore(dest => dest.SecurityStamp)
+                .Ignore(dest => dest.ConcurrencyStamp);
+
+            // CreateVendorDto → Workshop
+            TypeAdapterConfig<CreateVendorDto, Workshop>
+                .NewConfig()
+                .Map(dest => dest.WorkshopNameAr, src => src.WorkshopNameAr)
+                .Map(dest => dest.WorkshopNameEn, src => src.WorkshopNameEn)
+                .Map(dest => dest.DescriptionAr, src => src.DescriptionAr)
+                .Map(dest => dest.DescriptionEn, src => src.DescriptionEn)
+                .Map(dest => dest.IsVerified, src => true)
+                .Map(dest => dest.IsActive, src => true)
+                .Ignore(dest => dest.Id)
+                .Ignore(dest => dest.UserId)
+                .Ignore(dest => dest.User)
+                .Ignore(dest => dest.Products)
+                .Ignore(dest => dest.Reviews)
+                .Ignore(dest => dest.WorkshopAddress)
+                .Ignore(dest => dest.CreatedAt)
+                .Ignore(dest => dest.UpdatedAt)
+                .Ignore(dest => dest.CreatedBy)
+                .Ignore(dest => dest.UpdatedBy)
+                .Ignore(dest => dest.Rating);
+        }
+    }
+}

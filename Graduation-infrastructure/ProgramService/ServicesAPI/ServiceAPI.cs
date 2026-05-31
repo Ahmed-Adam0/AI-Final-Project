@@ -8,6 +8,7 @@ using Graduation_Application.Mapper.CategoryMapping;
 using Graduation_Application.Mapper.ProductMapping;
 using Graduation_Application.Mapper.ReviewMapping;
 using Graduation_Application.Mapper.UsersMapping;
+using Graduation_Application.Mapper.VendorMapping;
 using Graduation_Application.Options;
 using Graduation_Application.Services;
 using Graduation_domain.Entities;
@@ -21,6 +22,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Graduation_infrastructure.Services;
 
 namespace Graduation_infrastructure.ProgramService.ServicesAPI
 {
@@ -75,6 +77,10 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             ProductMappingConfig.RegisterMappings();
             ReviewMappingConfig.RegisterMappings();
             UserProfileMappingConfig.RegisterMappings();
+            VendorMappingConfig.RegisterMappings();
+            VendorAuthResponseMappingConfig.Response();
+            VendorProfileMappingConfig.RegisterMappings();
+            UpdateVendorProfileMappingConfig.RegisterMappings();
 
             // Register Generic Repository
             services.AddScoped(typeof(IGenaricRepositories<>), typeof(GenaricRepositories<>));
@@ -82,6 +88,7 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             // Register Services
             services.AddScoped<IRoleService, RoleService>();
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IVendorService, VendorService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<ICartService, CartService>();
@@ -97,7 +104,9 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             services.AddScoped<IProfileService, ProfileService>();
             services.AddScoped<IProfileRepository, ProfileRepository>();
             services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<IFileService, FileService>();
             services.AddHttpClient();
+            services.AddHttpContextAccessor();
             // Add CORS policy for development / frontend
             services.AddCors(options =>
             {

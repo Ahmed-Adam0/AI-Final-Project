@@ -49,7 +49,7 @@ namespace Graduation_Application.Mapper.ProductMapping
                 .Map(dest => dest.WorkshopNameEn, src => src.Workshop != null ? src.Workshop.WorkshopNameEn : string.Empty)
                 .Map(dest => dest.WorkshopDescriptionAr, src => src.Workshop != null ? src.Workshop.DescriptionAr : string.Empty)
                 .Map(dest => dest.WorkshopDescriptionEn, src => src.Workshop != null ? src.Workshop.DescriptionEn : string.Empty)
-                .Map(dest => dest.WorkshopAddress, src => src.Workshop != null ? src.Workshop.Address : string.Empty)
+                .Map(dest => dest.WorkshopAddress, src => src.Workshop != null && src.Workshop.WorkshopAddress != null ? (src.Workshop.WorkshopAddress.Street ?? string.Empty) : string.Empty)
                 .Map(dest => dest.WorkshopLogoUrl, src => src.Workshop != null ? src.Workshop.LogoUrl ?? string.Empty : string.Empty)
                 .Map(dest => dest.WorkshopRating, src => src.Workshop != null ? src.Workshop.Rating : null)
                 .Map(dest => dest.WorkshopIsVerified, src => src.Workshop != null && src.Workshop.IsVerified)

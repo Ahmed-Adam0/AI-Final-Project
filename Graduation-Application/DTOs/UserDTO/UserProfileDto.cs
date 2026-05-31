@@ -9,6 +9,7 @@ namespace Graduation_Application.DTOs.UserDTO
         public string Id { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
         public string? Email { get; set; }
+        // Full URL to profile image (e.g. https://api.example.com/uploads/profiles/abc.jpg)
         public string? ProfileImage { get; set; }
         public string PreferredLanguage { get; set; } = "ar";
         public string? PhoneNumber { get; set; }
