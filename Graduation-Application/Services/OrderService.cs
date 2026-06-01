@@ -179,7 +179,8 @@ namespace Graduation_Application.Services
             {
                 "Pending",
                 "Confirmed",
-                "InProgress",
+                "In Progress",
+                "Ready for Pickup",
                 "Delivered",
                 "Cancelled",
             };
@@ -198,6 +199,11 @@ namespace Graduation_Application.Services
                 throw new Exception("Order not found");
             }
 
+            if (!IsValidStatusTransition(order.Status, status))
+            {
+                throw new Exception($"Cannot transition from {order.Status} to {status}");
+            }
+
             var oldStatus = order.Status;
             order.Status = status;
             order.StatusHistory.Add(
@@ -207,6 +213,34 @@ namespace Graduation_Application.Services
             //_orderRepository.Update(order);
             await _orderRepository.SaveChangesAsync();
             await _notificationService.SendOrderStatusUpdateAsync(order.UserId, order.Id, status);
+        }
+
+        private bool IsValidStatusTransition(string fromStatus, string toStatus)
+        {
+            var validTransitions = new Dictionary<string, List<string>>
+            {
+                {
+                    "Pending",
+                    new List<string> { "Confirmed", "Cancelled" }
+                },
+                {
+                    "Confirmed",
+                    new List<string> { "In Progress", "Cancelled" }
+                },
+                {
+                    "In Progress",
+                    new List<string> { "Ready for Pickup", "Cancelled" }
+                },
+                {
+                    "Ready for Pickup",
+                    new List<string> { "Delivered", "Cancelled" }
+                },
+                { "Delivered", new List<string>() },
+                { "Cancelled", new List<string>() },
+            };
+
+            return validTransitions.ContainsKey(fromStatus)
+                && validTransitions[fromStatus].Contains(toStatus);
         }
 
         private OrderResponseDto MapToDto(Order order)

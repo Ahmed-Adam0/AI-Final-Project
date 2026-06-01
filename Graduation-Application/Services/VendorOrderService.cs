@@ -33,9 +33,7 @@ namespace Graduation_Application.Services
             int TotalCount
         )> GetVendorOrdersAsync(int workshopId, VendorOrdersFilterDto filter)
         {
-            var query = _orderRepository
-                .Where(o => o.WorkshopId == workshopId && o.Status != "Cancelled")
-                .AsNoTracking();
+            var query = _orderRepository.Where(o => o.WorkshopId == workshopId).AsNoTracking();
 
             // Status Filter
             if (!string.IsNullOrWhiteSpace(filter.Status))
