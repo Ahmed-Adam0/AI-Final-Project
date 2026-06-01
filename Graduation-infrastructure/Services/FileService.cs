@@ -1,111 +1,66 @@
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
 using Graduation_Application.IServices;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using System;
+using System.Threading.Tasks;
 
 namespace Graduation_infrastructure.Services
 {
     public class FileService : IFileService
     {
-        private readonly IWebHostEnvironment _env;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly long _maxFileSize = 5 * 1024 * 1024; // 5MB
-        private readonly string[] _permittedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+        private readonly Cloudinary _cloudinary;
 
-        public FileService(IWebHostEnvironment env, IHttpContextAccessor httpContextAccessor)
+        public FileService(IConfiguration configuration)
         {
-            _env = env ?? throw new ArgumentNullException(nameof(env));
-            _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
-        }
+            var account = new Account(
+                configuration["CloudinarySettings:CloudName"],
+                configuration["CloudinarySettings:ApiKey"],
+                configuration["CloudinarySettings:ApiSecret"]
+            );
 
-        private string GetWebRootPath()
-        {
-            return _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-        }
-
-        private string GetBaseUrl()
-        {
-            var req = _httpContextAccessor.HttpContext?.Request;
-            if (req == null) return string.Empty;
-            return $"{req.Scheme}://{req.Host.Value}";
+            _cloudinary = new Cloudinary(account);
         }
 
         public async Task<string> SaveImageAsync(IFormFile file, string folderName, string? oldFileUrl = null)
         {
             if (file == null || file.Length == 0)
-                throw new ArgumentException("No file provided", nameof(file));
+                throw new ArgumentException("No file provided");
 
-            if (file.Length > _maxFileSize)
-                throw new ArgumentException("File size exceeds limit of 5MB", nameof(file));
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+            var ext = System.IO.Path.GetExtension(file.FileName).ToLowerInvariant();
 
-            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-            if (string.IsNullOrEmpty(ext) || !_permittedExtensions.Contains(ext))
-                throw new ArgumentException("Invalid file type. Only jpg, jpeg and png are allowed.", nameof(file));
+            if (!Array.Exists(allowedExtensions, e => e == ext))
+                throw new ArgumentException("Only jpg, jpeg, png allowed");
 
-            var uploadsRoot = Path.Combine(GetWebRootPath(), "uploads");
-            var targetFolder = Path.Combine(uploadsRoot, folderName);
-            if (!Directory.Exists(targetFolder))
-                Directory.CreateDirectory(targetFolder);
+            await using var stream = file.OpenReadStream();
 
-            var fileName = $"{Guid.NewGuid():N}{ext}";
-            var filePath = Path.Combine(targetFolder, fileName);
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            var uploadParams = new ImageUploadParams
             {
-                await file.CopyToAsync(stream);
-            }
+                File = new FileDescription(file.FileName, stream),
+                Folder = folderName
+            };
 
-            // Delete old file if provided
-            if (!string.IsNullOrWhiteSpace(oldFileUrl))
-            {
-                await DeleteAsync(oldFileUrl);
-            }
+            var result = await _cloudinary.UploadAsync(uploadParams);
 
-            var relativeUrl = $"/uploads/{folderName}/{fileName}";
-            var baseUrl = GetBaseUrl();
-            if (string.IsNullOrWhiteSpace(baseUrl))
-            {
-                // fallback to relative URL if no request context
-                return relativeUrl;
-            }
+            if (result == null || result.SecureUrl == null)
+                throw new Exception("Upload failed");
 
-            return baseUrl.TrimEnd('/') + relativeUrl;
+            return result.SecureUrl.ToString();
         }
 
-        public Task DeleteAsync(string fileUrl)
+        public async Task DeleteAsync(string fileUrl)
         {
-            if (string.IsNullOrWhiteSpace(fileUrl))
-                return Task.CompletedTask;
+            if (string.IsNullOrWhiteSpace(fileUrl)) return;
 
-            string relativePath = fileUrl;
+            // استخرج الـ PublicId من الـ URL
+            var uri = new Uri(fileUrl);
+            var segments = uri.Segments;
+            var publicId = string.Join("", segments[^2..]).Replace(".jpg", "").Replace(".jpeg", "").Replace(".png", "").TrimEnd('/');
 
-            // if a full URL is provided extract the path
-            if (Uri.IsWellFormedUriString(fileUrl, UriKind.Absolute))
-            {
-                try
-                {
-                    var uri = new Uri(fileUrl);
-                    relativePath = uri.AbsolutePath;
-                }
-                catch
-                {
-                    relativePath = fileUrl;
-                }
-            }
-
-            // Normalize and map to physical path
-            relativePath = relativePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
-            var fullPath = Path.Combine(GetWebRootPath(), relativePath);
-
-            if (File.Exists(fullPath))
-            {
-                File.Delete(fullPath);
-            }
-
-            return Task.CompletedTask;
+            var deleteParams = new DeletionParams(publicId);
+            await _cloudinary.DestroyAsync(deleteParams);
         }
     }
 }
