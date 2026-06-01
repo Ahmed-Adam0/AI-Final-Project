@@ -1,4 +1,5 @@
 using Graduation_Application.DTOs.Admin.AdminDashboardDTO;
+using Graduation_Application.IServices;
 using Graduation_Application.IServices.Admin;
 using Graduation_MVC.Areas.Admin.ViewModels.Orders;
 using Microsoft.AspNetCore.Authorization;
@@ -11,10 +12,12 @@ namespace Graduation_MVC.Areas.Admin.Controllers
     public class OrdersController : Controller
     {
         private readonly IAdminDashboardService _adminDashboardService;
+        private readonly IOrderService _orderService;
 
-        public OrdersController(IAdminDashboardService adminDashboardService)
+        public OrdersController(IAdminDashboardService adminDashboardService, IOrderService orderService)
         {
             _adminDashboardService = adminDashboardService;
+            _orderService = orderService;
         }
 
         [HttpGet]
@@ -137,9 +140,10 @@ namespace Graduation_MVC.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult ChangeStatus(int id, string status)
+        public async Task<IActionResult> ChangeStatus(int id)
         {
-            TempData["SuccessMessage"] = $"Order #{id} status changed to {status}.";
+            await _orderService.UpdateOrderStatusAsync(id, "Confirmed");
+            TempData["SuccessMessage"] = $"Order #{id} status changed to Confirmed.";
             return RedirectToAction(nameof(Details), new { id });
         }
 

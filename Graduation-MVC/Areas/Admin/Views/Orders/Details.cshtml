@@ -84,16 +84,15 @@
 
         <div class="glass-card p-4">
             <h5 class="text-light mb-3">Change Status</h5>
-            <form asp-area="Admin" asp-controller="Orders" asp-action="ChangeStatus" asp-route-id="@Model.Summary.Id" method="post" class="d-grid gap-2">
-                @Html.AntiForgeryToken()
-                <select name="status" class="form-select form-select-premium">
-                    <option>Pending</option>
-                    <option>Processing</option>
-                    <option>Completed</option>
-                    <option>Cancelled</option>
-                </select>
-                <button type="submit" class="btn btn-premium btn-premium-primary">Save Status</button>
-            </form>
+            @if (string.Equals(Model.Summary.Status, "Pending", StringComparison.OrdinalIgnoreCase))
+            {
+                <form asp-area="Admin" asp-controller="Orders" asp-action="ChangeStatus" asp-route-id="@Model.Summary.Id" method="post" class="d-grid gap-2">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-premium btn-premium-primary">
+                        <i class="fa-solid fa-circle-check"></i> Confirm Order
+                    </button>
+                </form>
+            }
             <a asp-area="Admin" asp-controller="Orders" asp-action="Export" asp-route-id="@Model.Summary.Id" class="btn btn-premium btn-premium-secondary w-100 mt-2">Export Order</a>
         </div>
     </div>
