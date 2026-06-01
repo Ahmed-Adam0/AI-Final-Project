@@ -1,8 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
+using Graduation_Application.IRepositories;
+using Graduation_Application.IServices;
+using Graduation_Application.Mapper.ProductMapping;
+using Graduation_Application.Services;
 using Graduation_domain.Entities;
 using Graduation_infrastructure.AppDbContext;
+using Graduation_infrastructure.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -28,6 +33,16 @@ namespace Graduation_infrastructure.ProgramService.ServicesMVC
                 .AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
+
+            // Register Generic Repository
+            services.AddScoped(typeof(IGenaricRepositories<>), typeof(GenaricRepositories<>));
+
+            // Register Mapping Configurations
+            ProductMappingConfig.RegisterMappings();
+
+            // Register Admin Services
+            services.AddScoped<IAdminProductService, AdminProductService>();
         }
     }
 }
+

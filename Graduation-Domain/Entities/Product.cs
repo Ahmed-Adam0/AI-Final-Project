@@ -1,10 +1,13 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Graduation_Domain.Enums;
 
 namespace Graduation_domain.Entities
 {
     public class Product : BaseEntity<int>
     {
+        public ProductStatus Status { get; set; } = ProductStatus.Active;
+
         [Required(ErrorMessage = "WorkshopId is required")]
         public int WorkshopId { get; set; }
         public Workshop Workshop { get; set; }

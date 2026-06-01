@@ -1,0 +1,124 @@
+@model ReportedProductsViewModel
+@{
+    ViewData["Title"] = "Reported Products";
+}
+
+<div class="row align-items-center mb-4">
+    <div class="col-md-6">
+        <h1 class="display-font text-light mb-1">Product Reports Moderation</h1>
+        <p class="text-muted mb-0">Review complaints and reports submitted by users against products.</p>
+    </div>
+    <div class="col-md-6 text-md-end mt-3 mt-md-0">
+        <div class="glass-card px-3 py-2 d-inline-flex align-items-center gap-3">
+            <span class="text-muted small">Total Reports:</span>
+            <span class="badge bg-indigo fs-6 font-monospace" style="background-color: var(--accent-primary);">@Model.Reports.Count</span>
+        </div>
+    </div>
+</div>
+
+<!-- Reports Table -->
+<div class="glass-card p-4">
+    @if (Model.Reports == null || !Model.Reports.Any())
+    {
+        <div class="text-center py-5">
+            <div class="text-muted mb-3"><i class="fa-solid fa-flag-checkered fa-3x"></i></div>
+            <h5 class="text-light">No reports found</h5>
+            <p class="text-muted small">All clear! There are no product reports requiring attention.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-premium">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Reporter</th>
+                        <th>Reason for Report</th>
+                        <th>Date Reported</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var report in Model.Reports)
+                    {
+                        <tr style="@(report.IsResolved ? "opacity: 0.65;" : "")">
+                            <!-- Product Name & Link -->
+                            <td>
+                                <div>
+                                    <a asp-area="Admin" asp-controller="Products" asp-action="Details" asp-route-id="@report.ProductId" class="text-light font-weight-bold text-decoration-none hover-indigo">
+                                        @report.ProductNameEn <i class="fa-solid fa-arrow-up-right-from-square ms-1" style="font-size: 0.75rem; color: var(--accent-secondary);"></i>
+                                    </a>
+                                    <div class="text-muted small">@report.ProductNameAr</div>
+                                    <span class="text-muted small d-block" style="font-size: 0.75rem;">Product ID: #@report.ProductId</span>
+                                </div>
+                            </td>
+                            
+                            <!-- Reporter Info -->
+                            <td>
+                                <div class="text-light">@report.ReportedByName</div>
+                                <span class="text-muted small d-block"><i class="fa-solid fa-envelope me-1"></i>@report.ReportedByEmail</span>
+                            </td>
+                            
+                            <!-- Reason -->
+                            <td>
+                                <div class="text-light" style="max-width: 250px; overflow-wrap: break-word; white-space: pre-wrap;">@report.Reason</div>
+                            </td>
+                            
+                            <!-- Created At -->
+                            <td>
+                                <span class="text-muted small">@report.CreatedAt.ToString("yyyy-MM-dd HH:mm")</span>
+                            </td>
+                            
+                            <!-- Status -->
+                            <td>
+                                @if (report.IsResolved)
+                                {
+                                    <span class="badge-status badge-status-resolved">
+                                        <i class="fa-solid fa-check-double"></i> Resolved
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge-status badge-status-inactive">
+                                        <i class="fa-solid fa-hourglass-half"></i> Pending
+                                    </span>
+                                }
+                            </td>
+                            
+                            <!-- Actions -->
+                            <td>
+                                <div class="d-flex justify-content-end align-items-center gap-2">
+                                    @if (!report.IsResolved)
+                                    {
+                                        <form asp-area="Admin" asp-controller="Products" asp-action="ResolveReport" asp-route-id="@report.ReportId" method="post" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-success btn-premium" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+                                                <i class="fa-solid fa-check"></i> Resolve
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-sm btn-premium btn-premium-secondary disabled" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; pointer-events: none;" disabled="disabled">
+                                            <i class="fa-solid fa-check-double"></i> Resolved
+                                        </button>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@section Styles {
+    <style>
+        .hover-indigo:hover {
+            color: var(--accent-primary) !important;
+            text-decoration: underline !important;
+        }
+    </style>
+}
