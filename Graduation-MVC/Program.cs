@@ -37,18 +37,24 @@ namespace Graduation_MVC
             // Serve product images written by the API under Graduation-API/wwwroot (e.g. /images/products/...)
             var apiWwwRootSetting = builder.Configuration["ApiSettings:WwwRootPath"];
             var apiWwwRoot = string.IsNullOrWhiteSpace(apiWwwRootSetting)
-                ? Path.GetFullPath(Path.Combine(app.Environment.ContentRootPath, "..", "Graduation-API", "wwwroot"))
-                : Path.GetFullPath(Path.IsPathRooted(apiWwwRootSetting)
-                    ? apiWwwRootSetting
-                    : Path.Combine(app.Environment.ContentRootPath, apiWwwRootSetting));
+                ? Path.GetFullPath(
+                    Path.Combine(app.Environment.ContentRootPath, "..", "Graduation-API", "wwwroot")
+                )
+                : Path.GetFullPath(
+                    Path.IsPathRooted(apiWwwRootSetting)
+                        ? apiWwwRootSetting
+                        : Path.Combine(app.Environment.ContentRootPath, apiWwwRootSetting)
+                );
 
             if (Directory.Exists(apiWwwRoot))
             {
-                app.UseStaticFiles(new StaticFileOptions
-                {
-                    FileProvider = new PhysicalFileProvider(apiWwwRoot),
-                    RequestPath = ""
-                });
+                app.UseStaticFiles(
+                    new StaticFileOptions
+                    {
+                        FileProvider = new PhysicalFileProvider(apiWwwRoot),
+                        RequestPath = "",
+                    }
+                );
             }
 
             app.UseRouting();
@@ -62,12 +68,14 @@ namespace Graduation_MVC
             // 🔥 Areas Route (Admin, etc.)
             app.MapControllerRoute(
                 name: "areas",
-                pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+                pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
+            );
 
             // Default Route
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
+                pattern: "{controller=Home}/{action=Index}/{id?}"
+            );
 
             app.Run();
         }

@@ -18,12 +18,13 @@ namespace Graduation_MVC.Helpers
                 return path;
 
             if (path.StartsWith('/'))
-                return path;
+                return "http://home-ai.runasp.net/" + path;
 
-            if (path.Contains('/'))
-                return "/" + path.TrimStart('/');
+            //if (path.Contains('/'))
+            //    return "/" + path.TrimStart('/');
 
-            return "/uploads/products/" + path;
+            //return "/uploads/products/" + path;
+            return "http://home-ai.runasp.net/" + path;
         }
     }
 }
