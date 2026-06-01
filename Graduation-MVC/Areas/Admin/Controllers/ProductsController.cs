@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
-using Graduation_Application.DTOs.AdminProductDTO;
-using Graduation_Application.IServices;
+using Graduation_Application.DTOs.Admin.AdminProductDTO;
+using Graduation_Application.IServices.Admin;
 using Graduation_MVC.Areas.Admin.ViewModels.Products;
 using Microsoft.AspNetCore.Mvc;
 

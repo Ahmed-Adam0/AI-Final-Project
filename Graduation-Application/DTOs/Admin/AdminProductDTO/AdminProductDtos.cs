@@ -1,8 +1,8 @@
-using Graduation_Domain.Enums;
 using System;
 using System.Collections.Generic;
+using Graduation_Domain.Enums;
 
-namespace Graduation_Application.DTOs.AdminProductDTO
+namespace Graduation_Application.DTOs.Admin.AdminProductDTO
 {
     /// <summary>
     /// DTO for admin product list items.

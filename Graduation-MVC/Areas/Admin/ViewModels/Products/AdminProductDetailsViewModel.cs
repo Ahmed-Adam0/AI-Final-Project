@@ -1,4 +1,4 @@
-using Graduation_Application.DTOs.AdminProductDTO;
+using Graduation_Application.DTOs.Admin.AdminProductDTO;
 
 namespace Graduation_MVC.Areas.Admin.ViewModels.Products
 {
