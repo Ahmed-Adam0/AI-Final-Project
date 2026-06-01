@@ -19,6 +19,7 @@ namespace Graduation_Application.Services
         private readonly IGenaricRepositories<CartItem> _cartItemRepository;
         private readonly ICartService _cartService;
         private readonly INotificationService _notificationService;
+        private readonly IInternalNotificationService _internalNotificationService;
 
         public OrderService(
             IGenaricRepositories<Order> orderRepository,
@@ -26,7 +27,8 @@ namespace Graduation_Application.Services
             IGenaricRepositories<Cart> cartRepository,
             IGenaricRepositories<CartItem> cartItemRepository,
             ICartService cartService,
-            INotificationService notificationService
+            INotificationService notificationService,
+            IInternalNotificationService internalNotificationService
         )
         {
             _orderRepository = orderRepository;
@@ -35,6 +37,7 @@ namespace Graduation_Application.Services
             _cartItemRepository = cartItemRepository;
             _cartService = cartService;
             _notificationService = notificationService;
+            _internalNotificationService = internalNotificationService;
         }
 
         public async Task<List<OrderResponseDto>> GetAllOrdersAsync()
@@ -106,6 +109,14 @@ namespace Graduation_Application.Services
             // Clear the cart (this uses the cart service which will operate with its own tracked entities)
             await _cartService.ClearCartAsync(userId);
 
+            // Send internal notifications
+            await _internalNotificationService.CreateAsync(userId, NotificationType.OrderPending, order.Id.ToString());
+            var vendor = order.Items.FirstOrDefault()?.Product?.User;
+            if (vendor != null)
+            {
+                await _internalNotificationService.CreateAsync(vendor.Id, NotificationType.NewOrder, order.Id.ToString());
+            }
+
             await _notificationService.SendOrderConfirmationAsync(
                 userId,
                 order.Id,
@@ -150,6 +161,8 @@ namespace Graduation_Application.Services
             var order = await _orderRepository
                 .Where(o => o.Id == orderId && o.UserId == userId)
                 .Include(o => o.StatusHistory)
+                .Include(o => o.Items)
+                    .ThenInclude(oi => oi.Product)
                 .FirstOrDefaultAsync();
 
             if (order == null)
@@ -170,6 +183,17 @@ namespace Graduation_Application.Services
 
             //_orderRepository.Update(order);
             await _orderRepository.SaveChangesAsync();
+
+            // Send internal notifications for cancellation
+            await _internalNotificationService.CreateAsync(userId, NotificationType.OrderCancelled, orderId.ToString());
+
+            // Send notification to vendor
+            var vendor = order.Items.FirstOrDefault()?.Product?.User;
+            if (vendor != null)
+            {
+                await _internalNotificationService.CreateAsync(vendor.Id, NotificationType.VendorOrderCancelled, orderId.ToString());
+            }
+
             await _notificationService.SendOrderCancellationAsync(userId, order.Id);
         }
 
@@ -212,6 +236,28 @@ namespace Graduation_Application.Services
 
             //_orderRepository.Update(order);
             await _orderRepository.SaveChangesAsync();
+
+            // Send internal notifications based on status
+            switch (status)
+            {
+                //case "Pending":
+                //    await _internalNotificationService.CreateAsync(order.UserId, NotificationType.OrderPending, orderId.ToString());
+                //    break;
+                case "Confirmed":
+                    await _internalNotificationService.CreateAsync(order.UserId, NotificationType.OrderConfirmed, orderId.ToString());
+                    break;
+                case "In Progress":
+                    await _internalNotificationService.CreateAsync(order.UserId, NotificationType.OrderInProgress, orderId.ToString());
+                    break;
+                case "Ready for Pickup":
+                    await _internalNotificationService.CreateAsync(order.UserId, NotificationType.OrderReadyForPickup, orderId.ToString());
+                    break;
+                case "Delivered":
+                    await _internalNotificationService.CreateAsync(order.UserId, NotificationType.OrderDelivered, orderId.ToString());
+                    break;
+                
+            }
+
             await _notificationService.SendOrderStatusUpdateAsync(order.UserId, order.Id, status);
         }
 

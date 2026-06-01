@@ -25,6 +25,7 @@ namespace Graduation_infrastructure.AppDbContext
         public DbSet<FinalResultImage> FinalResultImages { get; set; }
         public DbSet<Discount> Discounts { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<InternalNotification> InternalNotifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -112,6 +113,12 @@ namespace Graduation_infrastructure.AppDbContext
             builder.Entity<OrderItem>().Property(oi => oi.UnitPrice).HasColumnType("decimal(18,2)");
             builder.Entity<Product>().Property(p => p.Price).HasColumnType("decimal(18,2)");
             builder.Entity<Workshop>().Property(w => w.Rating).HasColumnType("decimal(18,2)");
+
+            builder.Entity<InternalNotification>()
+                .HasOne(n => n.User)
+                .WithMany(u => u.internalNotifications)
+                .HasForeignKey(n => n.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

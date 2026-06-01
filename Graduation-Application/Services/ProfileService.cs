@@ -15,12 +15,14 @@ namespace Graduation_Application.Services
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IProfileRepository _profileRepository;
         private readonly IFileService _fileService;
+        private readonly IInternalNotificationService _internalNotificationService;
 
-        public ProfileService(UserManager<ApplicationUser> userManager,IProfileRepository profileRepository, IFileService fileService)
+        public ProfileService(UserManager<ApplicationUser> userManager,IProfileRepository profileRepository, IFileService fileService, IInternalNotificationService internalNotificationService)
         {
             _userManager = userManager;
             _profileRepository = profileRepository;
             _fileService = fileService;
+            _internalNotificationService = internalNotificationService;
         }
 
         public async Task<UserProfileDto> GetProfileAsync(string userId)
@@ -96,6 +98,8 @@ namespace Graduation_Application.Services
                 var errors = string.Join(" ; ", result.Errors.Select(e => e.Description));
                 throw new System.Exception(errors);
             }
+            await _internalNotificationService.CreateAsync(userId, NotificationType.PasswordReset);
+
         }
     }
 }

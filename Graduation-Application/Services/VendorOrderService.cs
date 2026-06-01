@@ -15,16 +15,19 @@ namespace Graduation_Application.Services
         private readonly IGenaricRepositories<Order> _orderRepository;
         private readonly IGenaricRepositories<Workshop> _workshopRepository;
         private readonly INotificationService _notificationService;
+        private readonly IInternalNotificationService _internalNotificationService;
 
         public VendorOrderService(
             IGenaricRepositories<Order> orderRepository,
             IGenaricRepositories<Workshop> workshopRepository,
-            INotificationService notificationService
+            INotificationService notificationService,
+            IInternalNotificationService internalNotificationService
         )
         {
             _orderRepository = orderRepository;
             _workshopRepository = workshopRepository;
             _notificationService = notificationService;
+            _internalNotificationService = internalNotificationService;
         }
 
         // 1. Get Vendor Orders with Filtering and Pagination
@@ -223,6 +226,23 @@ namespace Graduation_Application.Services
             order.UpdatedAt = DateTime.UtcNow;
             _orderRepository.Update(order);
             await _orderRepository.SaveChangesAsync();
+
+            // Send internal notifications based on status
+            switch (newStatus)
+            {
+                case "Confirmed":
+                    await _internalNotificationService.CreateAsync(order.UserId, NotificationType.OrderConfirmed, orderId.ToString());
+                    break;
+                case "In Progress":
+                    await _internalNotificationService.CreateAsync(order.UserId, NotificationType.OrderInProgress, orderId.ToString());
+                    break;
+                case "Ready for Pickup":
+                    await _internalNotificationService.CreateAsync(order.UserId, NotificationType.OrderReadyForPickup, orderId.ToString());
+                    break;
+                case "Delivered":
+                    await _internalNotificationService.CreateAsync(order.UserId, NotificationType.OrderDelivered, orderId.ToString());
+                    break;
+            }
 
             // Send notification to customer
             await _notificationService.SendOrderStatusUpdateAsync(order.UserId, orderId, newStatus);

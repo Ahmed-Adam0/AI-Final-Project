@@ -5,6 +5,7 @@ using Graduation_Application.ExternalServices.EmailServices;
 using Graduation_Application.IRepositories;
 using Graduation_Application.IServices;
 using Graduation_Application.Mapper.CategoryMapping;
+using Graduation_Application.Mapper.NotificationMapping;
 using Graduation_Application.Mapper.ProductMapping;
 using Graduation_Application.Mapper.ReviewMapping;
 using Graduation_Application.Mapper.UsersMapping;
@@ -78,6 +79,7 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             ReviewMappingConfig.RegisterMappings();
             UserProfileMappingConfig.RegisterMappings();
             VendorMappingConfig.RegisterMappings();
+            InternalNotificationMappingConfig.RegisterMappings();
             VendorAuthResponseMappingConfig.Response();
             VendorProfileMappingConfig.RegisterMappings();
             UpdateVendorProfileMappingConfig.RegisterMappings();
@@ -106,6 +108,8 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             services.AddScoped<IProfileService, ProfileService>();
             services.AddScoped<IProfileRepository, ProfileRepository>();
             services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<IInternalNotificationService, InternalNotificationService>();
+            services.AddScoped<IInternalNotificationRepository, InternalNotificationRepository>();
             services.AddScoped<IFileService, FileService>();
             services.AddHttpClient();
             services.AddHttpContextAccessor();

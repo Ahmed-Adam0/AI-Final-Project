@@ -15,13 +15,16 @@ namespace Graduation_Application.Services
     {
         private readonly IGenaricRepositories<Review> _reviewRepository;
         private readonly IGenaricRepositories<Product> _productRepository;
+        private readonly IInternalNotificationService _internalNotificationService;
 
         public ReviewService(
             IGenaricRepositories<Review> reviewRepository,
-            IGenaricRepositories<Product> productRepository)
+            IGenaricRepositories<Product> productRepository,
+            IInternalNotificationService internalNotificationService)
         {
             _reviewRepository = reviewRepository;
             _productRepository = productRepository;
+            _internalNotificationService = internalNotificationService;
         }
 
         public async Task<ReviewDto> CreateReviewAsync(string userId, CreateReviewDto createReviewDto)
@@ -55,6 +58,13 @@ namespace Graduation_Application.Services
 
             await _reviewRepository.AddAsync(review);
             await _reviewRepository.SaveChangesAsync();
+
+            // Send notification to vendor about new review
+            var productNotification = await _productRepository.GetByIdAsync(review.ProductId);
+            if (productNotification != null && !string.IsNullOrWhiteSpace(product.UserId))
+            {
+                await _internalNotificationService.CreateAsync(product.UserId, NotificationType.NewReview);
+            }
 
             // Map to DTO
             var reviewDto = review.Adapt<ReviewDto>();
