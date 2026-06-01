@@ -310,6 +310,7 @@ namespace Graduation_Application.Services
 
             var ordersInRange = await query
                 .Where(o => o.CreatedAt >= startDate && o.CreatedAt <= endDate)
+                .Include(o => o.StatusHistory)
                 .ToListAsync();
 
             var totalOrders = ordersInRange.Count;

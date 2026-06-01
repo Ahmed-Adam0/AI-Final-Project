@@ -28,7 +28,8 @@ namespace Graduation_Infrastructure.Identity
             var secret = _configuration["Jwt:Secret"];
             var issuer = _configuration["Jwt:Issuer"];
             var audience = _configuration["Jwt:Audience"];
-            var expiryInMinutes = int.Parse(_configuration["Jwt:ExpiryInMinutes"] ?? "60");
+            //var expiryInMinutes = int.Parse(_configuration["Jwt:ExpiryInMinutes"] ?? "1440");
+            var expiryInDays = int.Parse(_configuration["Jwt:ExpiryInDays"] ?? "1");
 
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
@@ -41,7 +42,7 @@ namespace Graduation_Infrastructure.Identity
                 new Claim(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
                 new Claim(ClaimTypes.Name, user.FullName ?? string.Empty),
                 new Claim("name", user.FullName ?? string.Empty),
-                new Claim("lang", user.PreferredLanguage ?? string.Empty)
+                new Claim("lang", user.PreferredLanguage ?? string.Empty),
             };
 
             var workshop = _context.Workshops.FirstOrDefault(w => w.UserId == user.Id);
@@ -59,7 +60,7 @@ namespace Graduation_Infrastructure.Identity
                 issuer: issuer,
                 audience: audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(expiryInMinutes),
+                expires: DateTime.UtcNow.AddDays(expiryInDays),
                 signingCredentials: credentials
             );
 
