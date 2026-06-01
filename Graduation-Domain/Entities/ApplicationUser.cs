@@ -16,7 +16,7 @@ namespace Graduation_domain.Entities
         public string? OtpEmail { get; set; }
         public DateTime? OtpEmailExpiry { get; set; }
         public string? GoogleId { get; set; }
-
+        public List<InternalNotification>? internalNotifications { get; set; }
         public List<Address>? Addresses { get; set; }
         public List<Cart>? Carts { get; set; }
         public List<Favorite>? Favorites { get; set; }

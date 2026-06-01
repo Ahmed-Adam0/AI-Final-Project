@@ -19,19 +19,22 @@ namespace Graduation_Application.Services
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
         private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
+        private readonly IInternalNotificationService _internalNotificationService;
 
         public AuthService(
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
             IJwtTokenGenerator jwtTokenGenerator,
             IEmailService emailService,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IInternalNotificationService internalNotificationService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _jwtTokenGenerator = jwtTokenGenerator;
             _emailService = emailService;
             _configuration = configuration;
+            _internalNotificationService = internalNotificationService;
         }
 
         public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
@@ -140,6 +143,7 @@ namespace Graduation_Application.Services
 
             await _userManager.UpdateAsync(user);
             await _emailService.SendOtpEmailAsync(dto.Email, otp, expiry);
+            await _internalNotificationService.CreateAsync(user.Id, NotificationType.PasswordReset);
         }
 
         public async Task<bool> VerifyOtpAsync(VerifyOtpDto dto)
@@ -196,6 +200,7 @@ namespace Graduation_Application.Services
             user.OtpExpiry = null;
 
             await _userManager.UpdateAsync(user);
+            await _internalNotificationService.CreateAsync(user.Id, NotificationType.PasswordReset);
         }
 
         public async Task ConfirmEmailOtpAsync(ConfirmEmailOtpDto dto)
