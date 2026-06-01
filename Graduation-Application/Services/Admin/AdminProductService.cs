@@ -1,16 +1,16 @@
-using Graduation_Application.DTOs.AdminProductDTO;
-using Graduation_Application.DTOs.Common;
-using Graduation_Application.IRepositories;
-using Graduation_Application.IServices;
-using Graduation_domain.Entities;
-using Graduation_Domain.Enums;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Graduation_Application.DTOs.Admin.AdminProductDTO;
+using Graduation_Application.DTOs.Common;
+using Graduation_Application.IRepositories;
+using Graduation_Application.IServices.Admin;
+using Graduation_domain.Entities;
+using Graduation_Domain.Enums;
+using Microsoft.EntityFrameworkCore;
 
-namespace Graduation_Application.Services
+namespace Graduation_Application.Services.Admin
 {
     public class AdminProductService : IAdminProductService
     {
@@ -25,7 +25,8 @@ namespace Graduation_Application.Services
             IGenaricRepositories<ProductReport> reportRepository,
             IGenaricRepositories<Review> reviewRepository,
             IGenaricRepositories<Category> categoryRepository,
-            IGenaricRepositories<ApplicationUser> userRepository)
+            IGenaricRepositories<ApplicationUser> userRepository
+        )
         {
             _productRepository = productRepository;
             _reportRepository = reportRepository;
@@ -34,12 +35,15 @@ namespace Graduation_Application.Services
             _userRepository = userRepository;
         }
 
-        public async Task<PaginatedResult<AdminProductListDto>> GetProductsAsync(AdminProductFilterDto filter)
+        public async Task<PaginatedResult<AdminProductListDto>> GetProductsAsync(
+            AdminProductFilterDto filter
+        )
         {
             int pageNumber = filter.PageNumber <= 0 ? 1 : filter.PageNumber;
             int pageSize = filter.PageSize <= 0 ? 10 : filter.PageSize;
 
-            IQueryable<Product> query = _productRepository.GetAllAsNoTracking()
+            IQueryable<Product> query = _productRepository
+                .GetAllAsNoTracking()
                 .Include(p => p.Category)
                 .Include(p => p.User)
                 .Include(p => p.Images);
@@ -49,8 +53,8 @@ namespace Graduation_Application.Services
             {
                 string searchTerm = filter.Search.ToLower();
                 query = query.Where(p =>
-                    p.NameAr.ToLower().Contains(searchTerm) ||
-                    p.NameEn.ToLower().Contains(searchTerm)
+                    p.NameAr.ToLower().Contains(searchTerm)
+                    || p.NameEn.ToLower().Contains(searchTerm)
                 );
             }
 
@@ -80,26 +84,34 @@ namespace Graduation_Application.Services
                 .Take(pageSize)
                 .ToListAsync();
 
-            var productDtos = products.Select(p => new AdminProductListDto
-            {
-                Id = p.Id,
-                NameAr = p.NameAr,
-                NameEn = p.NameEn,
-                CategoryName = p.Category != null ? p.Category.NameEn : string.Empty,
-                VendorName = p.User != null ? p.User.FullName : "N/A",
-                Price = p.Price,
-                Status = p.Status,
-                IsActive = p.IsActive,
-                CreatedAt = p.CreatedAt,
-                MainImageUrl = GetMainImageUrl(p.Images)
-            }).ToList();
+            var productDtos = products
+                .Select(p => new AdminProductListDto
+                {
+                    Id = p.Id,
+                    NameAr = p.NameAr,
+                    NameEn = p.NameEn,
+                    CategoryName = p.Category != null ? p.Category.NameEn : string.Empty,
+                    VendorName = p.User != null ? p.User.FullName : "N/A",
+                    Price = p.Price,
+                    Status = p.Status,
+                    IsActive = p.IsActive,
+                    CreatedAt = p.CreatedAt,
+                    MainImageUrl = GetMainImageUrl(p.Images),
+                })
+                .ToList();
 
-            return new PaginatedResult<AdminProductListDto>(productDtos, totalCount, pageNumber, pageSize);
+            return new PaginatedResult<AdminProductListDto>(
+                productDtos,
+                totalCount,
+                pageNumber,
+                pageSize
+            );
         }
 
         public async Task<AdminProductDetailsDto> GetProductDetailsAsync(int id)
         {
-            var product = await _productRepository.GetAllAsNoTracking()
+            var product = await _productRepository
+                .GetAllAsNoTracking()
                 .Include(p => p.Category)
                 .Include(p => p.User)
                 .Include(p => p.Workshop)
@@ -110,7 +122,9 @@ namespace Graduation_Application.Services
                 return null;
 
             // Get reviews stats
-            var reviews = await _reviewRepository.WhereAsNoTracking(r => r.ProductId == id).ToListAsync();
+            var reviews = await _reviewRepository
+                .WhereAsNoTracking(r => r.ProductId == id)
+                .ToListAsync();
             int reviewsCount = reviews.Count;
             double averageRating = reviewsCount > 0 ? reviews.Average(r => r.Rating) : 0;
 
@@ -134,21 +148,26 @@ namespace Graduation_Application.Services
                 WorkshopId = product.WorkshopId,
                 WorkshopNameAr = product.Workshop?.WorkshopNameAr ?? string.Empty,
                 WorkshopNameEn = product.Workshop?.WorkshopNameEn ?? string.Empty,
-                Images = product.Images?.Select(i => new AdminProductImageDto
-                {
-                    Id = i.Id,
-                    ImageUrl = i.ImageUrl,
-                    IsPrimary = i.IsPrimary
-                }).ToList() ?? new List<AdminProductImageDto>(),
+                Images =
+                    product
+                        .Images?.Select(i => new AdminProductImageDto
+                        {
+                            Id = i.Id,
+                            ImageUrl = i.ImageUrl,
+                            IsPrimary = i.IsPrimary,
+                        })
+                        .ToList()
+                    ?? new List<AdminProductImageDto>(),
                 ReviewsCount = reviewsCount,
-                AverageRating = Math.Round(averageRating, 1)
+                AverageRating = Math.Round(averageRating, 1),
             };
         }
 
         public async Task<bool> ActivateProductAsync(int id)
         {
             var product = await _productRepository.GetByIdAsync(id);
-            if (product == null) return false;
+            if (product == null)
+                return false;
 
             product.Status = ProductStatus.Active;
             product.IsActive = true;
@@ -162,7 +181,8 @@ namespace Graduation_Application.Services
         public async Task<bool> DeactivateProductAsync(int id)
         {
             var product = await _productRepository.GetByIdAsync(id);
-            if (product == null) return false;
+            if (product == null)
+                return false;
 
             product.Status = ProductStatus.Inactive;
             product.IsActive = false;
@@ -176,7 +196,8 @@ namespace Graduation_Application.Services
         public async Task<bool> HideProductAsync(int id)
         {
             var product = await _productRepository.GetByIdAsync(id);
-            if (product == null) return false;
+            if (product == null)
+                return false;
 
             product.Status = ProductStatus.Hidden;
             product.IsActive = false;
@@ -190,7 +211,8 @@ namespace Graduation_Application.Services
         public async Task<bool> RestoreProductAsync(int id)
         {
             var product = await _productRepository.GetByIdAsync(id);
-            if (product == null) return false;
+            if (product == null)
+                return false;
 
             product.Status = ProductStatus.Active;
             product.IsActive = true;
@@ -203,30 +225,34 @@ namespace Graduation_Application.Services
 
         public async Task<List<ReportedProductDto>> GetReportedProductsAsync()
         {
-            var reports = await _reportRepository.GetAllAsNoTracking()
+            var reports = await _reportRepository
+                .GetAllAsNoTracking()
                 .Include(r => r.Product)
                 .Include(r => r.User)
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync();
 
-            return reports.Select(r => new ReportedProductDto
-            {
-                ReportId = r.Id,
-                ProductId = r.ProductId,
-                ProductNameEn = r.Product?.NameEn ?? "Unknown",
-                ProductNameAr = r.Product?.NameAr ?? "Unknown",
-                Reason = r.Reason,
-                ReportedByName = r.User?.FullName ?? "Unknown",
-                ReportedByEmail = r.User?.Email ?? "Unknown",
-                CreatedAt = r.CreatedAt,
-                IsResolved = r.IsResolved
-            }).ToList();
+            return reports
+                .Select(r => new ReportedProductDto
+                {
+                    ReportId = r.Id,
+                    ProductId = r.ProductId,
+                    ProductNameEn = r.Product?.NameEn ?? "Unknown",
+                    ProductNameAr = r.Product?.NameAr ?? "Unknown",
+                    Reason = r.Reason,
+                    ReportedByName = r.User?.FullName ?? "Unknown",
+                    ReportedByEmail = r.User?.Email ?? "Unknown",
+                    CreatedAt = r.CreatedAt,
+                    IsResolved = r.IsResolved,
+                })
+                .ToList();
         }
 
         public async Task<bool> ResolveReportAsync(int reportId)
         {
             var report = await _reportRepository.GetByIdAsync(reportId);
-            if (report == null) return false;
+            if (report == null)
+                return false;
 
             report.IsResolved = true;
             report.UpdatedAt = DateTime.UtcNow;
@@ -238,22 +264,26 @@ namespace Graduation_Application.Services
 
         public async Task<List<CategoryDropdownDto>> GetAllCategoriesAsync()
         {
-            var categories = await _categoryRepository.GetAllAsNoTracking()
+            var categories = await _categoryRepository
+                .GetAllAsNoTracking()
                 .OrderBy(c => c.NameEn)
                 .ToListAsync();
 
-            return categories.Select(c => new CategoryDropdownDto
-            {
-                Id = c.Id,
-                NameEn = c.NameEn,
-                NameAr = c.NameAr
-            }).ToList();
+            return categories
+                .Select(c => new CategoryDropdownDto
+                {
+                    Id = c.Id,
+                    NameEn = c.NameEn,
+                    NameAr = c.NameAr,
+                })
+                .ToList();
         }
 
         public async Task<List<VendorDropdownDto>> GetAllVendorsAsync()
         {
             // Get distinct vendor user IDs from products
-            var vendorUserIds = await _productRepository.GetAllAsNoTracking()
+            var vendorUserIds = await _productRepository
+                .GetAllAsNoTracking()
                 .Where(p => p.UserId != null)
                 .Select(p => p.UserId)
                 .Distinct()
@@ -262,17 +292,20 @@ namespace Graduation_Application.Services
             if (!vendorUserIds.Any())
                 return new List<VendorDropdownDto>();
 
-            var vendors = await _userRepository.GetAllAsNoTracking()
+            var vendors = await _userRepository
+                .GetAllAsNoTracking()
                 .Where(u => vendorUserIds.Contains(u.Id))
                 .OrderBy(u => u.FullName)
                 .ToListAsync();
 
-            return vendors.Select(u => new VendorDropdownDto
-            {
-                UserId = u.Id,
-                FullName = u.FullName,
-                Email = u.Email
-            }).ToList();
+            return vendors
+                .Select(u => new VendorDropdownDto
+                {
+                    UserId = u.Id,
+                    FullName = u.FullName,
+                    Email = u.Email,
+                })
+                .ToList();
         }
 
         private static string GetMainImageUrl(List<ProductImage> images)
@@ -281,7 +314,9 @@ namespace Graduation_Application.Services
                 return string.Empty;
 
             var primaryImage = images.FirstOrDefault(img => img.IsPrimary);
-            return primaryImage != null ? primaryImage.ImageUrl : images.FirstOrDefault()?.ImageUrl ?? string.Empty;
+            return primaryImage != null
+                ? primaryImage.ImageUrl
+                : images.FirstOrDefault()?.ImageUrl ?? string.Empty;
         }
     }
 }

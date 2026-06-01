@@ -1,9 +1,9 @@
-using Graduation_Application.DTOs.AdminProductDTO;
-using Graduation_Application.DTOs.Common;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Graduation_Application.DTOs.Admin.AdminProductDTO;
+using Graduation_Application.DTOs.Common;
 
-namespace Graduation_Application.IServices
+namespace Graduation_Application.IServices.Admin
 {
     public interface IAdminProductService
     {

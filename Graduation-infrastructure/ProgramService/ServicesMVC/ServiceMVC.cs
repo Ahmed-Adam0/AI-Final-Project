@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Graduation_Application.IRepositories;
-using Graduation_Application.IServices;
+using Graduation_Application.IServices.Admin;
 using Graduation_Application.Mapper.ProductMapping;
-using Graduation_Application.Services;
+using Graduation_Application.Services.Admin;
 using Graduation_domain.Entities;
 using Graduation_infrastructure.AppDbContext;
 using Graduation_infrastructure.Repositories;
@@ -45,4 +45,3 @@ namespace Graduation_infrastructure.ProgramService.ServicesMVC
         }
     }
 }
-

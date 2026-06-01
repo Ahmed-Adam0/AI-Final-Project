@@ -1,7 +1,7 @@
-using Graduation_Application.DTOs.AdminProductDTO;
+using System.Collections.Generic;
+using Graduation_Application.DTOs.Admin.AdminProductDTO;
 using Graduation_Application.DTOs.Common;
 using Graduation_Domain.Enums;
-using System.Collections.Generic;
 
 namespace Graduation_MVC.Areas.Admin.ViewModels.Products
 {
