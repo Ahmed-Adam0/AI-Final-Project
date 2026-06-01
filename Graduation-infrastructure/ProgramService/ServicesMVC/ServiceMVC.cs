@@ -1,9 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Graduation_Application.ExternalServices.EmailServices;
 using Graduation_Application.IRepositories;
+using Graduation_Application.IServices;
 using Graduation_Application.IServices.Admin;
 using Graduation_Application.Mapper.ProductMapping;
+using Graduation_Application.Options;
+using Graduation_Application.Services;
 using Graduation_Application.Services.Admin;
 using Graduation_domain.Entities;
 using Graduation_infrastructure.AppDbContext;
@@ -42,6 +46,21 @@ namespace Graduation_infrastructure.ProgramService.ServicesMVC
 
             // Register Admin Services
             services.AddScoped<IAdminProductService, AdminProductService>();
+            services.AddScoped<IAdminDashboardService, AdminDashboardService>();
+
+            // Register Application Services required by OrderService and related flows
+            services.AddScoped<ICartService, CartService>();
+            services.AddScoped<IOrderService, OrderService>();
+            services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IWhatsAppService, WhatsAppService>();
+            services.Configure<WhatsAppNotificationSettings>(
+                configuration.GetSection("WhatsAppNotification")
+            );
+            services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<IInternalNotificationService, InternalNotificationService>();
+            services.AddScoped<IInternalNotificationRepository, InternalNotificationRepository>();
+            services.AddHttpClient();
+            services.AddHttpContextAccessor();
         }
     }
 }

@@ -1,0 +1,100 @@
+@model Graduation_MVC.Areas.Admin.ViewModels.Orders.AdminOrderDetailsViewModel
+@{
+    ViewData["Title"] = $"Order {Model.Summary.OrderNumber}";
+}
+
+<div class="row align-items-center mb-4">
+    <div class="col-md-8">
+        <a asp-area="Admin" asp-controller="Orders" asp-action="Index" class="btn btn-premium btn-premium-secondary mb-3">
+            <i class="fa-solid fa-arrow-left"></i> Back to Orders
+        </a>
+        <h1 class="display-font text-light mb-1">@Model.Summary.OrderNumber</h1>
+        <p class="text-muted mb-0">Order details, customer, vendor, items, and timeline.</p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <span class="badge-status badge-status-pending">@Model.Summary.Status</span>
+        <div class="mt-2 fw-semibold text-light">@Model.Summary.TotalPrice.ToString("C2")</div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="glass-card p-4 mb-4">
+            <h5 class="text-light mb-3">Order Items</h5>
+            <div class="table-responsive">
+                <table class="table table-premium mb-0">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th class="text-end">Qty</th>
+                            <th class="text-end">Unit Price</th>
+                            <th class="text-end">Line Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            <tr>
+                                <td>@item.ProductName</td>
+                                <td class="text-end">@item.Quantity</td>
+                                <td class="text-end">@item.UnitPrice.ToString("C2")</td>
+                                <td class="text-end fw-semibold">@item.LineTotal.ToString("C2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="glass-card p-4">
+            <h5 class="text-light mb-3">Order Timeline</h5>
+            <div class="timeline">
+                @foreach (var step in Model.Timeline)
+                {
+                    <div class="timeline-item mb-3">
+                        <div class="d-flex align-items-start gap-3">
+                            <span class="badge @step.StatusClass">@step.Title</span>
+                            <div>
+                                <div class="text-light fw-semibold">@step.Description</div>
+                                <div class="text-muted small">@step.CreatedAt.ToString("yyyy-MM-dd HH:mm")</div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="glass-card p-4 mb-4">
+            <h5 class="text-light mb-3">Customer Information</h5>
+            <div class="text-light fw-semibold">@Model.Customer.Name</div>
+            <div class="text-muted small">@Model.Customer.Email</div>
+            <div class="text-muted small">@Model.Customer.Phone</div>
+            <div class="text-muted small mt-2">@Model.Customer.Address</div>
+        </div>
+
+        <div class="glass-card p-4 mb-4">
+            <h5 class="text-light mb-3">Vendor Information</h5>
+            <div class="text-light fw-semibold">@Model.Vendor.Name</div>
+            <div class="text-muted small">@Model.Vendor.Email</div>
+            <div class="text-muted small">@Model.Vendor.Phone</div>
+            <div class="text-muted small mt-2">Revenue Share: @Model.Vendor.RevenueShare.ToString("F1")%</div>
+        </div>
+
+        <div class="glass-card p-4">
+            <h5 class="text-light mb-3">Change Status</h5>
+            <form asp-area="Admin" asp-controller="Orders" asp-action="ChangeStatus" asp-route-id="@Model.Summary.Id" method="post" class="d-grid gap-2">
+                @Html.AntiForgeryToken()
+                <select name="status" class="form-select form-select-premium">
+                    <option>Pending</option>
+                    <option>Processing</option>
+                    <option>Completed</option>
+                    <option>Cancelled</option>
+                </select>
+                <button type="submit" class="btn btn-premium btn-premium-primary">Save Status</button>
+            </form>
+            <a asp-area="Admin" asp-controller="Orders" asp-action="Export" asp-route-id="@Model.Summary.Id" class="btn btn-premium btn-premium-secondary w-100 mt-2">Export Order</a>
+        </div>
+    </div>
+</div>
