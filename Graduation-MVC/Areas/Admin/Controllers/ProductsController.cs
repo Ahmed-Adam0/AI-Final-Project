@@ -1,8 +1,8 @@
+using System.Threading.Tasks;
 using Graduation_Application.DTOs.AdminProductDTO;
 using Graduation_Application.IServices;
 using Graduation_MVC.Areas.Admin.ViewModels.Products;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 
 namespace Graduation_MVC.Areas.Admin.Controllers
 {
@@ -32,7 +32,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 Status = filter.Status,
                 Products = products,
                 Categories = categories,
-                Vendors = vendors
+                Vendors = vendors,
             };
 
             return View(viewModel);
@@ -46,10 +46,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
             if (product == null)
                 return NotFound();
 
-            var viewModel = new AdminProductDetailsViewModel
-            {
-                Product = product
-            };
+            var viewModel = new AdminProductDetailsViewModel { Product = product };
 
             return View(viewModel);
         }
@@ -105,25 +102,24 @@ namespace Graduation_MVC.Areas.Admin.Controllers
             {
                 foreach (var r in reportsDto)
                 {
-                    reportsVm.Add(new ReportedProductViewModel
-                    {
-                        ReportId = r.ReportId,
-                        ProductId = r.ProductId,
-                        ProductNameEn = r.ProductNameEn,
-                        ProductNameAr = r.ProductNameAr,
-                        Reason = r.Reason,
-                        ReportedByName = r.ReportedByName,
-                        ReportedByEmail = r.ReportedByEmail,
-                        CreatedAt = r.CreatedAt,
-                        IsResolved = r.IsResolved
-                    });
+                    reportsVm.Add(
+                        new ReportedProductViewModel
+                        {
+                            ReportId = r.ReportId,
+                            ProductId = r.ProductId,
+                            ProductNameEn = r.ProductNameEn,
+                            ProductNameAr = r.ProductNameAr,
+                            Reason = r.Reason,
+                            ReportedByName = r.ReportedByName,
+                            ReportedByEmail = r.ReportedByEmail,
+                            CreatedAt = r.CreatedAt,
+                            IsResolved = r.IsResolved,
+                        }
+                    );
                 }
             }
 
-            var viewModel = new ReportedProductsViewModel
-            {
-                Reports = reportsVm
-            };
+            var viewModel = new ReportedProductsViewModel { Reports = reportsVm };
 
             return View(viewModel);
         }
