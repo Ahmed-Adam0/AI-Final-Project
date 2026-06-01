@@ -26,6 +26,7 @@ namespace Graduation_infrastructure.AppDbContext
         public DbSet<Discount> Discounts { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<InternalNotification> InternalNotifications { get; set; }
+        public DbSet<ProductReport> ProductReports { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -119,6 +120,19 @@ namespace Graduation_infrastructure.AppDbContext
                 .WithMany(u => u.internalNotifications)
                 .HasForeignKey(n => n.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // ProductReport relationships
+            builder.Entity<ProductReport>()
+                .HasOne(r => r.Product)
+                .WithMany()
+                .HasForeignKey(r => r.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<ProductReport>()
+                .HasOne(r => r.User)
+                .WithMany()
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

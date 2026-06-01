@@ -1,0 +1,218 @@
+@model AdminProductDetailsViewModel
+@{
+    ViewData["Title"] = $"Product Details: {Model.Product.NameEn}";
+
+    string ResolveImage(string? path) => ProductImageUrlResolver.Resolve(path);
+}
+
+<!-- Back & Actions Header -->
+<div class="row align-items-center mb-4">
+    <div class="col-md-6">
+        <a asp-area="Admin" asp-controller="Products" asp-action="Index" class="btn btn-premium btn-premium-secondary mb-3">
+            <i class="fa-solid fa-arrow-left"></i> Back to Products
+        </a>
+        <h1 class="display-font text-light mb-1">@Model.Product.NameEn</h1>
+        <p class="text-muted mb-0">Product ID: <strong class="text-indigo">#@Model.Product.Id</strong></p>
+    </div>
+    
+    <div class="col-md-6 text-md-end mt-3 mt-md-0">
+        <div class="glass-card px-4 py-3 d-inline-flex align-items-center gap-3">
+            <span class="text-muted small">Status:</span>
+            @if (Model.Product.Status == ProductStatus.Active)
+            {
+                <span class="badge-status badge-status-active">
+                    <i class="fa-solid fa-circle-check"></i> Active
+                </span>
+            }
+            else if (Model.Product.Status == ProductStatus.Inactive)
+            {
+                <span class="badge-status badge-status-inactive">
+                    <i class="fa-solid fa-circle-minus"></i> Inactive
+                </span>
+            }
+            else if (Model.Product.Status == ProductStatus.Hidden)
+            {
+                <span class="badge-status badge-status-hidden">
+                    <i class="fa-solid fa-eye-slash"></i> Hidden
+                </span>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Images, Details, & Descriptions -->
+    <div class="col-lg-8">
+        <!-- Images Gallery -->
+        <div class="glass-card p-4 mb-4">
+            <h5 class="text-light mb-3"><i class="fa-solid fa-images me-2 text-indigo" style="color: var(--accent-primary);"></i>Product Gallery</h5>
+            
+            @if (Model.Product.Images == null || !Model.Product.Images.Any())
+            {
+                <div class="bg-secondary rounded p-5 text-center text-muted" style="background: rgba(255,255,255,0.03) !important; border: 1px dashed var(--border-color);">
+                    <i class="fa-solid fa-image fa-3x mb-3"></i>
+                    <p class="mb-0">No images uploaded for this product.</p>
+                </div>
+            }
+            else
+            {
+                <div class="row g-3">
+                    @foreach (var img in Model.Product.Images)
+                    {
+                        <div class="col-md-4">
+                            <div class="position-relative rounded overflow-hidden border bg-dark" style="height: 180px; border-color: var(--border-color) !important;">
+                                <img src="@ResolveImage(img.ImageUrl)" alt="Product image" style="width: 100%; height: 100%; object-fit: cover;" />
+                                @if (img.IsPrimary)
+                                {
+                                    <span class="position-absolute top-0 start-0 m-2 badge bg-indigo text-light" style="background-color: var(--accent-primary) !important; font-size: 0.7rem;">Primary</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- Description & Details Tabs -->
+        <div class="glass-card p-4">
+            <h5 class="text-light mb-3"><i class="fa-solid fa-circle-info me-2 text-indigo" style="color: var(--accent-primary);"></i>Descriptions & Details</h5>
+            
+            <nav>
+                <div class="nav nav-tabs border-bottom mb-3" id="nav-tab" role="tablist" style="border-color: var(--border-color) !important;">
+                    <button class="nav-link active text-light bg-transparent border-0 border-bottom border-indigo" id="nav-en-tab" data-bs-toggle="tab" data-bs-target="#nav-en" type="button" role="tab" aria-controls="nav-en" aria-selected="true" style="border-bottom-width: 3px !important;">English Details</button>
+                    <button class="nav-link text-light bg-transparent border-0 border-bottom" id="nav-ar-tab" data-bs-toggle="tab" data-bs-target="#nav-ar" type="button" role="tab" aria-controls="nav-ar" aria-selected="false">Arabic Details</button>
+                </div>
+            </nav>
+            <div class="tab-content text-muted" id="nav-tabContent">
+                <!-- English -->
+                <div class="tab-pane fade show active" id="nav-en" role="tabpanel" aria-labelledby="nav-en-tab">
+                    <div class="mb-4">
+                        <label class="text-light small font-weight-bold mb-1">Product Name (EN)</label>
+                        <div class="p-3 bg-secondary rounded text-light" style="background: rgba(255,255,255,0.03) !important; border: 1px solid var(--border-color);">
+                            @Model.Product.NameEn
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-light small font-weight-bold mb-1">Description (EN)</label>
+                        <div class="p-3 bg-secondary rounded text-light" style="background: rgba(255,255,255,0.03) !important; border: 1px solid var(--border-color); white-space: pre-line; min-height: 120px;">
+                            @Model.Product.DescriptionEn
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Arabic -->
+                <div class="tab-pane fade" id="nav-ar" role="tabpanel" aria-labelledby="nav-ar-tab" dir="rtl">
+                    <div class="mb-4 text-end">
+                        <label class="text-light small font-weight-bold mb-1">اسم المنتج (AR)</label>
+                        <div class="p-3 bg-secondary rounded text-light text-end" style="background: rgba(255,255,255,0.03) !important; border: 1px solid var(--border-color);">
+                            @Model.Product.NameAr
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <label class="text-light small font-weight-bold mb-1">الوصف (AR)</label>
+                        <div class="p-3 bg-secondary rounded text-light text-end" style="background: rgba(255,255,255,0.03) !important; border: 1px solid var(--border-color); white-space: pre-line; min-height: 120px;">
+                            @Model.Product.DescriptionAr
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Stats, Metadata, & Actions -->
+    <div class="col-lg-4">
+        <!-- Moderation Actions -->
+        <div class="glass-card p-4 mb-4">
+            <h5 class="text-light mb-3"><i class="fa-solid fa-sliders me-2 text-indigo" style="color: var(--accent-primary);"></i>Moderation Actions</h5>
+            
+            <div class="d-grid gap-2">
+                @if (Model.Product.Status == ProductStatus.Active)
+                {
+                    <form asp-area="Admin" asp-controller="Products" asp-action="Deactivate" asp-route-id="@Model.Product.Id" method="post" class="w-100">
+                        <button type="submit" class="btn btn-warning w-100 btn-premium justify-content-center">
+                            <i class="fa-solid fa-pause"></i> Deactivate Product
+                        </button>
+                    </form>
+                    
+                    <form asp-area="Admin" asp-controller="Products" asp-action="Hide" asp-route-id="@Model.Product.Id" method="post" class="w-100">
+                        <button type="submit" class="btn btn-danger w-100 btn-premium justify-content-center">
+                            <i class="fa-solid fa-eye-slash"></i> Hide Product
+                        </button>
+                    </form>
+                }
+                else if (Model.Product.Status == ProductStatus.Inactive)
+                {
+                    <form asp-area="Admin" asp-controller="Products" asp-action="Activate" asp-route-id="@Model.Product.Id" method="post" class="w-100">
+                        <button type="submit" class="btn btn-success w-100 btn-premium justify-content-center">
+                            <i class="fa-solid fa-play"></i> Activate Product
+                        </button>
+                    </form>
+                }
+                else if (Model.Product.Status == ProductStatus.Hidden)
+                {
+                    <form asp-area="Admin" asp-controller="Products" asp-action="Restore" asp-route-id="@Model.Product.Id" method="post" class="w-100">
+                        <button type="submit" class="btn btn-primary w-100 btn-premium justify-content-center" style="background-color: var(--accent-primary); border-color: var(--accent-primary);">
+                            <i class="fa-solid fa-eye"></i> Restore (Unhide)
+                        </button>
+                    </form>
+                }
+            </div>
+        </div>
+
+        <!-- Price & Review Stats -->
+        <div class="glass-card p-4 mb-4">
+            <h5 class="text-light mb-3"><i class="fa-solid fa-chart-simple me-2 text-indigo" style="color: var(--accent-primary);"></i>Marketplace Data</h5>
+            
+            <div class="mb-3 pb-3 border-bottom" style="border-color: rgba(255,255,255,0.05) !important;">
+                <label class="text-muted small d-block">Marketplace Price</label>
+                <span class="fs-2 font-monospace text-indigo" style="color: var(--accent-secondary); font-weight: 700;">@Model.Product.Price.ToString("C2")</span>
+            </div>
+            
+            <div>
+                <label class="text-muted small d-block mb-1">Customer Reviews</label>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="text-warning">
+                        @for (int i = 1; i <= 5; i++)
+                        {
+                            if (i <= Math.Round(Model.Product.AverageRating))
+                            {
+                                <i class="fa-solid fa-star"></i>
+                            }
+                            else
+                            {
+                                <i class="fa-regular fa-star"></i>
+                            }
+                        }
+                    </div>
+                    <span class="text-light font-weight-bold">@Model.Product.AverageRating.ToString("F1") / 5.0</span>
+                    <span class="text-muted small">(@Model.Product.ReviewsCount reviews)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vendor & Workshop info -->
+        <div class="glass-card p-4">
+            <h5 class="text-light mb-3"><i class="fa-solid fa-user-gear me-2 text-indigo" style="color: var(--accent-primary);"></i>Vendor & Workshop</h5>
+            
+            <!-- Vendor User -->
+            <div class="mb-3 pb-3 border-bottom" style="border-color: rgba(255,255,255,0.05) !important;">
+                <label class="text-muted small d-block">Vendor User</label>
+                <strong class="text-light">@Model.Product.VendorName</strong>
+                <span class="text-muted small d-block"><i class="fa-solid fa-envelope me-1"></i>@Model.Product.VendorEmail</span>
+            </div>
+            
+            <!-- Workshop Info -->
+            <div class="mb-3">
+                <label class="text-muted small d-block">Associated Workshop</label>
+                <div class="text-light font-weight-bold">@Model.Product.WorkshopNameEn</div>
+                <div class="text-muted small">@Model.Product.WorkshopNameAr</div>
+                <span class="text-muted small d-block mt-1">Workshop ID: #@Model.Product.WorkshopId</span>
+            </div>
+
+            <!-- Date Metadata -->
+            <div class="pt-3 border-top" style="border-color: rgba(255,255,255,0.05) !important;">
+                <span class="text-muted small d-block">Created On: @Model.Product.CreatedAt.ToString("MMMM dd, yyyy HH:mm")</span>
+            </div>
+        </div>
+    </div>
+</div>
