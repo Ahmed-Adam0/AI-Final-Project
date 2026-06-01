@@ -1,4 +1,5 @@
 using Graduation_infrastructure.ProgramService.ServicesMVC;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.FileProviders;
 
 namespace Graduation_MVC
@@ -16,6 +17,11 @@ namespace Graduation_MVC
 
             // Infrastructure (MVC services)
             builder.Services.AddInfrastructureMVC(builder.Configuration);
+
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+            });
 
             var app = builder.Build();
 
@@ -59,16 +65,24 @@ namespace Graduation_MVC
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             // =====================
             // ROUTING (IMPORTANT)
             // =====================
 
+            // Root route -> Admin Dashboard
+            app.MapControllerRoute(
+                name: "root",
+                pattern: "",
+                defaults: new { area = "Admin", controller = "Dashboard", action = "Index" }
+            );
+
             // 🔥 Areas Route (Admin, etc.)
             app.MapControllerRoute(
                 name: "areas",
-                pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
+                pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}"
             );
 
             // Default Route

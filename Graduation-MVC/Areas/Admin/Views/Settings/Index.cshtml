@@ -1,0 +1,93 @@
+@model Graduation_MVC.Areas.Admin.ViewModels.Settings.AdminSettingsViewModel
+@{
+    ViewData["Title"] = "Settings";
+}
+
+<div class="row align-items-center mb-4">
+    <div class="col-md-8">
+        <h1 class="display-font text-light mb-1">Platform Settings</h1>
+        <p class="text-muted mb-0">Manage platform, commission, support settings, and audit logs.</p>
+    </div>
+</div>
+
+<form asp-area="Admin" asp-controller="Settings" asp-action="Save" method="post">
+    @Html.AntiForgeryToken()
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="glass-card p-4 h-100">
+                <h5 class="text-light mb-3">Platform Settings</h5>
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Platform Name</label>
+                    <input asp-for="Platform.PlatformName" class="form-control form-control-premium" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Logo</label>
+                    <input asp-for="Platform.LogoUrl" class="form-control form-control-premium" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Contact Information</label>
+                    <textarea asp-for="Platform.ContactInformation" class="form-control form-control-premium" rows="3"></textarea>
+                </div>
+                <div class="form-check form-switch">
+                    <input asp-for="Platform.MaintenanceMode" class="form-check-input" />
+                    <label class="form-check-label text-light" asp-for="Platform.MaintenanceMode">Maintenance Mode</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="glass-card p-4 h-100">
+                <h5 class="text-light mb-3">Commission Settings</h5>
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Commission Percentage</label>
+                    <input asp-for="Commission.CommissionPercentage" class="form-control form-control-premium" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Vendor Fees</label>
+                    <input asp-for="Commission.VendorFees" class="form-control form-control-premium" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Tax Percentage</label>
+                    <input asp-for="Commission.TaxPercentage" class="form-control form-control-premium" />
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="glass-card p-4 h-100">
+                <h5 class="text-light mb-3">Support Settings</h5>
+                <div class="mb-3"><input asp-for="Support.Email" class="form-control form-control-premium" placeholder="Support email" /></div>
+                <div class="mb-3"><input asp-for="Support.Phone" class="form-control form-control-premium" placeholder="Phone number" /></div>
+                <div class="mb-3"><input asp-for="Support.WhatsApp" class="form-control form-control-premium" placeholder="WhatsApp number" /></div>
+                <div class="mb-3"><input asp-for="Support.SupportHours" class="form-control form-control-premium" placeholder="Support hours" /></div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="glass-card p-4 h-100">
+                <h5 class="text-light mb-3">Audit Logs</h5>
+                <div class="table-responsive">
+                    <table class="table table-premium mb-0">
+                        <thead>
+                            <tr><th>Date</th><th>Action</th><th>By</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var log in Model.AuditLogs)
+                            {
+                                <tr>
+                                    <td>@log.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                    <td>@log.Action</td>
+                                    <td>@log.PerformedBy</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 text-end">
+            <button type="submit" class="btn btn-premium btn-premium-primary">Save Settings</button>
+        </div>
+    </div>
+</form>

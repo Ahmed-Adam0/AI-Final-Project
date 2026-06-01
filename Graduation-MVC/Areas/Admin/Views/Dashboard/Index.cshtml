@@ -1,0 +1,220 @@
+@model Graduation_MVC.Areas.Admin.ViewModels.Dashboard.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="row align-items-center mb-4">
+    <div class="col-md-8">
+        <h1 class="display-font text-light mb-1">Admin Dashboard</h1>
+        <p class="text-muted mb-0">Monitor platform performance, recent activity, and operational insights.</p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <div class="d-inline-flex gap-2">
+            <a asp-area="Admin" asp-controller="Orders" asp-action="Index" class="btn btn-premium btn-premium-secondary">
+                <i class="fa-solid fa-cart-shopping"></i> View Orders
+            </a>
+            <a asp-area="Admin" asp-controller="Reports" asp-action="Index" class="btn btn-premium btn-premium-primary">
+                <i class="fa-solid fa-file-lines"></i> Generate Report
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    @foreach (var card in Model.SummaryCards)
+    {
+        <div class="col-12 col-sm-6 col-xl-4">
+            <div class="glass-card p-4 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div>
+                        <div class="text-muted small text-uppercase fw-semibold" style="letter-spacing: 0.05em;">@card.Title</div>
+                        <div class="fs-3 fw-bold text-light">@card.Value</div>
+                    </div>
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center bg-light" style="width: 52px; height: 52px; color: var(--accent-primary);">
+                        <i class="@card.IconClass fa-lg"></i>
+                    </div>
+                </div>
+                <div class="@card.TrendClass small">
+                    <i class="fa-solid fa-arrow-trend-up me-1"></i>@card.TrendText
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="glass-card p-4 h-100">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h5 class="mb-0 text-light">Revenue Overview</h5>
+                <span class="badge bg-primary">Live Metrics</span>
+            </div>
+            <div class="chart-skeleton mb-3" style="min-height: 260px;">
+                <canvas id="@Model.RevenueChart.ChartId" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="glass-card p-4 h-100">
+            <h5 class="text-light mb-3">Quick Actions</h5>
+            <div class="d-grid gap-2">
+                @foreach (var action in Model.QuickActions)
+                {
+                    <a href="@action.Url" class="btn btn-premium @action.CssClass justify-content-start">
+                        <i class="@action.IconClass"></i>
+                        <span>
+                            <strong>@action.Title</strong>
+                            <small class="d-block opacity-75">@action.Description</small>
+                        </span>
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="glass-card p-4 h-100">
+            <h5 class="text-light mb-3">Latest Activity</h5>
+            <div class="list-group list-group-flush">
+                @foreach (var activity in Model.LatestActivity)
+                {
+                    <div class="list-group-item bg-transparent px-0 py-3 border-bottom">
+                        <div class="d-flex justify-content-between align-items-start gap-3">
+                            <div>
+                                <div class="fw-semibold text-light">@activity.Title</div>
+                                <div class="text-muted small">@activity.Description</div>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge @activity.BadgeClass">@activity.BadgeText</span>
+                                <div class="text-muted small mt-1">@activity.CreatedAt.ToString("MMM dd, HH:mm")</div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="glass-card p-4 h-100">
+            <h5 class="text-light mb-3">Latest Orders</h5>
+            <div class="table-responsive">
+                <table class="table table-premium mb-0">
+                    <thead>
+                        <tr>
+                            <th>Order</th>
+                            <th>Customer</th>
+                            <th>Status</th>
+                            <th class="text-end">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model.LatestOrders)
+                        {
+                            <tr>
+                                <td>
+                                    <a asp-area="Admin" asp-controller="Orders" asp-action="Details" asp-route-id="@order.Id" class="text-decoration-none hover-indigo text-light fw-semibold">@order.OrderNumber</a>
+                                    <div class="text-muted small">@order.VendorName</div>
+                                </td>
+                                <td>@order.CustomerName</td>
+                                <td><span class="badge bg-secondary">@order.Status</span></td>
+                                <td class="text-end fw-semibold">@order.TotalAmount.ToString("C2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="glass-card p-4 h-100">
+            <h5 class="text-light mb-3">Latest Vendors</h5>
+            <div class="table-responsive">
+                <table class="table table-premium mb-0">
+                    <thead>
+                        <tr>
+                            <th>Vendor</th>
+                            <th>Orders</th>
+                            <th class="text-end">Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var vendor in Model.LatestVendors)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-semibold text-light">@vendor.Name</div>
+                                    <div class="text-muted small">@vendor.Email</div>
+                                </td>
+                                <td>@vendor.OrdersCount</td>
+                                <td class="text-end fw-semibold">@vendor.Revenue.ToString("C2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="glass-card p-4 h-100">
+            <h5 class="text-light mb-3">Latest Reviews</h5>
+            @foreach (var review in Model.LatestReviews)
+            {
+                <div class="mb-3 pb-3 border-bottom">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <div class="fw-semibold text-light">@review.CustomerName</div>
+                            <div class="text-muted small">@review.ProductName</div>
+                        </div>
+                        <div class="text-warning">
+                            @for (var i = 0; i < review.Rating; i++) { <i class="fa-solid fa-star"></i> }
+                        </div>
+                    </div>
+                    <div class="text-muted small mt-2">@review.Comment</div>
+                </div>
+            }
+            <h5 class="text-light mt-4 mb-3">Latest Reports</h5>
+            @foreach (var report in Model.LatestReports)
+            {
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <div class="fw-semibold text-light">@report.Title</div>
+                        <div class="text-muted small">@report.Type</div>
+                    </div>
+                    <a href="@report.DownloadUrl" class="btn btn-sm btn-premium btn-premium-secondary">Download</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        (function () {
+            var revenueCanvas = document.getElementById('@Model.RevenueChart.ChartId');
+            var ordersCanvas = document.getElementById('@Model.OrdersChart.ChartId');
+            if (revenueCanvas) {
+                new Chart(revenueCanvas, {
+                    type: 'line',
+                    data: {
+                        labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RevenueChart.Labels)),
+                        datasets: [{
+                            label: '@Model.RevenueChart.Title',
+                            data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RevenueChart.Values)),
+                            borderColor: '#0d6efd',
+                            backgroundColor: 'rgba(13,110,253,0.12)',
+                            tension: 0.35,
+                            fill: true
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+        })();
+    </script>
+}
