@@ -1,0 +1,50 @@
+@model Graduation_MVC.Areas.Admin.ViewModels.Shared.AdminPaginationViewModel
+
+@if (Model != null && Model.TotalPages > 1)
+{
+    var paramName = string.IsNullOrWhiteSpace(Model.PageNumberParamName) ? "PageNumber" : Model.PageNumberParamName;
+
+    string PageUrl(int page)
+    {
+        var routeValues = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
+
+        if (Model.RouteValues != null)
+        {
+            foreach (var prop in Model.RouteValues.GetType().GetProperties())
+            {
+                var value = prop.GetValue(Model.RouteValues);
+                if (value != null)
+                {
+                    routeValues[prop.Name] = value;
+                }
+            }
+        }
+
+        routeValues["area"] = Model.Area;
+        routeValues[paramName] = Math.Max(1, page);
+        return Url.Action(Model.Action, Model.Controller, routeValues) ?? "#";
+    }
+
+    <nav aria-label="@(Model.AriaLabel ?? "Pagination")" class="mt-4">
+        <ul class="pagination pagination-premium justify-content-center mb-0">
+            <li class="page-item @(Model.PageNumber <= 1 ? "disabled" : "")">
+                <a class="page-link" href="@PageUrl(Model.PageNumber - 1)">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </a>
+            </li>
+
+            @for (var i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                    <a class="page-link" href="@PageUrl(i)">@i</a>
+                </li>
+            }
+
+            <li class="page-item @(Model.PageNumber >= Model.TotalPages ? "disabled" : "")">
+                <a class="page-link" href="@PageUrl(Model.PageNumber + 1)">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+}

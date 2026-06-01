@@ -1,0 +1,20 @@
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    (function () {
+        var toggle = document.getElementById('sidebarToggle');
+        var sidebar = document.getElementById('sidebar');
+        if (!toggle || !sidebar) return;
+
+        toggle.addEventListener('click', function () {
+            sidebar.classList.toggle('show');
+        });
+
+        document.addEventListener('click', function (event) {
+            var isClickInside = sidebar.contains(event.target) || toggle.contains(event.target);
+            if (!isClickInside && sidebar.classList.contains('show')) {
+                sidebar.classList.remove('show');
+            }
+        });
+    })();
+</script>

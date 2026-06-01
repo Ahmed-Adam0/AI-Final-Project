@@ -1,0 +1,15 @@
+@model Graduation_MVC.Areas.Admin.ViewModels.Shared.AdminSearchBarViewModel
+
+<div class="col-md-@Model.ColumnClass">
+    <label class="form-label text-muted small">@Model.Label</label>
+    <div class="input-group">
+        <span class="input-group-text bg-transparent border-end-0" style="border-color: var(--border-color); color: var(--text-muted);">
+            <i class="@Model.IconClass"></i>
+        </span>
+        <input type="text"
+               name="@Model.Name"
+               value="@Model.Value"
+               class="form-control form-control-premium border-start-0 ps-0"
+               placeholder="@Model.Placeholder" />
+    </div>
+</div>

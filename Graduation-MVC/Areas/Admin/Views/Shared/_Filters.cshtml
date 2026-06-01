@@ -1,0 +1,64 @@
+@model Graduation_MVC.Areas.Admin.ViewModels.Shared.AdminFilterPanelViewModel
+
+<div class="glass-card p-4 mb-4">
+    <h5 class="text-light mb-3">
+        <i class="@Model.IconClass me-2" style="color: var(--accent-primary);"></i>@Model.Title
+    </h5>
+
+    <form method="@Model.Method" asp-area="@Model.Area" asp-controller="@Model.Controller" asp-action="@Model.Action">
+        @foreach (var hidden in Model.HiddenFields)
+        {
+            <input type="hidden" name="@hidden.Key" value="@hidden.Value" />
+        }
+
+        <div class="row g-3">
+            @foreach (var field in Model.Fields)
+            {
+                <div class="col-md-@field.ColumnClass">
+                    <label class="form-label text-muted small">@field.Label</label>
+                    @if (field.FieldType.Equals("select", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <select name="@field.Name" class="form-select form-select-premium">
+                            @foreach (var option in field.Options)
+                            {
+                                if (option.Selected)
+                                {
+                                    <option value="@option.Value" selected="selected">@option.Text</option>
+                                }
+                                else
+                                {
+                                    <option value="@option.Value">@option.Text</option>
+                                }
+                            }
+                        </select>
+                    }
+                    else
+                    {
+                        <input type="@field.FieldType"
+                               name="@field.Name"
+                               value="@field.Value"
+                               class="form-control form-control-premium"
+                               placeholder="@field.Placeholder" />
+                    }
+                </div>
+            }
+
+            @if (ViewData["FilterExtraContent"] != null)
+            {
+                @Html.Raw(ViewData["FilterExtraContent"])
+            }
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top" style="border-color: rgba(255,255,255,0.05) !important;">
+            @if (Model.ShowReset)
+            {
+                <a asp-area="@Model.Area" asp-controller="@Model.Controller" asp-action="@Model.ResetAction" class="btn btn-premium btn-premium-secondary">
+                    <i class="fa-solid fa-arrow-rotate-left"></i> Reset
+                </a>
+            }
+            <button type="submit" class="btn btn-premium btn-premium-primary">
+                <i class="fa-solid fa-check"></i> Apply Filters
+            </button>
+        </div>
+    </form>
+</div>
