@@ -1,0 +1,33 @@
+@model Graduation_MVC.Areas.Admin.ViewModels.Shared.AdminStatusBadgeViewModel
+
+@{
+    var displayText = string.IsNullOrWhiteSpace(Model.DisplayText) ? Model.Status : Model.DisplayText;
+    var cssClass = Model.CssClass;
+
+    if (string.IsNullOrWhiteSpace(cssClass))
+    {
+        cssClass = Model.Status.Trim().ToLowerInvariant() switch
+        {
+            "active" => "badge-status-active",
+            "inactive" => "badge-status-inactive",
+            "hidden" => "badge-status-hidden",
+            "resolved" => "badge-status-resolved",
+            "pending" => "badge-status-pending",
+            _ => "badge-status-inactive"
+        };
+    }
+
+    var icon = Model.IconClass ?? Model.Status.Trim().ToLowerInvariant() switch
+    {
+        "active" => "fa-solid fa-circle-check",
+        "inactive" => "fa-solid fa-circle-minus",
+        "hidden" => "fa-solid fa-eye-slash",
+        "resolved" => "fa-solid fa-check-double",
+        "pending" => "fa-solid fa-hourglass-half",
+        _ => "fa-solid fa-circle"
+    };
+}
+
+<span class="badge-status @cssClass">
+    <i class="@icon"></i> @displayText
+</span>
