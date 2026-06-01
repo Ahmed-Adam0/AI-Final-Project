@@ -231,16 +231,32 @@ namespace Graduation_Application.Services
             switch (newStatus)
             {
                 case "Confirmed":
-                    await _internalNotificationService.CreateAsync(order.UserId, NotificationType.OrderConfirmed, orderId.ToString());
+                    await _internalNotificationService.CreateAsync(
+                        order.UserId,
+                        NotificationType.OrderConfirmed,
+                        orderId.ToString()
+                    );
                     break;
                 case "In Progress":
-                    await _internalNotificationService.CreateAsync(order.UserId, NotificationType.OrderInProgress, orderId.ToString());
+                    await _internalNotificationService.CreateAsync(
+                        order.UserId,
+                        NotificationType.OrderInProgress,
+                        orderId.ToString()
+                    );
                     break;
                 case "Ready for Pickup":
-                    await _internalNotificationService.CreateAsync(order.UserId, NotificationType.OrderReadyForPickup, orderId.ToString());
+                    await _internalNotificationService.CreateAsync(
+                        order.UserId,
+                        NotificationType.OrderReadyForPickup,
+                        orderId.ToString()
+                    );
                     break;
                 case "Delivered":
-                    await _internalNotificationService.CreateAsync(order.UserId, NotificationType.OrderDelivered, orderId.ToString());
+                    await _internalNotificationService.CreateAsync(
+                        order.UserId,
+                        NotificationType.OrderDelivered,
+                        orderId.ToString()
+                    );
                     break;
             }
 
@@ -263,46 +279,61 @@ namespace Graduation_Application.Services
             startDate ??= monthStart;
             endDate ??= now;
 
-            var query = _orderRepository
+            var allOrdersInRangeQuery = _orderRepository
+                .Where(o =>
+                    o.WorkshopId == workshopId && o.CreatedAt >= startDate && o.CreatedAt <= endDate
+                )
+                .AsQueryable();
+
+            var deliveredInRangeQuery = allOrdersInRangeQuery.Where(o => o.Status == "Delivered");
+
+            var deliveredAllTimeQuery = _orderRepository
                 .Where(o => o.WorkshopId == workshopId && o.Status == "Delivered")
                 .AsQueryable();
 
-            // Total revenue
-            var totalRevenue = await query
-                .Where(o => o.CreatedAt >= startDate && o.CreatedAt <= endDate)
-                .SumAsync(o => o.TotalPrice);
+            var totalRevenue = await deliveredInRangeQuery.SumAsync(o => o.TotalPrice);
 
-            // Monthly revenue
-            var monthlyRevenue = await query
+            var monthlyRevenue = await deliveredAllTimeQuery
                 .Where(o => o.CreatedAt >= monthStart && o.CreatedAt <= now)
                 .SumAsync(o => o.TotalPrice);
 
-            // Weekly revenue
-            var weeklyRevenue = await query
+            var weeklyRevenue = await deliveredAllTimeQuery
                 .Where(o => o.CreatedAt >= weekStart && o.CreatedAt <= now)
                 .SumAsync(o => o.TotalPrice);
 
-            // Daily revenue
-            var dailyRevenue = await query
+            var dailyRevenue = await deliveredAllTimeQuery
                 .Where(o => o.CreatedAt >= dayStart && o.CreatedAt <= now)
                 .SumAsync(o => o.TotalPrice);
 
-            // Completed orders
-            var completedOrdersCount = await query
-                .Where(o => o.CreatedAt >= startDate && o.CreatedAt <= endDate)
-                .CountAsync();
+            var completedOrdersCount = await deliveredInRangeQuery.CountAsync();
 
-            // Daily breakdown
-            var dailyBreakdown = await query
-                .Where(o => o.CreatedAt >= startDate && o.CreatedAt <= endDate)
+            var dailyBreakdown = await deliveredInRangeQuery
                 .GroupBy(o => o.CreatedAt.Date)
                 .Select(g => new DailyRevenueDto
                 {
                     Date = g.Key,
-                    Revenue = g.Sum(o => o.TotalPrice),
+                    Revenue = g.Sum(x => x.TotalPrice),
                     OrdersCount = g.Count(),
                 })
-                .OrderBy(d => d.Date)
+                .OrderBy(x => x.Date)
+                .ToListAsync();
+
+            var ordersByStatus = await allOrdersInRangeQuery
+                .GroupBy(o => o.Status)
+                .Select(g => new OrdersByStatusDto { Status = g.Key, Count = g.Count() })
+                .OrderByDescending(x => x.Count)
+                .ToListAsync();
+
+            var monthlyBreakdown = await deliveredInRangeQuery
+                .GroupBy(o => new { o.CreatedAt.Year, o.CreatedAt.Month })
+                .Select(g => new MonthlyRevenueDto
+                {
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
+                    Revenue = g.Sum(x => x.TotalPrice),
+                })
+                .OrderBy(x => x.Year)
+                .ThenBy(x => x.Month)
                 .ToListAsync();
 
             return new VendorRevenueStatisticsDto
@@ -313,6 +344,8 @@ namespace Graduation_Application.Services
                 DailyRevenue = dailyRevenue,
                 CompletedOrdersCount = completedOrdersCount,
                 DailyBreakdown = dailyBreakdown,
+                OrdersByStatus = ordersByStatus,
+                MonthlyBreakdown = monthlyBreakdown,
             };
         }
 
