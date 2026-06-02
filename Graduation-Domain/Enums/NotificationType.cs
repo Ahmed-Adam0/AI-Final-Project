@@ -1,4 +1,4 @@
-namespace Graduation_domain.Entities
+namespace Graduation_domain.Enums
 {
     public enum NotificationType
     {
@@ -14,6 +14,10 @@ namespace Graduation_domain.Entities
         NewOrder,
         NewReview,
         AccountApproved,
+        VendorAccountRejected,
+        VendorAccountSuspended,
+        VendorAccountReactivated,
         VendorOrderCancelled,
     }
 }
+

@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using Graduation_Application.DTOs.Common;
 using Graduation_Application.DTOs.NotificationDTO;
-using Graduation_domain.Entities;
+using Graduation_domain.Enums;
 
 namespace Graduation_Application.IServices
 {

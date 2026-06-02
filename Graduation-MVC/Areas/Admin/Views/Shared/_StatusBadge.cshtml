@@ -10,9 +10,12 @@
         {
             "active" => "badge-status-active",
             "inactive" => "badge-status-inactive",
+            "approved" => "badge-status-active",
+            "rejected" => "badge-status-hidden",
+            "suspended" => "badge-status-hidden",
+            "pending" => "badge-status-pending",
             "hidden" => "badge-status-hidden",
             "resolved" => "badge-status-resolved",
-            "pending" => "badge-status-pending",
             _ => "badge-status-inactive"
         };
     }
@@ -21,9 +24,12 @@
     {
         "active" => "fa-solid fa-circle-check",
         "inactive" => "fa-solid fa-circle-minus",
+        "approved" => "fa-solid fa-circle-check",
+        "rejected" => "fa-solid fa-circle-xmark",
+        "suspended" => "fa-solid fa-ban",
+        "pending" => "fa-solid fa-hourglass-half",
         "hidden" => "fa-solid fa-eye-slash",
         "resolved" => "fa-solid fa-check-double",
-        "pending" => "fa-solid fa-hourglass-half",
         _ => "fa-solid fa-circle"
     };
 }
