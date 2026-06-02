@@ -40,7 +40,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> Pending([FromQuery] AdminVendorFilterViewModel filter)
         {
-            filter.VerificationStatus ??= VendorVerificationStatus.Pending.ToString();
+            filter.VerificationStatus ??= VendorVerificationStatus.inActive.ToString();
 
             var dto = await _adminVendorsService.GetVendorsPageAsync(
                 new AdminVendorsFilterDto
@@ -142,12 +142,12 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                     Actions = new AdminVendorActionsViewModel
                     {
                         CanApprove =
-                            dto.Verification.Status == VendorVerificationStatus.Pending
-                            || dto.Verification.Status == VendorVerificationStatus.Rejected,
+                            dto.Verification.Status == VendorVerificationStatus.inActive
+                            || dto.Verification.Status == VendorVerificationStatus.inActive,
                         CanReject =
-                            dto.Verification.Status == VendorVerificationStatus.Pending
-                            || dto.Verification.Status == VendorVerificationStatus.Approved,
-                        CanSuspend = dto.Account.Status == VendorAccountStatus.Active,
+                            dto.Verification.Status == VendorVerificationStatus.inActive
+                            || dto.Verification.Status == VendorVerificationStatus.Active,
+                        CanSuspend = dto.Account.Status == VendorAccountStatus.Approved,
                         CanActivate = dto.Account.Status == VendorAccountStatus.Suspended,
                     },
                 }
