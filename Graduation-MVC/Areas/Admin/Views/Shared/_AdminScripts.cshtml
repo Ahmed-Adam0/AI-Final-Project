@@ -22,5 +22,17 @@
         window.AdminPanel.confirmAction = function (message) {
             return window.confirm(message || 'Are you sure?');
         };
+
+        // Auto-dismiss success alerts after 4 seconds
+        $(document).ready(function () {
+            var autoDismissAlerts = $('.auto-dismiss-alert');
+            if (autoDismissAlerts.length > 0) {
+                setTimeout(function () {
+                    autoDismissAlerts.fadeTo(500, 0).slideUp(500, function () {
+                        $(this).remove();
+                    });
+                }, 4000);
+            }
+        });
     })();
 </script>
