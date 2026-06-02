@@ -13,7 +13,7 @@
     </div>
     <div class="col-md-4 text-md-end mt-3 mt-md-0">
         <span class="badge-status badge-status-pending">@Model.Summary.Status</span>
-        <div class="mt-2 fw-semibold text-light">@Model.Summary.TotalPrice.ToString("C2")</div>
+        <div class="mt-2 fw-semibold text-light">EGP @Model.Summary.TotalPrice.ToString("N0")</div>
     </div>
 </div>
 
@@ -37,8 +37,8 @@
                             <tr>
                                 <td>@item.ProductName</td>
                                 <td class="text-end">@item.Quantity</td>
-                                <td class="text-end">@item.UnitPrice.ToString("C2")</td>
-                                <td class="text-end fw-semibold">@item.LineTotal.ToString("C2")</td>
+                                <td class="text-end">EGP @item.UnitPrice.ToString("N0")</td>
+                                <td class="text-end fw-semibold">EGP @item.LineTotal.ToString("N0")</td>
                             </tr>
                         }
                     </tbody>
