@@ -19,6 +19,7 @@ namespace Graduation_infrastructure.AppDbContext
         public DbSet<Cart> Carts { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
         public DbSet<Review> Reviews { get; set; }
+        public DbSet<ReviewModerationLog> ReviewModerationLogs { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<OrderStatusHistory> OrderStatusHistory { get; set; }
@@ -101,6 +102,13 @@ namespace Graduation_infrastructure.AppDbContext
                 .WithMany(w => w.Reviews)
                 .HasForeignKey(r => r.WorkshopId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            builder
+                .Entity<ReviewModerationLog>()
+                .HasOne(l => l.Review)
+                .WithMany()
+                .HasForeignKey(l => l.ReviewId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder
                 .Entity<WorkshopAddress>()

@@ -48,6 +48,7 @@ namespace Graduation_infrastructure.ProgramService.ServicesMVC
 
             // Register Admin Services
             services.AddScoped<IAdminProductService, AdminProductService>();
+            services.AddScoped<IAdminReviewService, AdminReviewService>();
             services.AddScoped<IAdminDashboardService, AdminDashboardService>();
             services.AddScoped<IAdminVendorsRepository, AdminVendorsRepository>();
             services.AddScoped<IAdminVendorsService, AdminVendorsService>();

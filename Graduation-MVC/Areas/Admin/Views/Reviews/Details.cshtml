@@ -1,0 +1,155 @@
+@model Graduation_Application.DTOs.Admin.Reviews.AdminReviewDetailsDto
+@{
+    ViewData["Title"] = $"Review Details: #{Model.Id}";
+}
+
+<div class="row align-items-center mb-4">
+    <div class="col-md-6">
+        <a asp-area="Admin" asp-controller="Reviews" asp-action="Index" class="btn btn-premium btn-premium-secondary mb-3">
+            <i class="fa-solid fa-arrow-left"></i> Back to Reviews
+        </a>
+        <h1 class="display-font mb-1">Review #@Model.Id</h1>
+        <p class="text-muted mb-0">Created: <strong>@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</strong></p>
+    </div>
+    <div class="col-md-6 text-md-end mt-3 mt-md-0">
+        <form asp-area="Admin" asp-controller="Reviews" asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-inline">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="returnUrl" value="@Url.Action("Details", "Reviews", new { area = "Admin", id = Model.Id })" />
+            <button type="submit" class="btn btn-premium btn-premium-secondary">
+                <i class="fa-solid fa-trash"></i> Delete (Deactivate)
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="glass-card p-4 mb-4">
+            <h5 class="mb-3"><i class="fa-solid fa-comment me-2" style="color: var(--accent-primary);"></i>Review</h5>
+
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <span class="badge-status badge-status-active">
+                    <i class="fa-solid fa-star"></i> @Model.Rating / 5
+                </span>
+                @if (Model.IsReported)
+                {
+                    <span class="badge-status badge-status-pending"><i class="fa-solid fa-flag"></i> Reported</span>
+                }
+                else
+                {
+                    <span class="badge-status badge-status-resolved"><i class="fa-solid fa-check"></i> Not Reported</span>
+                }
+                @if (!Model.IsActive)
+                {
+                    <span class="badge-status badge-status-hidden"><i class="fa-solid fa-ban"></i> Deactivated</span>
+                }
+            </div>
+
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <div class="text-warning">
+                    @for (var i = 1; i <= 5; i++)
+                    {
+                        if (i <= Model.Rating)
+                        {
+                            <i class="fa-solid fa-star"></i>
+                        }
+                        else
+                        {
+                            <i class="fa-regular fa-star"></i>
+                        }
+                    }
+                </div>
+                <span class="text-muted small">(@Model.Rating out of 5)</span>
+            </div>
+
+            <div class="p-3 bg-secondary rounded" style="white-space: pre-line;">
+                @Model.Comment
+            </div>
+        </div>
+
+        <div class="glass-card p-4 mb-4">
+            <h5 class="mb-3"><i class="fa-solid fa-flag me-2" style="color: var(--accent-primary);"></i>Report Info</h5>
+
+            @if (!Model.IsReported)
+            {
+                <div class="text-muted">No active report.</div>
+            }
+            else
+            {
+                <div class="mb-2"><strong>Reason:</strong> @Model.ReportReason</div>
+                <div class="text-muted small"><strong>Reported At:</strong> @(Model.ReportedAt?.ToString("yyyy-MM-dd HH:mm") ?? "N/A")</div>
+
+                <div class="d-flex gap-2 mt-3">
+                    <form asp-area="Admin" asp-controller="Reviews" asp-action="ResolveReport" asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-premium btn-premium-primary">
+                            <i class="fa-solid fa-check"></i> Resolve
+                        </button>
+                    </form>
+                    <form asp-area="Admin" asp-controller="Reviews" asp-action="IgnoreReport" asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-premium btn-premium-secondary">
+                            <i class="fa-solid fa-eye-slash"></i> Ignore
+                        </button>
+                    </form>
+                </div>
+            }
+        </div>
+
+        <div class="glass-card p-4">
+            <h5 class="mb-3"><i class="fa-solid fa-clock-rotate-left me-2" style="color: var(--accent-primary);"></i>Moderation History</h5>
+
+            @if (Model.ModerationHistory == null || !Model.ModerationHistory.Any())
+            {
+                <div class="text-muted">No moderation actions recorded.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-premium">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Action</th>
+                                <th>Notes</th>
+                                <th>Admin</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var log in Model.ModerationHistory)
+                            {
+                                <tr>
+                                    <td class="text-muted small">@log.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                    <td>@log.Action</td>
+                                    <td>@(log.Notes ?? "-")</td>
+                                    <td class="text-muted small">@(log.AdminUserId ?? "-")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="glass-card p-4 mb-4">
+            <h5 class="mb-3"><i class="fa-solid fa-box me-2" style="color: var(--accent-primary);"></i>Product</h5>
+            <div class="fw-semibold">@Model.ProductName</div>
+            <div class="text-muted small">Product ID: #@Model.ProductId</div>
+        </div>
+
+        <div class="glass-card p-4 mb-4">
+            <h5 class="mb-3"><i class="fa-solid fa-user-tag me-2" style="color: var(--accent-primary);"></i>Vendor</h5>
+            <div class="fw-semibold">@Model.VendorName</div>
+            <div class="text-muted small">@Model.VendorEmail</div>
+        </div>
+
+        <div class="glass-card p-4">
+            <h5 class="mb-3"><i class="fa-solid fa-user me-2" style="color: var(--accent-primary);"></i>Customer</h5>
+            <div class="fw-semibold">@Model.UserName</div>
+            <div class="text-muted small">@Model.UserEmail</div>
+        </div>
+    </div>
+</div>
+

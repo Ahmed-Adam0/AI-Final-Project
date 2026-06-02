@@ -1,0 +1,269 @@
+@model Graduation_Application.DTOs.Common.PaginatedResult<Graduation_Application.DTOs.Admin.Reviews.AdminReviewListDto>
+@using Graduation_Application.DTOs.Admin.Reviews
+@{
+    ViewData["Title"] = "Reviews Moderation";
+    var filter = ViewData["Filter"] as AdminReviewFilterDto ?? new AdminReviewFilterDto();
+
+    var pageItems = Model?.Items?.ToList() ?? new List<AdminReviewListDto>();
+    var pageCount = pageItems.Count;
+    var avgRating = pageCount > 0 ? pageItems.Average(x => x.Rating) : 0;
+    var positiveCount = pageItems.Count(x => x.Rating >= 4);
+    var positivePct = pageCount > 0 ? (positiveCount * 100.0 / pageCount) : 0;
+    var reportedCount = pageItems.Count(x => x.IsReported);
+
+    var vendorGroups = pageItems
+        .GroupBy(x => string.IsNullOrWhiteSpace(x.VendorName) ? "Unknown Vendor" : x.VendorName)
+        .OrderBy(g => g.Key)
+        .ToList();
+
+    var paginationModel = new Graduation_MVC.Areas.Admin.ViewModels.Shared.AdminPaginationViewModel
+    {
+        PageNumber = Model?.PageNumber ?? 1,
+        PageSize = Model?.PageSize ?? 10,
+        TotalCount = Model?.TotalCount ?? 0,
+        TotalPages = Model?.TotalPages ?? 0,
+        Area = "Admin",
+        Controller = "Reviews",
+        Action = "Index",
+        RouteValues = filter
+    };
+}
+
+<div class="row align-items-center mb-4">
+    <div class="col-md-6">
+        <h1 class="display-font mb-1">Reviews</h1>
+        <p class="text-muted mb-0">Search and moderate marketplace reviews.</p>
+    </div>
+    <div class="col-md-6 text-md-end mt-3 mt-md-0">
+        <a asp-area="Admin" asp-controller="Reviews" asp-action="Reported" class="btn btn-premium btn-premium-secondary">
+            <i class="fa-solid fa-flag"></i> Reported Queue
+        </a>
+    </div>
+</div>
+
+<div class="glass-card p-4 mb-4">
+    <h5 class="mb-3"><i class="fa-solid fa-filter me-2" style="color: var(--accent-primary);"></i>Filters</h5>
+    <form method="get" asp-area="Admin" asp-controller="Reviews" asp-action="Index">
+        <input type="hidden" name="PageNumber" value="1" />
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label text-muted small">Search (Product / User / Text)</label>
+                <input type="text" name="Search" value="@filter.Search" class="form-control form-control-premium" placeholder="Search..." />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label text-muted small">Rating</label>
+                <select name="Rating" class="form-select form-select-premium">
+                    <option value="">All</option>
+                    @for (var i = 1; i <= 5; i++)
+                    {
+                        if (filter.Rating == i)
+                        {
+                            <option value="@i" selected="selected">@i</option>
+                        }
+                        else
+                        {
+                            <option value="@i">@i</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label text-muted small">Reported</label>
+                <select name="IsReported" class="form-select form-select-premium">
+                    <option value="">All</option>
+                    <option value="true" selected="@(filter.IsReported == true ? "selected" : null)">Reported</option>
+                    <option value="false" selected="@(filter.IsReported == false ? "selected" : null)">Not reported</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label text-muted small">Product ID</label>
+                <input type="number" name="ProductId" value="@(filter.ProductId ?? 0)" class="form-control form-control-premium" placeholder="e.g. 12" />
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
+            <a asp-area="Admin" asp-controller="Reviews" asp-action="Index" class="btn btn-premium btn-premium-secondary">
+                <i class="fa-solid fa-arrow-rotate-left"></i> Reset
+            </a>
+            <button type="submit" class="btn btn-premium btn-premium-primary">
+                <i class="fa-solid fa-check"></i> Apply
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="glass-card p-3">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-muted small">Total Reviews</div>
+                    <div class="fs-4 fw-bold">@Model?.TotalCount</div>
+                </div>
+                <div class="text-muted"><i class="fa-solid fa-comments fa-lg"></i></div>
+            </div>
+            <div class="text-muted small mt-2">Across current filters</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="glass-card p-3">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-muted small">Avg Rating</div>
+                    <div class="fs-4 fw-bold">@avgRating.ToString("0.0")</div>
+                </div>
+                <div class="text-warning"><i class="fa-solid fa-star fa-lg"></i></div>
+            </div>
+            <div class="text-muted small mt-2">This page</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="glass-card p-3">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-muted small">Positive %</div>
+                    <div class="fs-4 fw-bold">@positivePct.ToString("0")%</div>
+                </div>
+                <div class="text-success"><i class="fa-solid fa-thumbs-up fa-lg"></i></div>
+            </div>
+            <div class="text-muted small mt-2">Rating ≥ 4 (this page)</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="glass-card p-3">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-muted small">Reported</div>
+                    <div class="fs-4 fw-bold">@reportedCount</div>
+                </div>
+                <div class="text-danger"><i class="fa-solid fa-flag fa-lg"></i></div>
+            </div>
+            <div class="text-muted small mt-2">This page</div>
+        </div>
+    </div>
+</div>
+
+<div class="glass-card p-4">
+    @if (Model == null || Model.Items == null || !Model.Items.Any())
+    {
+        <div class="text-center py-5">
+            <div class="text-muted mb-3"><i class="fa-solid fa-comment-slash fa-3x"></i></div>
+            <h5>No reviews found</h5>
+            <p class="text-muted small">Try adjusting filters or search terms.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var vendor in vendorGroups)
+            {
+                <div class="col-12">
+                    <div class="glass-card p-4">
+                        @{
+                            var vendorReviews = vendor.OrderByDescending(x => x.CreatedAt).ToList();
+                            var vendorAvg = vendorReviews.Any() ? vendorReviews.Average(x => x.Rating) : 0;
+                            var vendorReported = vendorReviews.Count(x => x.IsReported);
+                            var latest = vendorReviews.Take(5).ToList();
+                        }
+
+                        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3 pb-3 border-bottom">
+                            <div>
+                                <h5 class="mb-1"><i class="fa-solid fa-store me-2" style="color: var(--accent-primary);"></i>@vendor.Key</h5>
+                                <div class="text-muted small">Grouped vendor review overview</div>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="badge-status badge-status-active"><i class="fa-solid fa-comments"></i> @vendorReviews.Count Reviews</span>
+                                <span class="badge-status badge-status-resolved"><i class="fa-solid fa-star"></i> @vendorAvg.ToString("0.0") Avg</span>
+                                @if (vendorReported > 0)
+                                {
+                                    <span class="badge-status badge-status-pending"><i class="fa-solid fa-flag"></i> @vendorReported Reported</span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            @foreach (var r in latest)
+                            {
+                                <div class="col-12">
+                                    <div class="border rounded p-3" style="@(r.IsActive ? "" : "opacity:0.7;")">
+                                        <div class="d-flex flex-column flex-md-row justify-content-between gap-2">
+                                            <div>
+                                                <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                                    <span class="fw-semibold">#@r.Id</span>
+                                                    @if (!r.IsActive)
+                                                    {
+                                                        <span class="badge-status badge-status-hidden"><i class="fa-solid fa-ban"></i> Hidden</span>
+                                                    }
+                                                    else if (r.IsReported)
+                                                    {
+                                                        <span class="badge-status badge-status-pending"><i class="fa-solid fa-flag"></i> Reported</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge-status badge-status-active"><i class="fa-solid fa-circle-check"></i> Approved</span>
+                                                    }
+                                                    <span class="text-muted small"><i class="fa-regular fa-clock me-1"></i>@r.CreatedAt.ToString("yyyy-MM-dd")</span>
+                                                </div>
+
+                                                <div class="text-muted small mb-2">
+                                                    <i class="fa-solid fa-user me-1"></i>@r.UserName
+                                                    <span class="mx-2">|</span>
+                                                    <i class="fa-solid fa-box me-1"></i>@r.ProductName (#@r.ProductId)
+                                                </div>
+
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <div class="text-warning">
+                                                        @for (var i = 1; i <= 5; i++)
+                                                        {
+                                                            if (i <= r.Rating)
+                                                            {
+                                                                <i class="fa-solid fa-star"></i>
+                                                            }
+                                                            else
+                                                            {
+                                                                <i class="fa-regular fa-star"></i>
+                                                            }
+                                                        }
+                                                    </div>
+                                                    <span class="text-muted small">@r.Rating / 5</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="d-flex align-items-start gap-2">
+                                                <a asp-area="Admin" asp-controller="Reviews" asp-action="Details" asp-route-id="@r.Id" class="btn btn-premium btn-premium-secondary btn-sm" title="View details">
+                                                    <i class="fa-solid fa-eye"></i> Details
+                                                </a>
+                                                <form asp-area="Admin" asp-controller="Reviews" asp-action="Delete" asp-route-id="@r.Id" method="post" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete (deactivate)">
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        @if (vendorReviews.Count > 5)
+                        {
+                            <div class="text-muted small mt-2">
+                                Showing latest 5 of @vendorReviews.Count reviews for this vendor.
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mt-4 pt-3 border-top">
+            <div class="text-muted small mb-3 mb-sm-0">
+                Showing page <strong>@Model.PageNumber</strong> of <strong>@Model.TotalPages</strong> (Total <strong>@Model.TotalCount</strong> items)
+            </div>
+            <partial name="~/Areas/Admin/Views/Shared/_Pagination.cshtml" model="paginationModel" />
+        </div>
+    }
+</div>
+

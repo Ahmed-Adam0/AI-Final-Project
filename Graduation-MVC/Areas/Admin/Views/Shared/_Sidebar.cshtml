@@ -2,11 +2,11 @@
     var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
     var action = ViewContext.RouteData.Values["action"]?.ToString() ?? string.Empty;
 
-    string LinkClass(string targetController, string targetAction = "Index", bool disabled = false)
+    string LinkClass(string targetController, string targetAction, bool disabled = false)
     {
-        var isActive = string.Equals(controller, targetController, StringComparison.OrdinalIgnoreCase)
-            && (string.Equals(targetAction, "Index", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(action, targetAction, StringComparison.OrdinalIgnoreCase));
+        var isActive =
+            string.Equals(controller, targetController, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(action, targetAction, StringComparison.OrdinalIgnoreCase);
 
         return "sidebar-link" + (isActive ? " active" : "") + (disabled ? " disabled-module" : "");
     }
@@ -20,16 +20,18 @@
 
     <ul class="sidebar-menu">
         <li class="sidebar-section-title">Main</li>
-        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="@LinkClass("Dashboard")"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a></li>
-        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Orders" asp-action="Index" class="@LinkClass("Orders")"><i class="fa-solid fa-cart-shopping"></i><span>Orders</span></a></li>
-        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Vendors" asp-action="Index" class="@LinkClass("Vendors")"><i class="fa-solid fa-store"></i><span>Vendors</span></a></li>
-        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Analytics" asp-action="Index" class="@LinkClass("Analytics")"><i class="fa-solid fa-chart-line"></i><span>Analytics</span></a></li>
-        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Reports" asp-action="Index" class="@LinkClass("Reports")"><i class="fa-solid fa-flag"></i><span>Reports</span></a></li>
-        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Settings" asp-action="Index" class="@LinkClass("Settings")"><i class="fa-solid fa-gear"></i><span>Settings</span></a></li>
+        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="@LinkClass("Dashboard", "Index")"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a></li>
+        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Orders" asp-action="Index" class="@LinkClass("Orders", "Index")"><i class="fa-solid fa-cart-shopping"></i><span>Orders</span></a></li>
+        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Vendors" asp-action="Index" class="@LinkClass("Vendors", "Index")"><i class="fa-solid fa-store"></i><span>Vendors</span></a></li>
+        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Analytics" asp-action="Index" class="@LinkClass("Analytics", "Index")"><i class="fa-solid fa-chart-line"></i><span>Analytics</span></a></li>
+        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Reports" asp-action="Index" class="@LinkClass("Reports", "Index")"><i class="fa-solid fa-flag"></i><span>Reports</span></a></li>
+        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Settings" asp-action="Index" class="@LinkClass("Settings", "Index")"><i class="fa-solid fa-gear"></i><span>Settings</span></a></li>
 
         <li class="sidebar-section-title">Catalog</li>
-        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Products" asp-action="Index" class="@LinkClass("Products")"><i class="fa-solid fa-cubes"></i><span>Products</span></a></li>
+        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Products" asp-action="Index" class="@LinkClass("Products", "Index")"><i class="fa-solid fa-cubes"></i><span>Products</span></a></li>
         <li class="sidebar-item"><a asp-area="Admin" asp-controller="Products" asp-action="Reported" class="@LinkClass("Products", "Reported")"><i class="fa-solid fa-flag"></i><span>Product Reports</span></a></li>
+        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Reviews" asp-action="Index" class="@LinkClass("Reviews", "Index")"><i class="fa-solid fa-star"></i><span>Reviews</span></a></li>
+        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Reviews" asp-action="Reported" class="@LinkClass("Reviews", "Reported")"><i class="fa-solid fa-triangle-exclamation"></i><span>Reported Reviews</span></a></li>
 
         <li class="sidebar-section-title">System</li>
         <li class="sidebar-item">
