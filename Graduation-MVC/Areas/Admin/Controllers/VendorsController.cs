@@ -107,6 +107,9 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                         TotalOrders = dto.OrdersStats.TotalOrders,
                         DeliveredOrders = dto.OrdersStats.DeliveredOrders,
                         PendingOrders = dto.OrdersStats.PendingOrders,
+                        CancelledOrders = dto.OrdersStats.CancelledOrders,
+                        InProgressOrders = dto.OrdersStats.InProgressOrders,
+                        ConfirmedOrders = dto.OrdersStats.ConfirmedOrders,
                     },
                     RevenueStats = new AdminVendorRevenueStatsViewModel
                     {

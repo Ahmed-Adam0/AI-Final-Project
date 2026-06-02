@@ -211,14 +211,19 @@ namespace Graduation_infrastructure.Repositories.Admin
 
             // Backward-compatibility: IsVerified previously used alone
             var verificationStatus =
-                workshop.VerificationStatus == 0 && workshop.IsVerified
-                    ? VendorVerificationStatus.Active
-                    : workshop.VerificationStatus;
+                workshop.User.IsActive == false
+                    ? VendorVerificationStatus.inActive
+                    : VendorVerificationStatus.Active;
 
             var ordersQuery = _db.Orders.AsNoTracking().Where(o => o.WorkshopId == workshopId);
             var totalOrders = await ordersQuery.CountAsync();
             var deliveredOrders = await ordersQuery.CountAsync(o => o.Status == "Delivered");
             var pendingOrders = await ordersQuery.CountAsync(o => o.Status == "Pending");
+            var CancelledOrders = await ordersQuery.CountAsync(o => o.Status == "Cancelled");
+            var InProgressOrders = await ordersQuery.CountAsync(o => o.Status == "InProgress");
+            var ConfirmedOrders = await ordersQuery.CountAsync(o => o.Status == "Confirmed");
+            var ReadyforPickup = await ordersQuery.CountAsync(o => o.Status == "ReadyforPickup");
+
             var totalRevenue = await ordersQuery.SumAsync(o => (decimal?)o.TotalPrice) ?? 0m;
             var deliveredRevenue =
                 await ordersQuery
@@ -323,7 +328,10 @@ namespace Graduation_infrastructure.Repositories.Admin
                 },
                 Account = new AdminVendorAccountDto
                 {
-                    Status = workshop.AccountStatus,
+                    Status =
+                        workshop.User.IsActive == false
+                            ? VendorAccountStatus.Pending
+                            : VendorAccountStatus.Approved,
                     StatusChangedAt = workshop.AccountStatusChangedAt,
                     StatusChangedByAdminName =
                         workshop.AccountStatusChangedByAdmin != null
@@ -335,6 +343,10 @@ namespace Graduation_infrastructure.Repositories.Admin
                     TotalOrders = totalOrders,
                     DeliveredOrders = deliveredOrders,
                     PendingOrders = pendingOrders,
+                    CancelledOrders = CancelledOrders,
+                    InProgressOrders = InProgressOrders,
+                    ConfirmedOrders = ConfirmedOrders,
+                    ReadyforPickup = ReadyforPickup,
                 },
                 RevenueStats = new AdminVendorRevenueStatsDto
                 {
