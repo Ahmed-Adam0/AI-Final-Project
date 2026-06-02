@@ -1,0 +1,93 @@
+@model List<Graduation_Application.DTOs.Admin.Reviews.ReportedReviewDto>
+@{
+    ViewData["Title"] = "Reported Reviews";
+}
+
+<div class="row align-items-center mb-4">
+    <div class="col-md-6">
+        <a asp-area="Admin" asp-controller="Reviews" asp-action="Index" class="btn btn-premium btn-premium-secondary mb-3">
+            <i class="fa-solid fa-arrow-left"></i> Back to Reviews
+        </a>
+        <h1 class="display-font mb-1">Reported Reviews</h1>
+        <p class="text-muted mb-0">Queue of reviews currently flagged as reported.</p>
+    </div>
+    <div class="col-md-6 text-md-end mt-3 mt-md-0">
+        <div class="glass-card px-3 py-2 d-inline-flex align-items-center gap-2">
+            <span class="text-muted small">Total Reported:</span>
+            <span class="badge bg-indigo fs-6 font-monospace">@Model.Count</span>
+        </div>
+    </div>
+</div>
+
+<div class="glass-card p-4">
+    @if (Model == null || !Model.Any())
+    {
+        <div class="text-center py-5">
+            <div class="text-muted mb-3"><i class="fa-solid fa-flag-checkered fa-3x"></i></div>
+            <h5>No reported reviews</h5>
+            <p class="text-muted small">All clear.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-premium">
+                <thead>
+                    <tr>
+                        <th>Review</th>
+                        <th>Product</th>
+                        <th>Vendor</th>
+                        <th>User</th>
+                        <th>Reason</th>
+                        <th>Reported At</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr style="@(item.IsActive ? "" : "opacity:0.6;")">
+                            <td>#@item.ReviewId</td>
+                            <td>
+                                <div class="fw-semibold">@item.ProductName</div>
+                                <div class="text-muted small">ID: #@item.ProductId</div>
+                            </td>
+                            <td>@item.VendorName</td>
+                            <td>@item.UserName</td>
+                            <td style="max-width: 320px; white-space: pre-wrap;">@(item.ReportReason ?? "-")</td>
+                            <td class="text-muted small">@(item.ReportedAt?.ToString("yyyy-MM-dd HH:mm") ?? "N/A")</td>
+                            <td class="text-end">
+                                <a asp-area="Admin" asp-controller="Reviews" asp-action="Details" asp-route-id="@item.ReviewId" class="btn btn-sm btn-outline-primary" title="View details">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+
+                                <form asp-area="Admin" asp-controller="Reviews" asp-action="ResolveReport" asp-route-id="@item.ReviewId" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-success" title="Resolve report">
+                                        <i class="fa-solid fa-check"></i>
+                                    </button>
+                                </form>
+
+                                <form asp-area="Admin" asp-controller="Reviews" asp-action="IgnoreReport" asp-route-id="@item.ReviewId" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-warning" title="Ignore report">
+                                        <i class="fa-solid fa-eye-slash"></i>
+                                    </button>
+                                </form>
+
+                                <form asp-area="Admin" asp-controller="Reviews" asp-action="Delete" asp-route-id="@item.ReviewId" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="returnUrl" value="@Url.Action("Reported", "Reviews", new { area = "Admin" })" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete (deactivate)">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
