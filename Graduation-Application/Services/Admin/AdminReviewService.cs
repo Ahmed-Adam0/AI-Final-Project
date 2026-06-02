@@ -33,7 +33,8 @@ namespace Graduation_Application.Services.Admin
                 .GetAllAsNoTracking()
                 .Include(r => r.User)
                 .Include(r => r.Product)
-                .ThenInclude(p => p.User);
+                .ThenInclude(p => p.User)
+                .Where(r => r.IsActive);
 
             if (!string.IsNullOrWhiteSpace(filter.Search))
             {
