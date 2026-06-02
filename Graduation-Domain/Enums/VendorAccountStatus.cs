@@ -2,8 +2,8 @@ namespace Graduation_domain.Enums
 {
     public enum VendorAccountStatus
     {
-        Active = 0,
+        Approved = 0,
         Suspended = 1,
+        Pending = 2,
     }
 }
-

@@ -30,14 +30,14 @@ namespace Graduation_domain.Entities
         // Vendor Management (Admin)
         // =========================
         public VendorVerificationStatus VerificationStatus { get; set; } =
-            VendorVerificationStatus.Pending;
+            VendorVerificationStatus.inActive;
         public DateTime? VerificationDate { get; set; }
         public string? VerifiedByAdminId { get; set; }
         public ApplicationUser? VerifiedByAdmin { get; set; }
         public string? VerificationNotes { get; set; }
         public string? RejectionReason { get; set; }
 
-        public VendorAccountStatus AccountStatus { get; set; } = VendorAccountStatus.Active;
+        public VendorAccountStatus AccountStatus { get; set; } = VendorAccountStatus.Pending;
         public DateTime? AccountStatusChangedAt { get; set; }
         public string? AccountStatusChangedByAdminId { get; set; }
         public ApplicationUser? AccountStatusChangedByAdmin { get; set; }

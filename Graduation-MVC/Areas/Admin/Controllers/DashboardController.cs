@@ -124,9 +124,9 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 {
                     new AdminDashboardQuickActionViewModel
                     {
-                        Title = "Create Vendor",
-                        Description = "Register a new vendor account",
-                        Url = "/Admin/Vendors/Create",
+                        Title = "Manage Vendors",
+                        Description = "Open vendor management panel",
+                        Url = "/Admin/Vendors",
                         IconClass = "fa-solid fa-store",
                     },
                     new AdminDashboardQuickActionViewModel

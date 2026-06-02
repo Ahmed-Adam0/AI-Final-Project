@@ -5,8 +5,8 @@ using Graduation_Application.IRepositories;
 using Graduation_Application.IRepositories.Admin;
 using Graduation_Application.IServices;
 using Graduation_Application.IServices.Admin;
-using Graduation_domain.Enums;
 using Graduation_domain.Entities;
+using Graduation_domain.Enums;
 
 namespace Graduation_Application.Services.Admin
 {
@@ -25,7 +25,8 @@ namespace Graduation_Application.Services.Admin
             IGenaricRepositories<ApplicationUser> userRepository,
             IGenaricRepositories<VendorVerificationHistory> verificationHistoryRepository,
             IGenaricRepositories<VendorAccountStatusHistory> accountHistoryRepository,
-            IInternalNotificationService internalNotificationService)
+            IInternalNotificationService internalNotificationService
+        )
         {
             _repository = repository;
             _workshopRepository = workshopRepository;
@@ -35,54 +36,89 @@ namespace Graduation_Application.Services.Admin
             _internalNotificationService = internalNotificationService;
         }
 
-        public Task<AdminVendorsPageDto> GetVendorsPageAsync(AdminVendorsFilterDto filter, bool pendingOnly = false)
-            => _repository.GetVendorsPageAsync(filter, pendingOnly);
+        public Task<AdminVendorsPageDto> GetVendorsPageAsync(
+            AdminVendorsFilterDto filter,
+            bool pendingOnly = false
+        ) => _repository.GetVendorsPageAsync(filter, pendingOnly);
 
-        public Task<AdminVendorDetailsDto?> GetVendorDetailsAsync(int workshopId)
-            => _repository.GetVendorDetailsAsync(workshopId);
+        public Task<AdminVendorDetailsDto?> GetVendorDetailsAsync(int workshopId) =>
+            _repository.GetVendorDetailsAsync(workshopId);
 
-        public Task<AdminVendorHistoryPageDto> GetHistoryAsync(int page, int pageSize)
-            => _repository.GetHistoryAsync(page, pageSize);
+        public Task<AdminVendorHistoryPageDto> GetHistoryAsync(int page, int pageSize) =>
+            _repository.GetHistoryAsync(page, pageSize);
 
-        public async Task ApproveVendorAsync(int workshopId, string performedByAdminId, string? notes = null)
+        public async Task ApproveVendorAsync(
+            int workshopId,
+            //string performedByAdminId,
+            string? notes = null
+        )
         {
             var workshop = await _workshopRepository.GetByIdAsync(workshopId);
             if (workshop == null)
                 throw new ArgumentException("Vendor not found.");
 
-            var oldStatus = workshop.VerificationStatus == 0 && workshop.IsVerified
-                ? VendorVerificationStatus.Approved
-                : workshop.VerificationStatus;
+            // Validate that the admin exists
+            //if (!string.IsNullOrEmpty(performedByAdminId))
+            //{
+            //    var admin = await _userRepository.FirstOrDefaultAsync(u => u.Id == performedByAdminId);
+            //    if (admin == null)
+            //        throw new ArgumentException("Admin user not found.");
+            //}
 
-            workshop.VerificationStatus = VendorVerificationStatus.Approved;
+            var oldStatus =
+                workshop.VerificationStatus == 0 && workshop.IsVerified
+                    ? VendorVerificationStatus.Active
+                    : workshop.VerificationStatus;
+
+            workshop.VerificationStatus = VendorVerificationStatus.Active;
             workshop.IsVerified = true;
             workshop.VerificationDate = DateTime.UtcNow;
-            workshop.VerifiedByAdminId = performedByAdminId;
+            //workshop.VerifiedByAdminId = performedByAdminId;
             workshop.VerificationNotes = notes;
             workshop.RejectionReason = null;
             workshop.UpdatedAt = DateTime.UtcNow;
-            workshop.UpdatedBy = performedByAdminId;
+            //workshop.UpdatedBy = performedByAdminId;
+            //workshop.User.IsActive = true;
 
             _workshopRepository.Update(workshop);
 
-            await _verificationHistoryRepository.AddAsync(new VendorVerificationHistory
+            // Activate the user account
+            var user = await _userRepository.FirstOrDefaultAsync(u => u.Id == workshop.UserId);
+            if (user != null)
             {
-                WorkshopId = workshopId,
-                OldStatus = oldStatus,
-                NewStatus = VendorVerificationStatus.Approved,
-                Notes = notes,
-                PerformedByAdminId = performedByAdminId,
-                CreatedAt = DateTime.UtcNow,
-                CreatedBy = performedByAdminId,
-            });
+                user.IsActive = true;
+                _userRepository.Update(user);
+            }
+
+            //await _verificationHistoryRepository.AddAsync(
+            //    new VendorVerificationHistory
+            //    {
+            //        WorkshopId = workshopId,
+            //        OldStatus = oldStatus,
+            //        NewStatus = VendorVerificationStatus.Active,
+            //        Notes = notes,
+            //        PerformedByAdminId = performedByAdminId,
+            //        CreatedAt = DateTime.UtcNow,
+            //        CreatedBy = performedByAdminId,
+            //    }
+            //);
 
             await _workshopRepository.SaveChangesAsync();
+            await _userRepository.SaveChangesAsync();
             await _verificationHistoryRepository.SaveChangesAsync();
 
-            await _internalNotificationService.CreateAsync(workshop.UserId, NotificationType.AccountApproved);
+            await _internalNotificationService.CreateAsync(
+                workshop.UserId,
+                NotificationType.AccountApproved
+            );
         }
 
-        public async Task RejectVendorAsync(int workshopId, string performedByAdminId, string rejectionReason, string? notes = null)
+        public async Task RejectVendorAsync(
+            int workshopId,
+            string performedByAdminId,
+            string rejectionReason,
+            string? notes = null
+        )
         {
             if (string.IsNullOrWhiteSpace(rejectionReason))
                 throw new ArgumentException("Rejection reason is required.");
@@ -91,11 +127,22 @@ namespace Graduation_Application.Services.Admin
             if (workshop == null)
                 throw new ArgumentException("Vendor not found.");
 
-            var oldStatus = workshop.VerificationStatus == 0 && workshop.IsVerified
-                ? VendorVerificationStatus.Approved
-                : workshop.VerificationStatus;
+            // Validate that the admin exists
+            if (!string.IsNullOrEmpty(performedByAdminId))
+            {
+                var admin = await _userRepository.FirstOrDefaultAsync(u =>
+                    u.Id == performedByAdminId
+                );
+                if (admin == null)
+                    throw new ArgumentException("Admin user not found.");
+            }
 
-            workshop.VerificationStatus = VendorVerificationStatus.Rejected;
+            var oldStatus =
+                workshop.VerificationStatus == 0 && workshop.IsVerified
+                    ? VendorVerificationStatus.Active
+                    : workshop.VerificationStatus;
+
+            workshop.VerificationStatus = VendorVerificationStatus.inActive;
             workshop.IsVerified = false;
             workshop.VerificationDate = DateTime.UtcNow;
             workshop.VerifiedByAdminId = performedByAdminId;
@@ -106,35 +153,54 @@ namespace Graduation_Application.Services.Admin
 
             _workshopRepository.Update(workshop);
 
-            await _verificationHistoryRepository.AddAsync(new VendorVerificationHistory
-            {
-                WorkshopId = workshopId,
-                OldStatus = oldStatus,
-                NewStatus = VendorVerificationStatus.Rejected,
-                Notes = notes,
-                RejectionReason = rejectionReason,
-                PerformedByAdminId = performedByAdminId,
-                CreatedAt = DateTime.UtcNow,
-                CreatedBy = performedByAdminId,
-            });
+            await _verificationHistoryRepository.AddAsync(
+                new VendorVerificationHistory
+                {
+                    WorkshopId = workshopId,
+                    OldStatus = oldStatus,
+                    NewStatus = VendorVerificationStatus.inActive,
+                    Notes = notes,
+                    RejectionReason = rejectionReason,
+                    PerformedByAdminId = performedByAdminId,
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedBy = performedByAdminId,
+                }
+            );
 
             await _workshopRepository.SaveChangesAsync();
             await _verificationHistoryRepository.SaveChangesAsync();
 
-            await _internalNotificationService.CreateAsync(workshop.UserId, NotificationType.VendorAccountRejected);
+            await _internalNotificationService.CreateAsync(
+                workshop.UserId,
+                NotificationType.VendorAccountRejected
+            );
         }
 
-        public async Task ActivateVendorAsync(int workshopId, string performedByAdminId, string? notes = null)
+        public async Task ActivateVendorAsync(
+            int workshopId,
+            string performedByAdminId,
+            string? notes = null
+        )
         {
             var workshop = await _workshopRepository.GetByIdAsync(workshopId);
             if (workshop == null)
                 throw new ArgumentException("Vendor not found.");
 
+            // Validate that the admin exists
+            if (!string.IsNullOrEmpty(performedByAdminId))
+            {
+                var admin = await _userRepository.FirstOrDefaultAsync(u =>
+                    u.Id == performedByAdminId
+                );
+                if (admin == null)
+                    throw new ArgumentException("Admin user not found.");
+            }
+
             var old = workshop.AccountStatus;
-            if (old == VendorAccountStatus.Active)
+            if (old == VendorAccountStatus.Approved)
                 return;
 
-            workshop.AccountStatus = VendorAccountStatus.Active;
+            workshop.AccountStatus = VendorAccountStatus.Approved;
             workshop.IsActive = true;
             workshop.AccountStatusChangedAt = DateTime.UtcNow;
             workshop.AccountStatusChangedByAdminId = performedByAdminId;
@@ -150,25 +216,35 @@ namespace Graduation_Application.Services.Admin
                 _userRepository.Update(user);
             }
 
-            await _accountHistoryRepository.AddAsync(new VendorAccountStatusHistory
-            {
-                WorkshopId = workshopId,
-                OldStatus = old,
-                NewStatus = VendorAccountStatus.Active,
-                Notes = notes,
-                PerformedByAdminId = performedByAdminId,
-                CreatedAt = DateTime.UtcNow,
-                CreatedBy = performedByAdminId,
-            });
+            await _accountHistoryRepository.AddAsync(
+                new VendorAccountStatusHistory
+                {
+                    WorkshopId = workshopId,
+                    OldStatus = old,
+                    NewStatus = VendorAccountStatus.Approved,
+                    Notes = notes,
+                    PerformedByAdminId = performedByAdminId,
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedBy = performedByAdminId,
+                }
+            );
 
             await _workshopRepository.SaveChangesAsync();
             await _userRepository.SaveChangesAsync();
             await _accountHistoryRepository.SaveChangesAsync();
 
-            await _internalNotificationService.CreateAsync(workshop.UserId, NotificationType.VendorAccountReactivated);
+            await _internalNotificationService.CreateAsync(
+                workshop.UserId,
+                NotificationType.VendorAccountReactivated
+            );
         }
 
-        public async Task SuspendVendorAsync(int workshopId, string performedByAdminId, string reason, string? notes = null)
+        public async Task SuspendVendorAsync(
+            int workshopId,
+            string performedByAdminId,
+            string reason,
+            string? notes = null
+        )
         {
             if (string.IsNullOrWhiteSpace(reason))
                 throw new ArgumentException("Suspension reason is required.");
@@ -176,6 +252,16 @@ namespace Graduation_Application.Services.Admin
             var workshop = await _workshopRepository.GetByIdAsync(workshopId);
             if (workshop == null)
                 throw new ArgumentException("Vendor not found.");
+
+            // Validate that the admin exists
+            if (!string.IsNullOrEmpty(performedByAdminId))
+            {
+                var admin = await _userRepository.FirstOrDefaultAsync(u =>
+                    u.Id == performedByAdminId
+                );
+                if (admin == null)
+                    throw new ArgumentException("Admin user not found.");
+            }
 
             var old = workshop.AccountStatus;
             if (old == VendorAccountStatus.Suspended)
@@ -197,24 +283,28 @@ namespace Graduation_Application.Services.Admin
                 _userRepository.Update(user);
             }
 
-            await _accountHistoryRepository.AddAsync(new VendorAccountStatusHistory
-            {
-                WorkshopId = workshopId,
-                OldStatus = old,
-                NewStatus = VendorAccountStatus.Suspended,
-                Reason = reason,
-                Notes = notes,
-                PerformedByAdminId = performedByAdminId,
-                CreatedAt = DateTime.UtcNow,
-                CreatedBy = performedByAdminId,
-            });
+            await _accountHistoryRepository.AddAsync(
+                new VendorAccountStatusHistory
+                {
+                    WorkshopId = workshopId,
+                    OldStatus = old,
+                    NewStatus = VendorAccountStatus.Suspended,
+                    Reason = reason,
+                    Notes = notes,
+                    PerformedByAdminId = performedByAdminId,
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedBy = performedByAdminId,
+                }
+            );
 
             await _workshopRepository.SaveChangesAsync();
             await _userRepository.SaveChangesAsync();
             await _accountHistoryRepository.SaveChangesAsync();
 
-            await _internalNotificationService.CreateAsync(workshop.UserId, NotificationType.VendorAccountSuspended);
+            await _internalNotificationService.CreateAsync(
+                workshop.UserId,
+                NotificationType.VendorAccountSuspended
+            );
         }
     }
 }
-

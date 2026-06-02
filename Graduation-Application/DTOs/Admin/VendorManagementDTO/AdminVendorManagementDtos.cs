@@ -57,8 +57,10 @@ namespace Graduation_Application.DTOs.Admin.VendorManagementDTO
         public AdminVendorAccountDto Account { get; set; } = new();
         public AdminVendorOrdersStatsDto OrdersStats { get; set; } = new();
         public AdminVendorRevenueStatsDto RevenueStats { get; set; } = new();
-        public List<AdminVendorVerificationHistoryItemDto> VerificationHistory { get; set; } = new();
-        public List<AdminVendorAccountStatusHistoryItemDto> AccountStatusHistory { get; set; } = new();
+        public List<AdminVendorVerificationHistoryItemDto> VerificationHistory { get; set; } =
+            new();
+        public List<AdminVendorAccountStatusHistoryItemDto> AccountStatusHistory { get; set; } =
+            new();
     }
 
     public class AdminVendorProfileDto
@@ -110,6 +112,10 @@ namespace Graduation_Application.DTOs.Admin.VendorManagementDTO
         public int TotalOrders { get; set; }
         public int DeliveredOrders { get; set; }
         public int PendingOrders { get; set; }
+        public int CancelledOrders { get; set; }
+        public int InProgressOrders { get; set; }
+        public int ConfirmedOrders { get; set; }
+        public int ReadyforPickup { get; set; }
     }
 
     public class AdminVendorRevenueStatsDto
@@ -159,4 +165,3 @@ namespace Graduation_Application.DTOs.Admin.VendorManagementDTO
         public string BadgeClass { get; set; } = "bg-secondary";
     }
 }
-

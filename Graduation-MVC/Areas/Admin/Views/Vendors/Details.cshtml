@@ -1,4 +1,4 @@
-@model Graduation_MVC.Areas.Admin.ViewModels.Vendors.AdminVendorDetailsViewModel
+    @model Graduation_MVC.Areas.Admin.ViewModels.Vendors.AdminVendorDetailsViewModel
 @using Graduation_MVC.Areas.Admin.ViewModels.Shared
 
 @{
@@ -24,7 +24,7 @@
     <div class="col-lg-4">
         <div class="glass-card p-4 h-100">
             <div class="d-flex align-items-center gap-3">
-                <img src="@(string.IsNullOrWhiteSpace(Model.Profile.ProfileImage) ? "/images/user.png" : Model.Profile.ProfileImage)"
+                <img src="@(string.IsNullOrWhiteSpace(Model.Profile.ProfileImage) ? "https://res.cloudinary.com/deko7oqij/image/upload/v1780328043/workshops/wlk9lyvdkppbd2jo23nn.png" : Model.Profile.ProfileImage)"
                      class="rounded-circle"
                      style="width: 56px; height: 56px; object-fit: cover;"
                      onerror="this.src='/images/user.png';" />
@@ -92,6 +92,10 @@
             <div class="d-flex flex-wrap gap-2 mt-2">
                 <span class="badge bg-success">Delivered: @Model.OrdersStats.DeliveredOrders</span>
                 <span class="badge bg-warning text-dark">Pending: @Model.OrdersStats.PendingOrders</span>
+                <span class="badge bg-danger">Cancelled: @Model.OrdersStats.CancelledOrders</span>
+                <span class="badge bg-info">In Progress: @Model.OrdersStats.InProgressOrders</span>
+                <span class="badge bg-primary">Confirmed: @Model.OrdersStats.ConfirmedOrders</span>
+                <span class="badge bg-black">Ready for Pickup: @Model.OrdersStats.ReadyforPickup</span>
             </div>
             <hr />
             <div class="text-muted small">Revenue</div>

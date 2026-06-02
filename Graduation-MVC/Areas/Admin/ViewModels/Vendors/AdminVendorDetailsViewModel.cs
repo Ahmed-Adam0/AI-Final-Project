@@ -12,8 +12,10 @@ namespace Graduation_MVC.Areas.Admin.ViewModels.Vendors
         public AdminVendorAccountViewModel Account { get; set; } = new();
         public AdminVendorOrdersStatsViewModel OrdersStats { get; set; } = new();
         public AdminVendorRevenueStatsViewModel RevenueStats { get; set; } = new();
-        public List<AdminVendorVerificationHistoryItemViewModel> VerificationHistory { get; set; } = new();
-        public List<AdminVendorAccountStatusHistoryItemViewModel> AccountStatusHistory { get; set; } = new();
+        public List<AdminVendorVerificationHistoryItemViewModel> VerificationHistory { get; set; } =
+            new();
+        public List<AdminVendorAccountStatusHistoryItemViewModel> AccountStatusHistory { get; set; } =
+            new();
 
         public AdminVendorActionsViewModel Actions { get; set; } = new();
     }
@@ -61,6 +63,11 @@ namespace Graduation_MVC.Areas.Admin.ViewModels.Vendors
         public int TotalOrders { get; set; }
         public int DeliveredOrders { get; set; }
         public int PendingOrders { get; set; }
+
+        public int CancelledOrders { get; set; }
+        public int InProgressOrders { get; set; }
+        public int ConfirmedOrders { get; set; }
+        public int ReadyforPickup { get; set; }
     }
 
     public class AdminVendorRevenueStatsViewModel
@@ -97,4 +104,3 @@ namespace Graduation_MVC.Areas.Admin.ViewModels.Vendors
         public bool CanActivate { get; set; }
     }
 }
-

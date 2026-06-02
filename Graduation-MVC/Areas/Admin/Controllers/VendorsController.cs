@@ -40,7 +40,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> Pending([FromQuery] AdminVendorFilterViewModel filter)
         {
-            filter.VerificationStatus ??= VendorVerificationStatus.Pending.ToString();
+            filter.VerificationStatus ??= VendorVerificationStatus.inActive.ToString();
 
             var dto = await _adminVendorsService.GetVendorsPageAsync(
                 new AdminVendorsFilterDto
@@ -107,6 +107,9 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                         TotalOrders = dto.OrdersStats.TotalOrders,
                         DeliveredOrders = dto.OrdersStats.DeliveredOrders,
                         PendingOrders = dto.OrdersStats.PendingOrders,
+                        CancelledOrders = dto.OrdersStats.CancelledOrders,
+                        InProgressOrders = dto.OrdersStats.InProgressOrders,
+                        ConfirmedOrders = dto.OrdersStats.ConfirmedOrders,
                     },
                     RevenueStats = new AdminVendorRevenueStatsViewModel
                     {
@@ -142,12 +145,12 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                     Actions = new AdminVendorActionsViewModel
                     {
                         CanApprove =
-                            dto.Verification.Status == VendorVerificationStatus.Pending
-                            || dto.Verification.Status == VendorVerificationStatus.Rejected,
+                            dto.Verification.Status == VendorVerificationStatus.inActive
+                            || dto.Verification.Status == VendorVerificationStatus.inActive,
                         CanReject =
-                            dto.Verification.Status == VendorVerificationStatus.Pending
-                            || dto.Verification.Status == VendorVerificationStatus.Approved,
-                        CanSuspend = dto.Account.Status == VendorAccountStatus.Active,
+                            dto.Verification.Status == VendorVerificationStatus.inActive
+                            || dto.Verification.Status == VendorVerificationStatus.Active,
+                        CanSuspend = dto.Account.Status == VendorAccountStatus.Approved,
                         CanActivate = dto.Account.Status == VendorAccountStatus.Suspended,
                     },
                 }
@@ -188,8 +191,23 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Approve(int workshopId, string? notes = null)
         {
-            await _adminVendorsService.ApproveVendorAsync(workshopId, GetAdminId(), notes);
-            TempData["SuccessMessage"] = "Vendor approved successfully.";
+            //var adminId = GetAdminId();
+            //if (string.IsNullOrEmpty(adminId))
+            //{
+            //    TempData["ErrorMessage"] = "Admin user not authenticated.";
+            //    return RedirectToAction(nameof(Details), new { id = workshopId });
+            //}
+
+            try
+            {
+                await _adminVendorsService.ApproveVendorAsync(workshopId, notes);
+                TempData["SuccessMessage"] = "Vendor approved successfully.";
+            }
+            catch (ArgumentException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
             return RedirectToAction(nameof(Details), new { id = workshopId });
         }
 
@@ -203,13 +221,28 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 return RedirectToAction(nameof(Details), new { id = model.WorkshopId });
             }
 
-            await _adminVendorsService.RejectVendorAsync(
-                model.WorkshopId,
-                GetAdminId(),
-                model.RejectionReason,
-                model.Notes
-            );
-            TempData["SuccessMessage"] = "Vendor rejected successfully.";
+            var adminId = GetAdminId();
+            if (string.IsNullOrEmpty(adminId))
+            {
+                TempData["ErrorMessage"] = "Admin user not authenticated.";
+                return RedirectToAction(nameof(Details), new { id = model.WorkshopId });
+            }
+
+            try
+            {
+                await _adminVendorsService.RejectVendorAsync(
+                    model.WorkshopId,
+                    adminId,
+                    model.RejectionReason,
+                    model.Notes
+                );
+                TempData["SuccessMessage"] = "Vendor rejected successfully.";
+            }
+            catch (ArgumentException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
             return RedirectToAction(nameof(Details), new { id = model.WorkshopId });
         }
 
@@ -223,13 +256,28 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 return RedirectToAction(nameof(Details), new { id = model.WorkshopId });
             }
 
-            await _adminVendorsService.SuspendVendorAsync(
-                model.WorkshopId,
-                GetAdminId(),
-                model.Reason,
-                model.Notes
-            );
-            TempData["SuccessMessage"] = "Vendor suspended successfully.";
+            var adminId = GetAdminId();
+            if (string.IsNullOrEmpty(adminId))
+            {
+                TempData["ErrorMessage"] = "Admin user not authenticated.";
+                return RedirectToAction(nameof(Details), new { id = model.WorkshopId });
+            }
+
+            try
+            {
+                await _adminVendorsService.SuspendVendorAsync(
+                    model.WorkshopId,
+                    adminId,
+                    model.Reason,
+                    model.Notes
+                );
+                TempData["SuccessMessage"] = "Vendor suspended successfully.";
+            }
+            catch (ArgumentException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
             return RedirectToAction(nameof(Details), new { id = model.WorkshopId });
         }
 
@@ -237,14 +285,30 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Activate(int workshopId, string? notes = null)
         {
-            await _adminVendorsService.ActivateVendorAsync(workshopId, GetAdminId(), notes);
-            TempData["SuccessMessage"] = "Vendor activated successfully.";
+            //var adminId = GetAdminId();
+            //if (string.IsNullOrEmpty(adminId))
+            //{
+            //    TempData["ErrorMessage"] = "Admin user not authenticated.";
+            //    return RedirectToAction(nameof(Details), new { id = workshopId });
+            //}
+
+            try
+            {
+                //await _adminVendorsService.ActivateVendorAsync(workshopId, adminId, notes);
+                await _adminVendorsService.ActivateVendorAsync(workshopId, notes);
+                TempData["SuccessMessage"] = "Vendor activated successfully.";
+            }
+            catch (ArgumentException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
             return RedirectToAction(nameof(Details), new { id = workshopId });
         }
 
         private string GetAdminId()
         {
-            return User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "Admin";
+            return User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
         }
 
         private static AdminVendorsPageViewModel MapPage(
