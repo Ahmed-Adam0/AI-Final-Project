@@ -49,13 +49,21 @@ namespace Graduation_Application.Services.Admin
 
         public async Task ApproveVendorAsync(
             int workshopId,
-            string performedByAdminId,
+            //string performedByAdminId,
             string? notes = null
         )
         {
             var workshop = await _workshopRepository.GetByIdAsync(workshopId);
             if (workshop == null)
                 throw new ArgumentException("Vendor not found.");
+
+            // Validate that the admin exists
+            //if (!string.IsNullOrEmpty(performedByAdminId))
+            //{
+            //    var admin = await _userRepository.FirstOrDefaultAsync(u => u.Id == performedByAdminId);
+            //    if (admin == null)
+            //        throw new ArgumentException("Admin user not found.");
+            //}
 
             var oldStatus =
                 workshop.VerificationStatus == 0 && workshop.IsVerified
@@ -65,28 +73,38 @@ namespace Graduation_Application.Services.Admin
             workshop.VerificationStatus = VendorVerificationStatus.Active;
             workshop.IsVerified = true;
             workshop.VerificationDate = DateTime.UtcNow;
-            workshop.VerifiedByAdminId = performedByAdminId;
+            //workshop.VerifiedByAdminId = performedByAdminId;
             workshop.VerificationNotes = notes;
             workshop.RejectionReason = null;
             workshop.UpdatedAt = DateTime.UtcNow;
-            workshop.UpdatedBy = performedByAdminId;
+            //workshop.UpdatedBy = performedByAdminId;
+            //workshop.User.IsActive = true;
 
             _workshopRepository.Update(workshop);
 
-            await _verificationHistoryRepository.AddAsync(
-                new VendorVerificationHistory
-                {
-                    WorkshopId = workshopId,
-                    OldStatus = oldStatus,
-                    NewStatus = VendorVerificationStatus.Active,
-                    Notes = notes,
-                    PerformedByAdminId = performedByAdminId,
-                    CreatedAt = DateTime.UtcNow,
-                    CreatedBy = performedByAdminId,
-                }
-            );
+            // Activate the user account
+            var user = await _userRepository.FirstOrDefaultAsync(u => u.Id == workshop.UserId);
+            if (user != null)
+            {
+                user.IsActive = true;
+                _userRepository.Update(user);
+            }
+
+            //await _verificationHistoryRepository.AddAsync(
+            //    new VendorVerificationHistory
+            //    {
+            //        WorkshopId = workshopId,
+            //        OldStatus = oldStatus,
+            //        NewStatus = VendorVerificationStatus.Active,
+            //        Notes = notes,
+            //        PerformedByAdminId = performedByAdminId,
+            //        CreatedAt = DateTime.UtcNow,
+            //        CreatedBy = performedByAdminId,
+            //    }
+            //);
 
             await _workshopRepository.SaveChangesAsync();
+            await _userRepository.SaveChangesAsync();
             await _verificationHistoryRepository.SaveChangesAsync();
 
             await _internalNotificationService.CreateAsync(
@@ -108,6 +126,16 @@ namespace Graduation_Application.Services.Admin
             var workshop = await _workshopRepository.GetByIdAsync(workshopId);
             if (workshop == null)
                 throw new ArgumentException("Vendor not found.");
+
+            // Validate that the admin exists
+            if (!string.IsNullOrEmpty(performedByAdminId))
+            {
+                var admin = await _userRepository.FirstOrDefaultAsync(u =>
+                    u.Id == performedByAdminId
+                );
+                if (admin == null)
+                    throw new ArgumentException("Admin user not found.");
+            }
 
             var oldStatus =
                 workshop.VerificationStatus == 0 && workshop.IsVerified
@@ -157,6 +185,16 @@ namespace Graduation_Application.Services.Admin
             var workshop = await _workshopRepository.GetByIdAsync(workshopId);
             if (workshop == null)
                 throw new ArgumentException("Vendor not found.");
+
+            // Validate that the admin exists
+            if (!string.IsNullOrEmpty(performedByAdminId))
+            {
+                var admin = await _userRepository.FirstOrDefaultAsync(u =>
+                    u.Id == performedByAdminId
+                );
+                if (admin == null)
+                    throw new ArgumentException("Admin user not found.");
+            }
 
             var old = workshop.AccountStatus;
             if (old == VendorAccountStatus.Approved)
@@ -214,6 +252,16 @@ namespace Graduation_Application.Services.Admin
             var workshop = await _workshopRepository.GetByIdAsync(workshopId);
             if (workshop == null)
                 throw new ArgumentException("Vendor not found.");
+
+            // Validate that the admin exists
+            if (!string.IsNullOrEmpty(performedByAdminId))
+            {
+                var admin = await _userRepository.FirstOrDefaultAsync(u =>
+                    u.Id == performedByAdminId
+                );
+                if (admin == null)
+                    throw new ArgumentException("Admin user not found.");
+            }
 
             var old = workshop.AccountStatus;
             if (old == VendorAccountStatus.Suspended)

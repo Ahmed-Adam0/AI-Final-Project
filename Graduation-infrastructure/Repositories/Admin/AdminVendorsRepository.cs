@@ -71,7 +71,7 @@ namespace Graduation_infrastructure.Repositories.Admin
                 IsVerified = w.IsVerified,
                 CreatedAt = w.CreatedAt,
                 VerificationStatus =
-                    w.User.IsActive == false
+                    w.IsActive == false
                         ? VendorVerificationStatus.inActive
                         : VendorVerificationStatus.Active,
 
