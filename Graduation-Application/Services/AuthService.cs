@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Graduation_Application.Constants;
 using Graduation_Application.DTOs.UserDTO;
 using Graduation_Application.IServices;
 using Graduation_Application.Mapper.UsersMapping;
@@ -58,23 +59,29 @@ namespace Graduation_Application.Services
             }
 
             // Create role if not exists
-            var roleExists = await _roleManager.RoleExistsAsync("Customer");
+            var roleExists = await _roleManager.RoleExistsAsync(Roles.Customer);
 
             if (!roleExists)
             {
-                await _roleManager.CreateAsync(new IdentityRole("Customer"));
+                await _roleManager.CreateAsync(new IdentityRole(Roles.Customer));
             }
 
             // Add role to user
-            await _userManager.AddToRoleAsync(user, "Customer");
-
+           var userdb= await _userManager.AddToRoleAsync(user, Roles.Customer);
+            if (!userdb.Succeeded)
+            {
+                // Rollback: delete user if role assignment fails
+                await _userManager.DeleteAsync(user);
+                var errors = string.Join(" ; ", userdb.Errors.Select(e => e.Description));
+                throw new Exception($"Failed to assign Vendor role: {errors}");
+            }
             // Generate token
             var roles = await _userManager.GetRolesAsync(user);
 
-            var token = _jwtTokenGenerator.GenerateToken(user, roles);
+           // var token = _jwtTokenGenerator.GenerateToken(user, roles);
 
             // Mapping → AuthResponseDto
-            return (user, token, roles).Adapt<AuthResponseDto>();
+            return (user, roles).Adapt<AuthResponseDto>();
         }
 
         public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
@@ -114,7 +121,11 @@ namespace Graduation_Application.Services
             }
 
             var roles = await _userManager.GetRolesAsync(user);
-
+            //only user Customer Can login
+            if (!roles.Contains(Roles.Customer))
+            {
+                throw new Exception("Only customers can login from this endpoint.");
+            }
             var token = _jwtTokenGenerator.GenerateToken(user, roles);
 
             // Mapping → AuthResponseDto
@@ -319,13 +330,13 @@ namespace Graduation_Application.Services
             }
 
             // Ensure Customer role exists and assign
-            var roleExists = await _roleManager.RoleExistsAsync("Customer");
+            var roleExists = await _roleManager.RoleExistsAsync(Roles.Customer);
             if (!roleExists)
             {
-                await _roleManager.CreateAsync(new IdentityRole("Customer"));
+                await _roleManager.CreateAsync(new IdentityRole(Roles.Customer));
             }
 
-            await _userManager.AddToRoleAsync(newUser, "Customer");
+            await _userManager.AddToRoleAsync(newUser, Roles.Customer);
 
             var roles = await _userManager.GetRolesAsync(newUser);
             var token = _jwtTokenGenerator.GenerateToken(newUser, roles);

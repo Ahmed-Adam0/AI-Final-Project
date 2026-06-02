@@ -1,8 +1,9 @@
-using System.Security.Claims;
+using Graduation_Application.Constants;
 using Graduation_Application.DTOs.VendorDTO;
 using Graduation_Application.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Graduation_API.Controllers
 {
@@ -50,7 +51,7 @@ namespace Graduation_API.Controllers
         }
 
         [HttpPut("logo")]
-        [Authorize(Roles = "Vendor")]
+        [Authorize(Roles = Roles.Vendor)]
         public async Task<IActionResult> UpdateLogo(IFormFile logo)
         {
             try
@@ -71,7 +72,7 @@ namespace Graduation_API.Controllers
         }
 
         [HttpGet("profile")]
-        [Authorize(Roles = "Vendor")]
+        [Authorize(Roles = Roles.Vendor)]
         public async Task<IActionResult> GetProfile()
         {
             try
@@ -90,7 +91,7 @@ namespace Graduation_API.Controllers
         }
 
         [HttpPut("profile")]
-        [Authorize(Roles = "Vendor")]
+        [Authorize(Roles = Roles.Vendor)]
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateVendorProfileDto dto)
         {
             try

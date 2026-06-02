@@ -11,6 +11,7 @@ using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Graduation_Application.Constants;
 
 namespace Graduation_Application.Services
 {
@@ -73,14 +74,14 @@ namespace Graduation_Application.Services
             }
 
             // Ensure Vendor role exists
-            var vendorRoleExists = await _roleManager.RoleExistsAsync("Vendor");
+            var vendorRoleExists = await _roleManager.RoleExistsAsync(Roles.Vendor);
             if (!vendorRoleExists)
             {
-                await _roleManager.CreateAsync(new IdentityRole("Vendor"));
+                await _roleManager.CreateAsync(new IdentityRole(Roles.Vendor));
             }
 
             // Assign Vendor role to user
-            var assignRoleResult = await _userManager.AddToRoleAsync(user, "Vendor");
+            var assignRoleResult = await _userManager.AddToRoleAsync(user, Roles.Vendor);
             if (!assignRoleResult.Succeeded)
             {
                 // Rollback: delete user if role assignment fails
@@ -159,7 +160,7 @@ namespace Graduation_Application.Services
             }
 
 
-            var isVendor = await _userManager.IsInRoleAsync(user, "Vendor");
+            var isVendor = await _userManager.IsInRoleAsync(user, Roles.Vendor);
             if (!isVendor)
             {
                 throw new Exception("Invalid email or password");
