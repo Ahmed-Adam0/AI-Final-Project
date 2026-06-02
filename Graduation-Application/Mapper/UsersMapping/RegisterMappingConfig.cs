@@ -14,7 +14,7 @@ namespace Graduation_Application.Mapper.UsersMapping
                 .Map(dest => dest.Email, src => src.Email)
                 .Map(dest => dest.FullName, src => src.FullName)
                 .Map(dest => dest.PhoneNumber, src => src.PhoneNumber)
-                .Map(dest => dest.PreferredLanguage, src => src.PreferredLanguage)
+                .Map(dest => dest.PreferredLanguage, src => src.PreferredLanguage ?? "en")
                 .Ignore(dest => dest.PasswordHash);
         }
     }
