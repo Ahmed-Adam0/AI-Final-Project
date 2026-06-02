@@ -9,9 +9,11 @@ using Graduation_Application.Mapper.ProductMapping;
 using Graduation_Application.Options;
 using Graduation_Application.Services;
 using Graduation_Application.Services.Admin;
+using Graduation_Application.IRepositories.Admin;
 using Graduation_domain.Entities;
 using Graduation_infrastructure.AppDbContext;
 using Graduation_infrastructure.Repositories;
+using Graduation_infrastructure.Repositories.Admin;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -47,6 +49,8 @@ namespace Graduation_infrastructure.ProgramService.ServicesMVC
             // Register Admin Services
             services.AddScoped<IAdminProductService, AdminProductService>();
             services.AddScoped<IAdminDashboardService, AdminDashboardService>();
+            services.AddScoped<IAdminVendorsRepository, AdminVendorsRepository>();
+            services.AddScoped<IAdminVendorsService, AdminVendorsService>();
 
             // Register Application Services required by OrderService and related flows
             services.AddScoped<ICartService, CartService>();

@@ -6,6 +6,7 @@ using Graduation_Application.DTOs.Common;
 using Graduation_Application.DTOs.NotificationDTO;
 using Graduation_Application.IRepositories;
 using Graduation_Application.IServices;
+using Graduation_domain.Enums;
 using Graduation_domain.Entities;
 using Mapster;
 
@@ -112,6 +113,33 @@ namespace Graduation_Application.Services
                         "تم تفعيل حسابك من الإدارة",
                         "Your account has been approved by the admin"
                     ) 
+                },
+                {
+                    NotificationType.VendorAccountRejected,
+                    (
+                        "تم رفض الحساب",
+                        "Account Rejected",
+                        "تم رفض طلب تفعيل حسابك من الإدارة",
+                        "Your account approval request has been rejected by the admin"
+                    )
+                },
+                {
+                    NotificationType.VendorAccountSuspended,
+                    (
+                        "تم إيقاف الحساب",
+                        "Account Suspended",
+                        "تم إيقاف حسابك مؤقتًا من الإدارة",
+                        "Your account has been suspended by the admin"
+                    )
+                },
+                {
+                    NotificationType.VendorAccountReactivated,
+                    (
+                        "تم إعادة تفعيل الحساب",
+                        "Account Reactivated",
+                        "تم إعادة تفعيل حسابك من الإدارة",
+                        "Your account has been reactivated by the admin"
+                    )
                 },
                 { 
                     NotificationType.VendorOrderCancelled, 

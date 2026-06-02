@@ -1,0 +1,23 @@
+@model Graduation_MVC.Areas.Admin.ViewModels.Vendors.AdminVendorsPageViewModel
+
+@{
+    ViewData["Title"] = "Vendors";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+    <div>
+        <h2 class="mb-1">Vendors</h2>
+        <p class="text-muted mb-0">Manage vendor accounts, verification, and status.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-area="Admin" asp-controller="Vendors" asp-action="Pending" class="btn btn-premium btn-premium-secondary">
+            <i class="fa-solid fa-clock"></i> Pending Vendors
+        </a>
+        <a asp-area="Admin" asp-controller="Vendors" asp-action="History" class="btn btn-premium btn-premium-secondary">
+            <i class="fa-solid fa-timeline"></i> History
+        </a>
+    </div>
+</div>
+
+<partial name="_VendorsList" model="Model" />
+

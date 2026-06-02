@@ -1,0 +1,345 @@
+@model Graduation_MVC.Areas.Admin.ViewModels.Vendors.AdminVendorDetailsViewModel
+@using Graduation_MVC.Areas.Admin.ViewModels.Shared
+
+@{
+    ViewData["Title"] = "Vendor Details";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+    <div>
+        <h2 class="mb-1">Vendor Details</h2>
+        <p class="text-muted mb-0">Review profile, verification, account status, and activity.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-area="Admin" asp-controller="Vendors" asp-action="Index" class="btn btn-premium btn-premium-secondary">
+            <i class="fa-solid fa-arrow-left"></i> Back
+        </a>
+        <a asp-area="Admin" asp-controller="Vendors" asp-action="History" class="btn btn-premium btn-premium-secondary">
+            <i class="fa-solid fa-timeline"></i> History
+        </a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-lg-4">
+        <div class="glass-card p-4 h-100">
+            <div class="d-flex align-items-center gap-3">
+                <img src="@(string.IsNullOrWhiteSpace(Model.Profile.ProfileImage) ? "/images/user.png" : Model.Profile.ProfileImage)"
+                     class="rounded-circle"
+                     style="width: 56px; height: 56px; object-fit: cover;"
+                     onerror="this.src='/images/user.png';" />
+                <div>
+                    <div class="fw-semibold fs-5">@Model.Profile.VendorName</div>
+                    <div class="text-muted small">UserId: @Model.Profile.VendorUserId</div>
+                </div>
+            </div>
+            <div class="mt-3">
+                <div class="text-muted small">Email</div>
+                <div>@(Model.Profile.Email ?? "-")</div>
+            </div>
+            <div class="mt-3">
+                <div class="text-muted small">Phone</div>
+                <div>@(Model.Profile.Phone ?? "-")</div>
+            </div>
+            <div class="mt-3">
+                <div class="text-muted small">Registered</div>
+                <div>@Model.Profile.RegisteredAt.ToString("yyyy-MM-dd HH:mm")</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="glass-card p-4 h-100">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="text-muted small">Verification</div>
+                    <div class="mt-1">
+                        <partial name="~/Areas/Admin/Views/Shared/_StatusBadge.cshtml"
+                                 model="new AdminStatusBadgeViewModel { Status = Model.Verification.Status.ToString() }" />
+                    </div>
+                </div>
+                <div class="text-end">
+                    <div class="text-muted small">Account</div>
+                    <div class="mt-1">
+                        <partial name="~/Areas/Admin/Views/Shared/_StatusBadge.cshtml"
+                                 model="new AdminStatusBadgeViewModel { Status = Model.Account.Status.ToString() }" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <div class="text-muted small">Verified / Updated By</div>
+                <div>@(Model.Verification.VerifiedByAdminName ?? Model.Account.StatusChangedByAdminName ?? "-")</div>
+            </div>
+            <div class="mt-3">
+                <div class="text-muted small">Verification Date</div>
+                <div>@(Model.Verification.VerificationDate?.ToString("yyyy-MM-dd HH:mm") ?? "-")</div>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(Model.Verification.RejectionReason))
+            {
+                <div class="mt-3">
+                    <div class="text-muted small">Rejection Reason</div>
+                    <div class="text-danger fw-semibold">@Model.Verification.RejectionReason</div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="glass-card p-4 h-100">
+            <div class="text-muted small">Orders</div>
+            <div class="fs-4 fw-semibold">@Model.OrdersStats.TotalOrders</div>
+            <div class="d-flex flex-wrap gap-2 mt-2">
+                <span class="badge bg-success">Delivered: @Model.OrdersStats.DeliveredOrders</span>
+                <span class="badge bg-warning text-dark">Pending: @Model.OrdersStats.PendingOrders</span>
+            </div>
+            <hr />
+            <div class="text-muted small">Revenue</div>
+            <div class="fs-4 fw-semibold">@Model.RevenueStats.TotalRevenue.ToString("C0")</div>
+            <div class="text-muted small">Delivered revenue: @Model.RevenueStats.DeliveredRevenue.ToString("C0")</div>
+        </div>
+    </div>
+</div>
+
+<div class="glass-card p-4 mb-4">
+    <h5 class="mb-3"><i class="fa-solid fa-briefcase me-2" style="color: var(--accent-primary);"></i>Business</h5>
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="text-muted small">Workshop Name (EN)</div>
+            <div class="fw-semibold">@Model.Business.WorkshopNameEn</div>
+        </div>
+        <div class="col-md-6">
+            <div class="text-muted small">Workshop Name (AR)</div>
+            <div class="fw-semibold">@Model.Business.WorkshopNameAr</div>
+        </div>
+        <div class="col-md-6">
+            <div class="text-muted small">Address</div>
+            <div>@(Model.Business.AddressSummary ?? "-")</div>
+        </div>
+        <div class="col-md-6">
+            <div class="text-muted small">Rating</div>
+            <div>@(Model.Business.Rating?.ToString("0.0") ?? "-")</div>
+        </div>
+        <div class="col-12">
+            <div class="text-muted small">Description (EN)</div>
+            <div>@Model.Business.DescriptionEn</div>
+        </div>
+        <div class="col-12">
+            <div class="text-muted small">Description (AR)</div>
+            <div>@Model.Business.DescriptionAr</div>
+        </div>
+    </div>
+</div>
+
+<div class="glass-card p-4 mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 mb-3">
+        <h5 class="mb-0"><i class="fa-solid fa-shield-halved me-2" style="color: var(--accent-primary);"></i>Actions</h5>
+        <div class="d-flex gap-2 flex-wrap">
+            @if (Model.Actions.CanApprove)
+            {
+                <form method="post" asp-area="Admin" asp-controller="Vendors" asp-action="Approve" class="d-inline js-confirm" data-title="Approve vendor?" data-text="This will approve vendor verification.">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="workshopId" value="@Model.Profile.WorkshopId" />
+                    <button type="submit" class="btn btn-premium btn-premium-primary">
+                        <i class="fa-solid fa-circle-check"></i> Approve
+                    </button>
+                </form>
+            }
+            @if (Model.Actions.CanReject)
+            {
+                <button type="button" class="btn btn-premium btn-premium-secondary" data-bs-toggle="modal" data-bs-target="#rejectModal">
+                    <i class="fa-solid fa-circle-xmark"></i> Reject
+                </button>
+            }
+            @if (Model.Actions.CanSuspend)
+            {
+                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#suspendModal">
+                    <i class="fa-solid fa-ban"></i> Suspend
+                </button>
+            }
+            @if (Model.Actions.CanActivate)
+            {
+                <form method="post" asp-area="Admin" asp-controller="Vendors" asp-action="Activate" class="d-inline js-confirm" data-title="Activate vendor?" data-text="This will reactivate the vendor account.">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="workshopId" value="@Model.Profile.WorkshopId" />
+                    <button type="submit" class="btn btn-outline-success">
+                        <i class="fa-solid fa-play"></i> Activate
+                    </button>
+                </form>
+            }
+        </div>
+    </div>
+    <div class="text-muted small">All actions are audited in vendor history.</div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="glass-card p-4 h-100">
+            <h5 class="mb-3"><i class="fa-solid fa-list-check me-2" style="color: var(--accent-primary);"></i>Verification History</h5>
+            <div class="table-responsive">
+                <table class="table table-premium mb-0">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Change</th>
+                            <th>Admin</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.VerificationHistory.Count == 0)
+                        {
+                            <tr><td colspan="3" class="text-muted">No history yet.</td></tr>
+                        }
+                        else
+                        {
+                            foreach (var h in Model.VerificationHistory)
+                            {
+                                <tr>
+                                    <td>@h.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                    <td>@h.OldStatus → @h.NewStatus</td>
+                                    <td>@(h.AdminName ?? "-")</td>
+                                </tr>
+                                @if (!string.IsNullOrWhiteSpace(h.RejectionReason))
+                                {
+                                    <tr>
+                                        <td colspan="3" class="text-danger small">Reason: @h.RejectionReason</td>
+                                    </tr>
+                                }
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="glass-card p-4 h-100">
+            <h5 class="mb-3"><i class="fa-solid fa-user-shield me-2" style="color: var(--accent-primary);"></i>Status History</h5>
+            <div class="table-responsive">
+                <table class="table table-premium mb-0">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Change</th>
+                            <th>Admin</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.AccountStatusHistory.Count == 0)
+                        {
+                            <tr><td colspan="3" class="text-muted">No history yet.</td></tr>
+                        }
+                        else
+                        {
+                            foreach (var h in Model.AccountStatusHistory)
+                            {
+                                <tr>
+                                    <td>@h.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                    <td>@h.OldStatus → @h.NewStatus</td>
+                                    <td>@(h.AdminName ?? "-")</td>
+                                </tr>
+                                @if (!string.IsNullOrWhiteSpace(h.Reason))
+                                {
+                                    <tr>
+                                        <td colspan="3" class="text-muted small">Reason: @h.Reason</td>
+                                    </tr>
+                                }
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reject Vendor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" asp-area="Admin" asp-controller="Vendors" asp-action="Reject" class="js-confirm" data-title="Reject vendor?" data-text="This will reject vendor verification.">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <input type="hidden" name="WorkshopId" value="@Model.Profile.WorkshopId" />
+                    <div class="mb-3">
+                        <label class="form-label">Rejection reason</label>
+                        <input class="form-control" name="RejectionReason" required maxlength="500" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes (optional)</label>
+                        <textarea class="form-control" name="Notes" rows="3" maxlength="1000"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-premium btn-premium-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fa-solid fa-circle-xmark"></i> Reject
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Suspend Modal -->
+<div class="modal fade" id="suspendModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Suspend Vendor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" asp-area="Admin" asp-controller="Vendors" asp-action="Suspend" class="js-confirm" data-title="Suspend vendor?" data-text="This will suspend the vendor account.">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <input type="hidden" name="WorkshopId" value="@Model.Profile.WorkshopId" />
+                    <div class="mb-3">
+                        <label class="form-label">Suspension reason</label>
+                        <input class="form-control" name="Reason" required maxlength="500" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes (optional)</label>
+                        <textarea class="form-control" name="Notes" rows="3" maxlength="1000"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-premium btn-premium-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-outline-danger">
+                        <i class="fa-solid fa-ban"></i> Suspend
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        (function () {
+            document.querySelectorAll('form.js-confirm').forEach(function (form) {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    var title = form.getAttribute('data-title') || 'Are you sure?';
+                    var text = form.getAttribute('data-text') || '';
+                    Swal.fire({
+                        title: title,
+                        text: text,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes',
+                        cancelButtonText: 'Cancel'
+                    }).then(function (result) {
+                        if (result.isConfirmed) form.submit();
+                    });
+                });
+            });
+        })();
+    </script>
+}
+

@@ -6,6 +6,7 @@ using Graduation_Application.Constants;
 using Graduation_Application.DTOs.UserDTO;
 using Graduation_Application.IServices;
 using Graduation_Application.Mapper.UsersMapping;
+using Graduation_domain.Enums;
 using Graduation_domain.Entities;
 using Mapster;
 using Microsoft.AspNetCore.Identity;

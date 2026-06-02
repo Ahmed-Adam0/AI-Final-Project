@@ -27,6 +27,8 @@ namespace Graduation_infrastructure.AppDbContext
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<InternalNotification> InternalNotifications { get; set; }
         public DbSet<ProductReport> ProductReports { get; set; }
+        public DbSet<VendorVerificationHistory> VendorVerificationHistory { get; set; }
+        public DbSet<VendorAccountStatusHistory> VendorAccountStatusHistory { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -106,6 +108,52 @@ namespace Graduation_infrastructure.AppDbContext
                 .WithOne(w => w.WorkshopAddress)
                 .HasForeignKey<WorkshopAddress>(wa => wa.WorkshopId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder
+                .Entity<Workshop>()
+                .HasOne(w => w.VerifiedByAdmin)
+                .WithMany()
+                .HasForeignKey(w => w.VerifiedByAdminId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder
+                .Entity<Workshop>()
+                .HasOne(w => w.AccountStatusChangedByAdmin)
+                .WithMany()
+                .HasForeignKey(w => w.AccountStatusChangedByAdminId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder
+                .Entity<VendorVerificationHistory>()
+                .HasOne(h => h.Workshop)
+                .WithMany(w => w.VerificationHistory)
+                .HasForeignKey(h => h.WorkshopId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder
+                .Entity<VendorVerificationHistory>()
+                .HasOne(h => h.PerformedByAdmin)
+                .WithMany()
+                .HasForeignKey(h => h.PerformedByAdminId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder
+                .Entity<VendorAccountStatusHistory>()
+                .HasOne(h => h.Workshop)
+                .WithMany(w => w.AccountStatusHistory)
+                .HasForeignKey(h => h.WorkshopId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder
+                .Entity<VendorAccountStatusHistory>()
+                .HasOne(h => h.PerformedByAdmin)
+                .WithMany()
+                .HasForeignKey(h => h.PerformedByAdminId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Decimal precision configuration to avoid truncation
             builder.Entity<CartItem>().Property(ci => ci.Price).HasColumnType("decimal(18,2)");

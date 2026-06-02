@@ -1,6 +1,7 @@
 using Graduation_Application.DTOs.ReviewDTO;
 using Graduation_Application.IServices;
 using Graduation_Application.IRepositories;
+using Graduation_domain.Enums;
 using Graduation_domain.Entities;
 using Mapster;
 using Microsoft.EntityFrameworkCore;

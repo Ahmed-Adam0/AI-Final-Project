@@ -1,0 +1,181 @@
+@model Graduation_MVC.Areas.Admin.ViewModels.Vendors.AdminVendorsPageViewModel
+@using Graduation_MVC.Areas.Admin.ViewModels.Shared
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-2">
+        <div class="glass-card p-3">
+            <div class="text-muted small">Total</div>
+            <div class="fs-4 fw-semibold">@Model.Statistics.TotalVendors</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="glass-card p-3">
+            <div class="text-muted small">Pending</div>
+            <div class="fs-4 fw-semibold">@Model.Statistics.PendingVendors</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="glass-card p-3">
+            <div class="text-muted small">Approved</div>
+            <div class="fs-4 fw-semibold">@Model.Statistics.ApprovedVendors</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="glass-card p-3">
+            <div class="text-muted small">Rejected</div>
+            <div class="fs-4 fw-semibold">@Model.Statistics.RejectedVendors</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="glass-card p-3">
+            <div class="text-muted small">Active</div>
+            <div class="fs-4 fw-semibold">@Model.Statistics.ActiveVendors</div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="glass-card p-3">
+            <div class="text-muted small">Suspended</div>
+            <div class="fs-4 fw-semibold">@Model.Statistics.SuspendedVendors</div>
+        </div>
+    </div>
+</div>
+
+<div class="glass-card p-4 mb-4">
+    <form method="get"
+          asp-area="Admin"
+          asp-controller="Vendors"
+          asp-action="@(Model.PendingOnly ? "Pending" : "Index")"
+          class="row g-3">
+        <div class="col-md-5">
+            <label class="form-label text-muted small">Search</label>
+            <input class="form-control form-control-premium" name="Search" value="@Model.Filter.Search" placeholder="Name, email, phone, company/workshop..." />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label text-muted small">Verification</label>
+            <select class="form-select form-select-premium" name="VerificationStatus">
+                @foreach (var opt in Model.VerificationStatusOptions)
+                {
+                    <option value="@opt.Value" selected="@(opt.Value == (Model.Filter.VerificationStatus ?? string.Empty) ? "selected" : null)">@opt.Label</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label text-muted small">Account</label>
+            <select class="form-select form-select-premium" name="AccountStatus">
+                @foreach (var opt in Model.AccountStatusOptions)
+                {
+                    <option value="@opt.Value" selected="@(opt.Value == (Model.Filter.AccountStatus ?? string.Empty) ? "selected" : null)">@opt.Label</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label text-muted small">Sort</label>
+            <select class="form-select form-select-premium" name="SortBy">
+                <option value="" selected="@(string.IsNullOrWhiteSpace(Model.Filter.SortBy) ? "selected" : null)">Newest</option>
+                <option value="date_asc" selected="@(Model.Filter.SortBy == "date_asc" ? "selected" : null)">Oldest</option>
+                <option value="name_asc" selected="@(Model.Filter.SortBy == "name_asc" ? "selected" : null)">Name A→Z</option>
+                <option value="name_desc" selected="@(Model.Filter.SortBy == "name_desc" ? "selected" : null)">Name Z→A</option>
+            </select>
+        </div>
+        <div class="col-md-1 d-flex align-items-end gap-2">
+            <button class="btn btn-premium btn-premium-primary w-100" type="submit">
+                <i class="fa-solid fa-filter"></i>
+            </button>
+        </div>
+        <input type="hidden" name="Page" value="1" />
+        <input type="hidden" name="PageSize" value="@Model.Filter.PageSize" />
+    </form>
+</div>
+
+<div class="glass-card p-4">
+    <div class="table-responsive">
+        <table id="vendorsTable" class="table table-premium align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Vendor</th>
+                    <th>Workshop</th>
+                    <th>Contact</th>
+                    <th>Registered</th>
+                    <th>Verification</th>
+                    <th>Account</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var v in Model.Vendors)
+                {
+                    <tr>
+                        <td>
+                            <div class="fw-semibold">@v.VendorName</div>
+                            <div class="text-muted small">#@v.WorkshopId</div>
+                        </td>
+                        <td>@v.WorkshopName</td>
+                        <td>
+                            <div class="small text-muted">@v.Email</div>
+                            <div class="small text-muted">@v.Phone</div>
+                        </td>
+                        <td>@v.RegisteredAt.ToString("yyyy-MM-dd")</td>
+                        <td>
+                            <partial name="~/Areas/Admin/Views/Shared/_StatusBadge.cshtml"
+                                     model="new AdminStatusBadgeViewModel { Status = v.VerificationStatus.ToString() }" />
+                        </td>
+                        <td>
+                            <partial name="~/Areas/Admin/Views/Shared/_StatusBadge.cshtml"
+                                     model="new AdminStatusBadgeViewModel { Status = v.AccountStatus.ToString() }" />
+                        </td>
+                        <td class="text-end">
+                            <a asp-area="Admin" asp-controller="Vendors" asp-action="Details" asp-route-id="@v.WorkshopId"
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="fa-solid fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @{
+        var pagination = new AdminPaginationViewModel
+        {
+            PageNumber = Model.Paging.Page,
+            TotalPages = Model.Paging.TotalPages,
+            TotalCount = Model.Paging.TotalCount,
+            Controller = "Vendors",
+            Action = Model.PendingOnly ? "Pending" : "Index",
+            PageNumberParamName = "Page",
+            RouteValues = new
+            {
+                Search = Model.Filter.Search,
+                VerificationStatus = Model.Filter.VerificationStatus,
+                AccountStatus = Model.Filter.AccountStatus,
+                SortBy = Model.Filter.SortBy,
+                PageSize = Model.Filter.PageSize
+            }
+        };
+    }
+    <partial name="~/Areas/Admin/Views/Shared/_Pagination.cshtml" model="pagination" />
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
+}
+
+@section Scripts {
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        (function () {
+            var table = document.getElementById('vendorsTable');
+            if (table && window.jQuery && jQuery.fn && jQuery.fn.dataTable) {
+                jQuery(table).DataTable({
+                    paging: false,
+                    info: false,
+                    searching: false,
+                    order: []
+                });
+            }
+        })();
+    </script>
+}
+
