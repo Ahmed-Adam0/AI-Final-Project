@@ -115,7 +115,7 @@ namespace Graduation_Application.DTOs.Admin.VendorManagementDTO
         public int CancelledOrders { get; set; }
         public int InProgressOrders { get; set; }
         public int ConfirmedOrders { get; set; }
-        public int ReadyforPickup { get; set; }
+        public int ReadyforPickupOrders { get; set; }
     }
 
     public class AdminVendorRevenueStatsDto

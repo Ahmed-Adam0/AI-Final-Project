@@ -220,10 +220,12 @@ namespace Graduation_infrastructure.Repositories.Admin
             var deliveredOrders = await ordersQuery.CountAsync(o => o.Status == "Delivered");
             var pendingOrders = await ordersQuery.CountAsync(o => o.Status == "Pending");
             var CancelledOrders = await ordersQuery.CountAsync(o => o.Status == "Cancelled");
-            var InProgressOrders = await ordersQuery.CountAsync(o => o.Status == "InProgress");
+            var InProgressOrders = await ordersQuery.CountAsync(o => o.Status == "In Progress");
             var ConfirmedOrders = await ordersQuery.CountAsync(o => o.Status == "Confirmed");
-            var ReadyforPickup = await ordersQuery.CountAsync(o => o.Status == "ReadyforPickup");
-
+            var ReadyforPickupOrders = await ordersQuery.CountAsync(o =>
+                o.Status == "Ready for Pickup"
+            );
+            Console.WriteLine($"ReadyforPickup: {ReadyforPickupOrders}");
             var totalRevenue = await ordersQuery.SumAsync(o => (decimal?)o.TotalPrice) ?? 0m;
             var deliveredRevenue =
                 await ordersQuery
@@ -346,7 +348,7 @@ namespace Graduation_infrastructure.Repositories.Admin
                     CancelledOrders = CancelledOrders,
                     InProgressOrders = InProgressOrders,
                     ConfirmedOrders = ConfirmedOrders,
-                    ReadyforPickup = ReadyforPickup,
+                    ReadyforPickupOrders = ReadyforPickupOrders,
                 },
                 RevenueStats = new AdminVendorRevenueStatsDto
                 {

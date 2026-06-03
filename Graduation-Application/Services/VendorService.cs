@@ -1,17 +1,17 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using Graduation_Application.DTOs.VendorDTO;
+using Graduation_Application.Constants;
 using Graduation_Application.DTOs.UserDTO;
-using Graduation_Application.IServices;
+using Graduation_Application.DTOs.VendorDTO;
 using Graduation_Application.IRepositories;
+using Graduation_Application.IServices;
 using Graduation_domain.Entities;
 using Mapster;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Graduation_Application.Constants;
+using Microsoft.EntityFrameworkCore;
 
 namespace Graduation_Application.Services
 {
@@ -32,7 +32,8 @@ namespace Graduation_Application.Services
             IGenaricRepositories<Product> productRepository,
             IFileService fileService,
             IJwtTokenGenerator jwtTokenGenerator,
-            IAuthService authService)
+            IAuthService authService
+        )
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -69,7 +70,10 @@ namespace Graduation_Application.Services
             {
                 // Rollback: delete user if password setup fails
                 await _userManager.DeleteAsync(user);
-                var errors = string.Join(" ; ", setPasswordResult.Errors.Select(e => e.Description));
+                var errors = string.Join(
+                    " ; ",
+                    setPasswordResult.Errors.Select(e => e.Description)
+                );
                 throw new Exception($"Failed to set password: {errors}");
             }
 
@@ -99,7 +103,7 @@ namespace Graduation_Application.Services
             workshop.UserId = user.Id;
             workshop.CreatedAt = DateTime.UtcNow;
             workshop.CreatedBy = "System";
-            workshop.IsActive = true;
+            workshop.IsActive = false;
 
             await _workshopRepository.AddAsync(workshop);
             await _workshopRepository.SaveChangesAsync();
@@ -122,7 +126,8 @@ namespace Graduation_Application.Services
         public async Task UpdateVendorLogoAsync(string userId, IFormFile logo)
         {
             var workshop = await _workshopRepository.FirstOrDefaultAsync(w => w.UserId == userId);
-            if (workshop == null) throw new Exception("Workshop not found for user");
+            if (workshop == null)
+                throw new Exception("Workshop not found for user");
 
             var newUrl = await _fileService.SaveImageAsync(logo, "workshops", workshop.LogoUrl);
             workshop.LogoUrl = newUrl;
@@ -159,7 +164,6 @@ namespace Graduation_Application.Services
                 throw new Exception("Your account is pending admin approval.");
             }
 
-
             var isVendor = await _userManager.IsInRoleAsync(user, Roles.Vendor);
             if (!isVendor)
             {
@@ -177,10 +181,15 @@ namespace Graduation_Application.Services
         public async Task<VendorProfileDto> GetVendorProfileAsync(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) throw new Exception("Vendor not found");
+            if (user == null)
+                throw new Exception("Vendor not found");
 
-            var workshop = await _workshopRepository.Where(w => w.UserId == userId).Include(w => w.WorkshopAddress).FirstOrDefaultAsync();
-            if (workshop == null) throw new Exception("Workshop not found");
+            var workshop = await _workshopRepository
+                .Where(w => w.UserId == userId)
+                .Include(w => w.WorkshopAddress)
+                .FirstOrDefaultAsync();
+            if (workshop == null)
+                throw new Exception("Workshop not found");
             if (!user.EmailConfirmed)
                 throw new Exception("Email not confirmed.");
 
@@ -191,13 +200,21 @@ namespace Graduation_Application.Services
             return dto;
         }
 
-        public async Task<VendorProfileDto> UpdateVendorProfileAsync(string userId, UpdateVendorProfileDto dto)
+        public async Task<VendorProfileDto> UpdateVendorProfileAsync(
+            string userId,
+            UpdateVendorProfileDto dto
+        )
         {
             var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) throw new Exception("Vendor not found");
+            if (user == null)
+                throw new Exception("Vendor not found");
 
-            var workshop = await _workshopRepository.Where(w => w.UserId == userId).Include(w => w.WorkshopAddress).FirstOrDefaultAsync();
-            if (workshop == null) throw new Exception("Workshop not found");
+            var workshop = await _workshopRepository
+                .Where(w => w.UserId == userId)
+                .Include(w => w.WorkshopAddress)
+                .FirstOrDefaultAsync();
+            if (workshop == null)
+                throw new Exception("Workshop not found");
             if (!user.EmailConfirmed)
                 throw new Exception("Email not confirmed.");
 
@@ -212,14 +229,20 @@ namespace Graduation_Application.Services
                 var setEmailResult = await _userManager.SetEmailAsync(user, dto.Email);
                 if (!setEmailResult.Succeeded)
                 {
-                    var errors = string.Join(" ; ", setEmailResult.Errors.Select(e => e.Description));
+                    var errors = string.Join(
+                        " ; ",
+                        setEmailResult.Errors.Select(e => e.Description)
+                    );
                     throw new Exception($"Failed to set email: {errors}");
                 }
 
                 var setUserNameResult = await _userManager.SetUserNameAsync(user, dto.Email);
                 if (!setUserNameResult.Succeeded)
                 {
-                    var errors = string.Join(" ; ", setUserNameResult.Errors.Select(e => e.Description));
+                    var errors = string.Join(
+                        " ; ",
+                        setUserNameResult.Errors.Select(e => e.Description)
+                    );
                     throw new Exception($"Failed to set username: {errors}");
                 }
             }
@@ -228,7 +251,10 @@ namespace Graduation_Application.Services
                 var updateUserResult = await _userManager.UpdateAsync(user);
                 if (!updateUserResult.Succeeded)
                 {
-                    var errors = string.Join(" ; ", updateUserResult.Errors.Select(e => e.Description));
+                    var errors = string.Join(
+                        " ; ",
+                        updateUserResult.Errors.Select(e => e.Description)
+                    );
                     throw new Exception($"Failed to update user: {errors}");
                 }
             }
@@ -282,7 +308,9 @@ namespace Graduation_Application.Services
             if (workshop == null)
                 throw new Exception("Workshop not found for user");
 
-            var products = await _productRepository.Where(p => p.WorkshopId == workshop.Id && p.UserId == null).ToListAsync();
+            var products = await _productRepository
+                .Where(p => p.WorkshopId == workshop.Id && p.UserId == null)
+                .ToListAsync();
 
             foreach (var product in products)
             {

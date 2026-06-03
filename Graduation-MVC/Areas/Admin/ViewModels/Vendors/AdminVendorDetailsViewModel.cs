@@ -67,7 +67,7 @@ namespace Graduation_MVC.Areas.Admin.ViewModels.Vendors
         public int CancelledOrders { get; set; }
         public int InProgressOrders { get; set; }
         public int ConfirmedOrders { get; set; }
-        public int ReadyforPickup { get; set; }
+        public int ReadyforPickupOrders { get; set; }
     }
 
     public class AdminVendorRevenueStatsViewModel
