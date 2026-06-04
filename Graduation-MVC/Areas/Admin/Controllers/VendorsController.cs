@@ -110,6 +110,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                         CancelledOrders = dto.OrdersStats.CancelledOrders,
                         InProgressOrders = dto.OrdersStats.InProgressOrders,
                         ConfirmedOrders = dto.OrdersStats.ConfirmedOrders,
+                        ReadyforPickupOrders = dto.OrdersStats.ReadyforPickupOrders,
                     },
                     RevenueStats = new AdminVendorRevenueStatsViewModel
                     {
