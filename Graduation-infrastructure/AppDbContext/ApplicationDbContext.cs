@@ -26,6 +26,7 @@ namespace Graduation_infrastructure.AppDbContext
         public DbSet<FinalResultImage> FinalResultImages { get; set; }
         public DbSet<Discount> Discounts { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
         public DbSet<InternalNotification> InternalNotifications { get; set; }
         public DbSet<ProductReport> ProductReports { get; set; }
         public DbSet<VendorVerificationHistory> VendorVerificationHistory { get; set; }
@@ -165,26 +166,42 @@ namespace Graduation_infrastructure.AppDbContext
 
             // Decimal precision configuration to avoid truncation
             builder.Entity<CartItem>().Property(ci => ci.Price).HasColumnType("decimal(18,2)");
-            builder.Entity<Discount>().Property(d => d.DiscountValue).HasColumnType("decimal(18,2)");
+            builder
+                .Entity<Discount>()
+                .Property(d => d.DiscountValue)
+                .HasColumnType("decimal(18,2)");
             builder.Entity<Order>().Property(o => o.TotalPrice).HasColumnType("decimal(18,2)");
             builder.Entity<OrderItem>().Property(oi => oi.UnitPrice).HasColumnType("decimal(18,2)");
             builder.Entity<Product>().Property(p => p.Price).HasColumnType("decimal(18,2)");
             builder.Entity<Workshop>().Property(w => w.Rating).HasColumnType("decimal(18,2)");
 
-            builder.Entity<InternalNotification>()
+            builder
+                .Entity<InternalNotification>()
                 .HasOne(n => n.User)
                 .WithMany(u => u.internalNotifications)
                 .HasForeignKey(n => n.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            builder.Entity<PaymentTransaction>(entity =>
+            {
+                entity.Property(pt => pt.Amount).HasColumnType("decimal(18,2)");
+                entity.Property(pt => pt.Currency).HasMaxLength(10);
+                entity.Property(pt => pt.TransactionId).HasMaxLength(100);
+                entity.Property(pt => pt.PaymentToken).HasMaxLength(4000);
+                entity.Property(pt => pt.FailureReason).HasMaxLength(500);
+                entity.Property(pt => pt.Status).HasConversion<string>().HasMaxLength(20);
+            });
+
             // ProductReport relationships
-            builder.Entity<ProductReport>()
+            builder
+                .Entity<ProductReport>()
                 .HasOne(r => r.Product)
                 .WithMany()
                 .HasForeignKey(r => r.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            builder.Entity<ProductReport>()
+            builder
+                .Entity<ProductReport>()
                 .HasOne(r => r.User)
                 .WithMany()
                 .HasForeignKey(r => r.UserId)

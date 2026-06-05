@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Graduation_Application.DTOs.PaymentDTO;
 using Graduation_Application.ExternalServices.EmailServices;
 using Graduation_Application.IRepositories;
 using Graduation_Application.IServices;
@@ -16,6 +17,7 @@ using Graduation_domain.Entities;
 using Graduation_infrastructure.AppDbContext;
 using Graduation_Infrastructure.Identity;
 using Graduation_infrastructure.Repositories;
+using Graduation_infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -23,7 +25,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using Graduation_infrastructure.Services;
 
 namespace Graduation_infrastructure.ProgramService.ServicesAPI
 {
@@ -149,6 +150,10 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
                         ),
                     };
                 });
+
+            services.Configure<PaymobSettings>(configuration.GetSection("Paymob"));
+            services.AddScoped<IPaymentGateway, PaymobService>();
+            services.AddScoped<IPaymobHmacValidator, PaymobHmacValidator>();
 
             services.AddAuthorization();
         }
