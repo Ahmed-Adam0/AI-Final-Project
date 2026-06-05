@@ -23,7 +23,8 @@ namespace Graduation_API.Controllers
             IPaymentGateway paymentGateway,
             IPaymobHmacValidator hmacValidator,
             ApplicationDbContext context,
-            ILogger<PaymentsController> logger)
+            ILogger<PaymentsController> logger
+        )
         {
             _paymentGateway = paymentGateway;
             _hmacValidator = hmacValidator;
@@ -32,7 +33,9 @@ namespace Graduation_API.Controllers
         }
 
         [HttpPost("paymob")]
-        public async Task<IActionResult> InitiatePaymobPayment([FromBody] PaymobPaymentRequest request)
+        public async Task<IActionResult> InitiatePaymobPayment(
+            [FromBody] PaymobPaymentRequest request
+        )
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -45,13 +48,18 @@ namespace Graduation_API.Controllers
                     request.FirstName,
                     request.LastName,
                     request.Email,
-                    request.Phone);
+                    request.Phone
+                );
 
                 return Ok(new PaymobPaymentResponse { PaymentUrl = paymentUrl });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Payment initiation failed for order {OrderId}", request.OrderId);
+                _logger.LogError(
+                    ex,
+                    "Payment initiation failed for order {OrderId}",
+                    request.OrderId
+                );
                 return BadRequest(new { Message = ex.Message });
             }
         }
@@ -72,8 +80,11 @@ namespace Graduation_API.Controllers
                 PaymobWebhookPayload payload;
                 try
                 {
-                    payload = JsonSerializer.Deserialize<PaymobWebhookPayload>(rawPayload)
-                        ?? throw new InvalidOperationException("Failed to deserialize webhook payload");
+                    payload =
+                        JsonSerializer.Deserialize<PaymobWebhookPayload>(rawPayload)
+                        ?? throw new InvalidOperationException(
+                            "Failed to deserialize webhook payload"
+                        );
                 }
                 catch (JsonException ex)
                 {
@@ -90,19 +101,29 @@ namespace Graduation_API.Controllers
                 var hmacHeader = payload.Hmac;
                 if (!_hmacValidator.Validate(hmacHeader, rawPayload))
                 {
-                    _logger.LogWarning("HMAC validation failed for transaction {TransactionId}", payload.Obj.Id);
+                    _logger.LogWarning(
+                        "HMAC validation failed for transaction {TransactionId}",
+                        payload.Obj.Id
+                    );
                     return Unauthorized(new { Message = "Invalid HMAC signature" });
                 }
 
-                _logger.LogInformation("HMAC validated successfully for transaction {TransactionId}", payload.Obj.Id);
+                _logger.LogInformation(
+                    "HMAC validated successfully for transaction {TransactionId}",
+                    payload.Obj.Id
+                );
 
                 var paymobOrderId = payload.Obj.Order?.Id;
-                var transaction = await _context.PaymentTransactions
-                    .FirstOrDefaultAsync(t => t.PaymobOrderId == paymobOrderId);
+                var transaction = await _context.PaymentTransactions.FirstOrDefaultAsync(t =>
+                    t.PaymobOrderId == paymobOrderId
+                );
 
                 if (transaction == null)
                 {
-                    _logger.LogWarning("No payment transaction found for Paymob order {OrderId}", payload.Obj.Order?.Id);
+                    _logger.LogWarning(
+                        "No payment transaction found for Paymob order {OrderId}",
+                        payload.Obj.Order?.Id
+                    );
                     return Ok(new { Message = "Received" });
                 }
 
@@ -111,21 +132,31 @@ namespace Graduation_API.Controllers
                     transaction.Status = PaymentStatus.Paid;
                     transaction.TransactionId = payload.Obj.Id.ToString();
                     transaction.PaidAt = DateTime.UtcNow;
-                    _logger.LogInformation("Payment succeeded for transaction {TransactionId}", payload.Obj.Id);
+                    _logger.LogInformation(
+                        "Payment succeeded for transaction {TransactionId}",
+                        payload.Obj.Id
+                    );
                 }
                 else if (payload.Obj.IsVoided)
                 {
                     transaction.Status = PaymentStatus.Cancelled;
                     transaction.FailureReason = "Transaction voided";
-                    _logger.LogInformation("Payment cancelled for transaction {TransactionId}", payload.Obj.Id);
+                    _logger.LogInformation(
+                        "Payment cancelled for transaction {TransactionId}",
+                        payload.Obj.Id
+                    );
                 }
                 else
                 {
                     transaction.Status = PaymentStatus.Failed;
-                    transaction.FailureReason = payload.Obj.Data?.ContainsKey("error") == true
-                        ? payload.Obj.Data["error"]?.ToString()
-                        : "Payment failed";
-                    _logger.LogInformation("Payment failed for transaction {TransactionId}", payload.Obj.Id);
+                    transaction.FailureReason =
+                        payload.Obj.Data?.ContainsKey("error") == true
+                            ? payload.Obj.Data["error"]?.ToString()
+                            : "Payment failed";
+                    _logger.LogInformation(
+                        "Payment failed for transaction {TransactionId}",
+                        payload.Obj.Id
+                    );
                 }
 
                 await _context.SaveChangesAsync();
@@ -136,6 +167,53 @@ namespace Graduation_API.Controllers
             {
                 _logger.LogError(ex, "Error processing Paymob webhook");
                 return Ok(new { Message = "Received" });
+            }
+        }
+
+        [HttpGet("paymob/callback")]
+        public async Task<IActionResult> Callback()
+        {
+            try
+            {
+                _logger.LogInformation("Callback hit");
+
+                var success = bool.Parse(Request.Query["success"]);
+
+                var localOrderId = int.Parse(Request.Query["merchant_order_id"]);
+
+                _logger.LogInformation(
+                    "OrderId={OrderId}, Success={Success}",
+                    localOrderId,
+                    success
+                );
+
+                var transaction = await _context.PaymentTransactions.FirstOrDefaultAsync(x =>
+                    x.LocalOrderId == localOrderId
+                );
+
+                if (transaction == null)
+                {
+                    _logger.LogWarning("Transaction not found for order {OrderId}", localOrderId);
+
+                    return Ok(new { Message = "Transaction not found" });
+                }
+
+                transaction.Status = success ? PaymentStatus.Paid : PaymentStatus.Failed;
+
+                transaction.TransactionId = Request.Query["id"];
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new { Message = "Success" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Callback Error");
+
+                return StatusCode(
+                    500,
+                    new { Error = ex.Message, InnerError = ex.InnerException?.Message }
+                );
             }
         }
     }

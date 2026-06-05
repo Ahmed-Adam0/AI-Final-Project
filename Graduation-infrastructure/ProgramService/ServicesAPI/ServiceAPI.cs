@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Graduation_Application.DTOs.PaymentDTO;
@@ -112,6 +112,7 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             services.AddScoped<IInternalNotificationService, InternalNotificationService>();
             services.AddScoped<IInternalNotificationRepository, InternalNotificationRepository>();
             services.AddScoped<IFileService, FileService>();
+            services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepository>();
             services.AddHttpClient();
             services.AddHttpContextAccessor();
             // Add CORS policy for development / frontend

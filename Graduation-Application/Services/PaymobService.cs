@@ -1,34 +1,33 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using Graduation_Application.DTOs.PaymentDTO;
+using Graduation_Application.IRepositories;
 using Graduation_Application.IServices;
 using Graduation_domain.Entities;
 using Graduation_Domain.Enums;
-using Graduation_infrastructure.AppDbContext;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Graduation_infrastructure.Services
+namespace Graduation_Application.Services
 {
     public class PaymobService : IPaymentGateway
     {
         private readonly PaymobSettings _settings;
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly ApplicationDbContext _context;
+        private readonly IPaymentTransactionRepository _paymentTransactionRepository;
         private readonly ILogger<PaymobService> _logger;
         private const string BaseUrl = "https://accept.paymob.com/api";
 
         public PaymobService(
             IOptions<PaymobSettings> settings,
             IHttpClientFactory httpClientFactory,
-            ApplicationDbContext context,
+            IPaymentTransactionRepository paymentTransactionRepository,
             ILogger<PaymobService> logger
         )
         {
             _settings = settings.Value;
             _httpClientFactory = httpClientFactory;
-            _context = context;
+            _paymentTransactionRepository = paymentTransactionRepository;
             _logger = logger;
         }
 
@@ -70,8 +69,8 @@ namespace Graduation_infrastructure.Services
                     Currency = "EGP",
                 };
 
-                _context.PaymentTransactions.Add(paymentTransaction);
-                await _context.SaveChangesAsync();
+                await _paymentTransactionRepository.AddAsync(paymentTransaction);
+                await _paymentTransactionRepository.SaveChangesAsync();
 
                 var paymentUrl =
                     $"https://accept.paymob.com/api/acceptance/iframes/{_settings.IframeId}?payment_token={paymentToken}";
