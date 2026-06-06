@@ -27,6 +27,7 @@ namespace Graduation_infrastructure.AppDbContext
         public DbSet<Discount> Discounts { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
+        public DbSet<PaymentWebhookLog> PaymentWebhookLogs { get; set; }
         public DbSet<InternalNotification> InternalNotifications { get; set; }
         public DbSet<ProductReport> ProductReports { get; set; }
         public DbSet<VendorVerificationHistory> VendorVerificationHistory { get; set; }
@@ -190,6 +191,13 @@ namespace Graduation_infrastructure.AppDbContext
                 entity.Property(pt => pt.PaymentToken).HasMaxLength(4000);
                 entity.Property(pt => pt.FailureReason).HasMaxLength(500);
                 entity.Property(pt => pt.Status).HasConversion<string>().HasMaxLength(20);
+            });
+
+            builder.Entity<PaymentWebhookLog>(entity =>
+            {
+                entity.Property(wl => wl.Provider).HasMaxLength(100).IsRequired();
+                entity.Property(wl => wl.Payload).HasColumnType("nvarchar(max)").IsRequired();
+                entity.Property(wl => wl.ErrorMessage).HasMaxLength(1000);
             });
 
             // ProductReport relationships

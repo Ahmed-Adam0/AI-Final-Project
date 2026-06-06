@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using Graduation_Application.DTOs.PaymentDTO;
 using Graduation_Application.IServices;
 using Microsoft.Extensions.Logging;
@@ -12,7 +13,10 @@ namespace Graduation_Application.Services
         private readonly PaymobSettings _settings;
         private readonly ILogger<PaymobHmacValidator> _logger;
 
-        public PaymobHmacValidator(IOptions<PaymobSettings> settings, ILogger<PaymobHmacValidator> logger)
+        public PaymobHmacValidator(
+            IOptions<PaymobSettings> settings,
+            ILogger<PaymobHmacValidator> logger
+        )
         {
             _settings = settings.Value;
             _logger = logger;
@@ -31,7 +35,11 @@ namespace Graduation_Application.Services
                 var computedHash = ComputeHmac(payload);
                 var isValid = CryptographicOperations.FixedTimeEquals(
                     Encoding.UTF8.GetBytes(computedHash),
-                    Encoding.UTF8.GetBytes(hmacHeader));
+                    Encoding.UTF8.GetBytes(hmacHeader)
+                );
+
+                _logger.LogWarning("hmac: {HmacHeader}", hmacHeader);
+                _logger.LogWarning("computed: {ComputedHash}", computedHash);
 
                 if (!isValid)
                 {
@@ -47,13 +55,39 @@ namespace Graduation_Application.Services
             }
         }
 
-        private string ComputeHmac(string payload)
+        private string ComputeHmac(string rawPayload)
         {
-            var keyBytes = Encoding.UTF8.GetBytes(_settings.HmacSecret);
-            var payloadBytes = Encoding.UTF8.GetBytes(payload);
+            var root = JsonSerializer.Deserialize<JsonElement>(rawPayload);
+            var obj = root.GetProperty("obj");
 
-            using var hmac = new HMACSHA256(keyBytes);
-            var hashBytes = hmac.ComputeHash(payloadBytes);
+            static string Bool(JsonElement el) => el.GetBoolean().ToString().ToLowerInvariant();
+
+            var data = string.Concat(
+                obj.GetProperty("amount_cents").GetInt64(),
+                obj.GetProperty("created_at").GetString(),
+                obj.GetProperty("currency").GetString(),
+                Bool(obj.GetProperty("error_occured")),
+                Bool(obj.GetProperty("has_parent_transaction")),
+                obj.GetProperty("id").GetInt64(),
+                obj.GetProperty("integration_id").GetInt64(),
+                Bool(obj.GetProperty("is_3d_secure")),
+                Bool(obj.GetProperty("is_auth")),
+                Bool(obj.GetProperty("is_capture")),
+                Bool(obj.GetProperty("is_refunded")),
+                Bool(obj.GetProperty("is_standalone_payment")),
+                Bool(obj.GetProperty("is_voided")),
+                obj.GetProperty("order").GetProperty("id").GetInt64(),
+                obj.GetProperty("owner").GetInt64(),
+                Bool(obj.GetProperty("pending")),
+                obj.GetProperty("source_data").GetProperty("pan").GetString(),
+                obj.GetProperty("source_data").GetProperty("sub_type").GetString(),
+                obj.GetProperty("source_data").GetProperty("type").GetString(),
+                Bool(obj.GetProperty("success"))
+            );
+
+            var keyBytes = Encoding.UTF8.GetBytes(_settings.HmacSecret);
+            using var hmac = new HMACSHA512(keyBytes);
+            var hashBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(data));
             return BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
         }
     }

@@ -113,6 +113,7 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             services.AddScoped<IInternalNotificationRepository, InternalNotificationRepository>();
             services.AddScoped<IFileService, FileService>();
             services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepository>();
+            services.AddScoped<IPaymentWebhookLogRepository, PaymentWebhookLogRepository>();
             services.AddHttpClient();
             services.AddHttpContextAccessor();
             // Add CORS policy for development / frontend
