@@ -1,0 +1,17 @@
+using Graduation_Domain.Enums;
+
+namespace Graduation_domain.Entities
+{
+    public class PaymentTransaction : BaseEntity<int>
+    {
+        public int LocalOrderId { get; set; }
+        public int? PaymobOrderId { get; set; }
+        public string? PaymentToken { get; set; }
+        public string? TransactionId { get; set; }
+        public PaymentStatus Status { get; set; } = PaymentStatus.Pending;
+        public decimal Amount { get; set; }
+        public string Currency { get; set; } = "EGP";
+        public DateTime? PaidAt { get; set; }
+        public string? FailureReason { get; set; }
+    }
+}

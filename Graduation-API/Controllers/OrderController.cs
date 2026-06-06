@@ -127,6 +127,26 @@ namespace Graduation_API.Controllers
                 return BadRequest(new { Message = ex.Message });
             }
         }
+
+        [HttpPut("{id}/items")]
+        public async Task<IActionResult> UpdateOrderItems(
+            int id,
+            [FromBody] UpdateOrderItemsDto request
+        )
+        {
+            try
+            {
+                var userId = GetUserId();
+                var updatedOrder = await _orderService.UpdateOrderItemsAsync(id, userId, request);
+                return Ok(
+                    new { Message = "Order items updated successfully", Data = updatedOrder }
+                );
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
     }
 
     public class UpdateOrderStatusRequest
