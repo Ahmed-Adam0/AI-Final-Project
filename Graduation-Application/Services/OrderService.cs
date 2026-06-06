@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 using Graduation_Application.DTOs.OrderDTO;
 using Graduation_Application.IRepositories;
 using Graduation_Application.IServices;
-using Graduation_domain.Enums;
 using Graduation_domain.Entities;
+using Graduation_domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Graduation_Application.Services
@@ -111,11 +111,19 @@ namespace Graduation_Application.Services
             await _cartService.ClearCartAsync(userId);
 
             // Send internal notifications
-            await _internalNotificationService.CreateAsync(userId, NotificationType.OrderPending, order.Id.ToString());
+            await _internalNotificationService.CreateAsync(
+                userId,
+                NotificationType.OrderPending,
+                order.Id.ToString()
+            );
             var vendor = order.Items.FirstOrDefault()?.Product?.User;
             if (vendor != null)
             {
-                await _internalNotificationService.CreateAsync(vendor.Id, NotificationType.NewOrder, order.Id.ToString());
+                await _internalNotificationService.CreateAsync(
+                    vendor.Id,
+                    NotificationType.NewOrder,
+                    order.Id.ToString()
+                );
             }
 
             await _notificationService.SendOrderConfirmationAsync(
@@ -186,13 +194,21 @@ namespace Graduation_Application.Services
             await _orderRepository.SaveChangesAsync();
 
             // Send internal notifications for cancellation
-            await _internalNotificationService.CreateAsync(userId, NotificationType.OrderCancelled, orderId.ToString());
+            await _internalNotificationService.CreateAsync(
+                userId,
+                NotificationType.OrderCancelled,
+                orderId.ToString()
+            );
 
             // Send notification to vendor
             var vendor = order.Items.FirstOrDefault()?.Product?.User;
             if (vendor != null)
             {
-                await _internalNotificationService.CreateAsync(vendor.Id, NotificationType.VendorOrderCancelled, orderId.ToString());
+                await _internalNotificationService.CreateAsync(
+                    vendor.Id,
+                    NotificationType.VendorOrderCancelled,
+                    orderId.ToString()
+                );
             }
 
             await _notificationService.SendOrderCancellationAsync(userId, order.Id);
@@ -245,18 +261,33 @@ namespace Graduation_Application.Services
                 //    await _internalNotificationService.CreateAsync(order.UserId, NotificationType.OrderPending, orderId.ToString());
                 //    break;
                 case "Confirmed":
-                    await _internalNotificationService.CreateAsync(order.UserId, NotificationType.OrderConfirmed, orderId.ToString());
+                    await _internalNotificationService.CreateAsync(
+                        order.UserId,
+                        NotificationType.OrderConfirmed,
+                        orderId.ToString()
+                    );
                     break;
                 case "In Progress":
-                    await _internalNotificationService.CreateAsync(order.UserId, NotificationType.OrderInProgress, orderId.ToString());
+                    await _internalNotificationService.CreateAsync(
+                        order.UserId,
+                        NotificationType.OrderInProgress,
+                        orderId.ToString()
+                    );
                     break;
                 case "Ready for Pickup":
-                    await _internalNotificationService.CreateAsync(order.UserId, NotificationType.OrderReadyForPickup, orderId.ToString());
+                    await _internalNotificationService.CreateAsync(
+                        order.UserId,
+                        NotificationType.OrderReadyForPickup,
+                        orderId.ToString()
+                    );
                     break;
                 case "Delivered":
-                    await _internalNotificationService.CreateAsync(order.UserId, NotificationType.OrderDelivered, orderId.ToString());
+                    await _internalNotificationService.CreateAsync(
+                        order.UserId,
+                        NotificationType.OrderDelivered,
+                        orderId.ToString()
+                    );
                     break;
-                
             }
 
             await _notificationService.SendOrderStatusUpdateAsync(order.UserId, order.Id, status);
@@ -288,6 +319,60 @@ namespace Graduation_Application.Services
 
             return validTransitions.ContainsKey(fromStatus)
                 && validTransitions[fromStatus].Contains(toStatus);
+        }
+
+        public async Task<OrderResponseDto> UpdateOrderItemsAsync(
+            int orderId,
+            string userId,
+            UpdateOrderItemsDto dto
+        )
+        {
+            var order = await _orderRepository
+                .Where(o => o.Id == orderId && o.UserId == userId)
+                .Include(o => o.Items)
+                    .ThenInclude(oi => oi.Product)
+                .Include(o => o.StatusHistory)
+                .FirstOrDefaultAsync();
+
+            if (order == null)
+            {
+                throw new Exception("Order not found or you don't have permission to update it.");
+            }
+
+            if (order.Status != "Pending")
+            {
+                throw new Exception(
+                    $"Cannot update order items unless the order is Pending. Current status is '{order.Status}'."
+                );
+            }
+
+            if (dto.Items == null || dto.Items.Count == 0)
+            {
+                throw new Exception("No items provided for update.");
+            }
+
+            foreach (var itemDto in dto.Items)
+            {
+                var orderItem = order.Items.FirstOrDefault(oi => oi.ProductId == itemDto.ProductId);
+                if (orderItem == null)
+                {
+                    throw new Exception(
+                        $"Product with ID {itemDto.ProductId} is not part of this order."
+                    );
+                }
+
+                orderItem.Quantity = itemDto.Quantity;
+                if (itemDto.UnitPrice.HasValue)
+                {
+                    orderItem.UnitPrice = itemDto.UnitPrice.Value;
+                }
+            }
+
+            order.TotalPrice = order.Items.Sum(oi => oi.UnitPrice * oi.Quantity);
+
+            await _orderRepository.SaveChangesAsync();
+
+            return MapToDto(order);
         }
 
         private OrderResponseDto MapToDto(Order order)
