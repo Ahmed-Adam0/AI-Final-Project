@@ -1,0 +1,184 @@
+@model AdminBannersPageViewModel
+@{
+    ViewData["Title"] = "Manage Banners";
+}
+
+<div class="row align-items-center mb-4">
+    <div class="col-md-6">
+        <h1 class="display-font text-light mb-1">Banners Management</h1>
+        <p class="text-muted mb-0">Browse, search, and manage promotion and slider banners.</p>
+    </div>
+    <div class="col-md-6 text-md-end mt-3 mt-md-0 d-flex justify-content-md-end align-items-center gap-3">
+        <div class="glass-card px-3 py-2 d-inline-flex align-items-center gap-3">
+            <span class="text-muted small">Total Banners:</span>
+            <span class="badge fs-6 font-monospace" style="background-color: var(--accent-primary);">@Model.Banners.Count</span>
+        </div>
+        <a asp-area="Admin" asp-controller="Banners" asp-action="Create" class="btn btn-premium btn-premium-primary">
+            <i class="fa-solid fa-plus me-1"></i> Add Banner
+        </a>
+    </div>
+</div>
+
+<!-- Search Panel -->
+<div class="glass-card p-4 mb-4">
+    <h5 class="text-light mb-3"><i class="fa-solid fa-filter me-2" style="color: var(--accent-primary);"></i>Filter Banners</h5>
+    <form method="get" asp-area="Admin" asp-controller="Banners" asp-action="Index">
+        <div class="row g-3">
+            <div class="col-md-8">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0" style="border-color: var(--border-color); color: var(--text-muted);">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input type="text" name="Search" class="form-control form-control-premium border-start-0 ps-0" placeholder="Search by title or description..." value="@Model.Search" />
+                </div>
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-premium btn-premium-primary flex-grow-1">
+                    <i class="fa-solid fa-check"></i> Search
+                </button>
+                <a asp-area="Admin" asp-controller="Banners" asp-action="Index" class="btn btn-premium btn-premium-secondary">
+                    <i class="fa-solid fa-arrow-rotate-left"></i> Reset
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Banners Table -->
+<div class="glass-card p-4">
+    @if (Model.Banners == null || !Model.Banners.Any())
+    {
+        <div class="text-center py-5">
+            <div class="text-muted mb-3"><i class="fa-solid fa-images fa-3x"></i></div>
+            <h5 class="text-light">No banners found</h5>
+            <p class="text-muted small">Create a new promotional banner to display on the main slider.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-premium">
+                <thead>
+                    <tr>
+                        <th style="width: 150px;">Banner Image</th>
+                        <th>English Details</th>
+                        <th>Arabic Details</th>
+                        <th>Redirect Link</th>
+                        <th class="text-center" style="width: 80px;">Order</th>
+                        <th class="text-center" style="width: 130px;">Status</th>
+                        <th class="text-end" style="width: 130px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Banners)
+                    {
+                        <tr>
+                            <!-- Image Column -->
+                            <td>
+                                <div class="rounded overflow-hidden bg-secondary border" style="width: 120px; height: 60px; border-color: var(--border-color) !important;">
+                                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                    {
+                                        <img src="@item.ImageUrl" alt="@item.TitleEn" style="width: 100%; height: 100%; object-fit: cover;" />
+                                    }
+                                    else
+                                    {
+                                        <div class="d-flex align-items-center justify-content-center h-100 text-muted bg-dark">
+                                            <i class="fa-solid fa-image"></i>
+                                        </div>
+                                    }
+                                </div>
+                            </td>
+                            <!-- English Title & Desc -->
+                            <td class="align-middle">
+                                <div class="text-light font-weight-bold">@item.TitleEn</div>
+                                @if (!string.IsNullOrEmpty(item.DescriptionEn))
+                                {
+                                    <div class="text-muted small text-truncate-custom mt-1" title="@item.DescriptionEn">@item.DescriptionEn</div>
+                                }
+                            </td>
+                            <!-- Arabic Title & Desc -->
+                            <td class="align-middle">
+                                <div class="text-light font-weight-bold text-end" dir="rtl">@item.TitleAr</div>
+                                @if (!string.IsNullOrEmpty(item.DescriptionAr))
+                                {
+                                    <div class="text-muted small text-truncate-custom text-end mt-1" dir="rtl" title="@item.DescriptionAr">@item.DescriptionAr</div>
+                                }
+                            </td>
+                            <!-- Redirect Url -->
+                            <td class="align-middle text-muted small">
+                                @if (!string.IsNullOrEmpty(item.RedirectUrl))
+                                {
+                                    <a href="@item.RedirectUrl" target="_blank" class="text-indigo word-break-all" style="color: var(--accent-primary);">@item.RedirectUrl</a>
+                                }
+                                else
+                                {
+                                    <span>None</span>
+                                }
+                            </td>
+                            <!-- Display Order -->
+                            <td class="text-center align-middle font-monospace text-light">@item.DisplayOrder</td>
+                            <!-- Status -->
+                            <td class="text-center align-middle">
+                                <div class="d-inline-flex align-items-center gap-2">
+                                    @if (item.IsActive)
+                                    {
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">Inactive</span>
+                                    }
+                                    
+                                    <form asp-area="Admin" asp-controller="Banners" asp-action="UpdateStatus" asp-route-id="@item.Id" method="post" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="isActive" value="@((!item.IsActive).ToString().ToLower())" />
+                                        <button type="submit" class="btn btn-sm btn-outline-light py-0 px-1 border-0" title="Toggle Status">
+                                            @if (item.IsActive)
+                                            {
+                                                <i class="fa-solid fa-toggle-on text-success fs-5"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="fa-solid fa-toggle-off text-muted fs-5"></i>
+                                            }
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                            <!-- Actions -->
+                            <td class="text-end align-middle">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a asp-area="Admin" asp-controller="Banners" asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-premium btn-premium-secondary py-1 px-2" title="Edit">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </a>
+                                    
+                                    <form asp-area="Admin" asp-controller="Banners" asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Are you sure you want to delete this banner? This action cannot be undone.');" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-premium btn-premium-danger py-1 px-2" title="Delete">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<style>
+    .text-truncate-custom {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: normal;
+        max-width: 250px;
+    }
+    .word-break-all {
+        word-break: break-all;
+    }
+</style>

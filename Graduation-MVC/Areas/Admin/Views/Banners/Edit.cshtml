@@ -1,0 +1,147 @@
+@model AdminBannerFormViewModel
+@{
+    ViewData["Title"] = "Edit Banner";
+}
+
+<div class="row align-items-center mb-4">
+    <div class="col-md-8">
+        <h1 class="display-font text-light mb-1">Edit Banner</h1>
+        <p class="text-muted mb-0">Modify promotion or slider banner details.</p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <a asp-area="Admin" asp-controller="Banners" asp-action="Index" class="btn btn-premium btn-premium-secondary">
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to List
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Edit Form -->
+    <div class="col-lg-8">
+        <div class="glass-card p-4">
+            <form asp-area="Admin" asp-controller="Banners" asp-action="Edit" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="ImageUrl" />
+                
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <!-- English Title -->
+                <div class="mb-4">
+                    <label asp-for="TitleEn" class="form-label text-light font-weight-bold"></label>
+                    <input asp-for="TitleEn" class="form-control form-control-premium" placeholder="e.g. Summer Sale 2026" />
+                    <span asp-validation-for="TitleEn" class="text-danger small mt-1 d-block"></span>
+                </div>
+
+                <!-- Arabic Title -->
+                <div class="mb-4">
+                    <label asp-for="TitleAr" class="form-label text-light font-weight-bold"></label>
+                    <input asp-for="TitleAr" class="form-control form-control-premium text-end" placeholder="مثال: عروض الصيف 2026" dir="rtl" />
+                    <span asp-validation-for="TitleAr" class="text-danger small mt-1 d-block"></span>
+                </div>
+
+                <!-- English Description -->
+                <div class="mb-4">
+                    <label asp-for="DescriptionEn" class="form-label text-light font-weight-bold"></label>
+                    <textarea asp-for="DescriptionEn" class="form-control form-control-premium" rows="3" placeholder="Enter English description/subtitle..."></textarea>
+                    <span asp-validation-for="DescriptionEn" class="text-danger small mt-1 d-block"></span>
+                </div>
+
+                <!-- Arabic Description -->
+                <div class="mb-4">
+                    <label asp-for="DescriptionAr" class="form-label text-light font-weight-bold"></label>
+                    <textarea asp-for="DescriptionAr" class="form-control form-control-premium text-end" rows="3" placeholder="أدخل الوصف باللغة العربية هنا..." dir="rtl"></textarea>
+                    <span asp-validation-for="DescriptionAr" class="text-danger small mt-1 d-block"></span>
+                </div>
+
+                <!-- Image File -->
+                <div class="mb-4">
+                    <label asp-for="ImageFile" class="form-label text-light font-weight-bold"></label>
+                    <input asp-for="ImageFile" type="file" class="form-control form-control-premium" accept=".jpg,.jpeg,.png" />
+                    <span asp-validation-for="ImageFile" class="text-danger small mt-1 d-block"></span>
+                    <div class="form-text text-muted small mt-1">Allowed formats: JPG, JPEG, PNG. Leave empty to keep the current image.</div>
+                </div>
+
+                <!-- Redirect URL -->
+                <div class="mb-4">
+                    <label asp-for="RedirectUrl" class="form-label text-light font-weight-bold"></label>
+                    <input asp-for="RedirectUrl" class="form-control form-control-premium" placeholder="e.g. http://example.com/products" />
+                    <span asp-validation-for="RedirectUrl" class="text-danger small mt-1 d-block"></span>
+                </div>
+
+                <div class="row mb-4">
+                    <!-- Display Order -->
+                    <div class="col-md-6">
+                        <label asp-for="DisplayOrder" class="form-label text-light font-weight-bold"></label>
+                        <input asp-for="DisplayOrder" type="number" class="form-control form-control-premium" />
+                        <span asp-validation-for="DisplayOrder" class="text-danger small mt-1 d-block"></span>
+                    </div>
+
+                    <!-- Is Active Switch -->
+                    <div class="col-md-6 d-flex align-items-end">
+                        <div class="form-check form-switch mb-2">
+                            <input asp-for="IsActive" class="form-check-input" type="checkbox" id="IsActiveSwitch" />
+                            <label class="form-check-label text-light ms-2" for="IsActiveSwitch">Show Banner (Active)</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top" style="border-color: rgba(255,255,255,0.05) !important;">
+                    <a asp-area="Admin" asp-controller="Banners" asp-action="Index" class="btn btn-premium btn-premium-secondary">
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn btn-premium btn-premium-primary">
+                        <i class="fa-solid fa-check me-1"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Image Preview Column -->
+    <div class="col-lg-4">
+        <div class="glass-card p-4 text-center">
+            <h5 class="text-light mb-3">Current Image</h5>
+            <div class="rounded overflow-hidden bg-secondary border mx-auto mb-3" style="width: 100%; height: 150px; border-color: var(--border-color) !important;">
+                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                {
+                    <img id="banner-preview" src="@Model.ImageUrl" alt="Current Banner Image" style="width: 100%; height: 100%; object-fit: cover;" />
+                }
+                else
+                {
+                    <div class="d-flex align-items-center justify-content-center h-100 text-muted bg-dark">
+                        <i class="fa-solid fa-image fa-3x"></i>
+                    </div>
+                }
+            </div>
+            @if (!string.IsNullOrEmpty(Model.ImageUrl))
+            {
+                <span class="text-muted small word-break-all">@Model.ImageUrl</span>
+            }
+            else
+            {
+                <span class="text-muted small">No image uploaded</span>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById('ImageFile').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const img = document.getElementById('banner-preview');
+                    if (img) {
+                        img.src = event.target.result;
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+}

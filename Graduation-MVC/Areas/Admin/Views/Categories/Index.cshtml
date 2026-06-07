@@ -1,0 +1,113 @@
+@model AdminCategoriesPageViewModel
+@{
+    ViewData["Title"] = "Manage Categories";
+}
+
+<div class="row align-items-center mb-4">
+    <div class="col-md-6">
+        <h1 class="display-font text-light mb-1">Categories Management</h1>
+        <p class="text-muted mb-0">Browse, search, and manage product categories.</p>
+    </div>
+    <div class="col-md-6 text-md-end mt-3 mt-md-0 d-flex justify-content-md-end align-items-center gap-3">
+        <div class="glass-card px-3 py-2 d-inline-flex align-items-center gap-3">
+            <span class="text-muted small">Total Categories:</span>
+            <span class="badge fs-6 font-monospace" style="background-color: var(--accent-primary);">@Model.Categories.Count</span>
+        </div>
+        <a asp-area="Admin" asp-controller="Categories" asp-action="Create" class="btn btn-premium btn-premium-primary">
+            <i class="fa-solid fa-plus me-1"></i> Add Category
+        </a>
+    </div>
+</div>
+
+<!-- Search Panel -->
+<div class="glass-card p-4 mb-4">
+    <h5 class="text-light mb-3"><i class="fa-solid fa-filter me-2" style="color: var(--accent-primary);"></i>Filter Categories</h5>
+    <form method="get" asp-area="Admin" asp-controller="Categories" asp-action="Index">
+        <div class="row g-3">
+            <div class="col-md-8">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0" style="border-color: var(--border-color); color: var(--text-muted);">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input type="text" name="Search" class="form-control form-control-premium border-start-0 ps-0" placeholder="Search by English or Arabic name..." value="@Model.Search" />
+                </div>
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-premium btn-premium-primary flex-grow-1">
+                    <i class="fa-solid fa-check"></i> Search
+                </button>
+                <a asp-area="Admin" asp-controller="Categories" asp-action="Index" class="btn btn-premium btn-premium-secondary">
+                    <i class="fa-solid fa-arrow-rotate-left"></i> Reset
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Categories Table -->
+<div class="glass-card p-4">
+    @if (Model.Categories == null || !Model.Categories.Any())
+    {
+        <div class="text-center py-5">
+            <div class="text-muted mb-3"><i class="fa-solid fa-folder-open fa-3x"></i></div>
+            <h5 class="text-light">No categories found</h5>
+            <p class="text-muted small">Create a new category to get started.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-premium">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">Image</th>
+                        <th>English Name</th>
+                        <th>Arabic Name</th>
+                        <th class="text-end" style="width: 150px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Categories)
+                    {
+                        <tr>
+                            <!-- Image -->
+                            <td>
+                                <div class="rounded overflow-hidden bg-secondary border" style="width: 50px; height: 50px; border-color: var(--border-color) !important;">
+                                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                    {
+                                        <img src="@item.ImageUrl" alt="@item.NameEn" style="width: 100%; height: 100%; object-fit: cover;" />
+                                    }
+                                    else
+                                    {
+                                        <div class="d-flex align-items-center justify-content-center h-100 text-muted bg-dark">
+                                            <i class="fa-solid fa-image"></i>
+                                        </div>
+                                    }
+                                </div>
+                            </td>
+                            <!-- English Name -->
+                            <td class="text-light font-weight-bold align-middle">@item.NameEn</td>
+                            <!-- Arabic Name -->
+                            <td class="text-light align-middle">@item.NameAr</td>
+                            <!-- Actions -->
+                            <td class="text-end align-middle">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a asp-area="Admin" asp-controller="Categories" asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-premium btn-premium-secondary py-1 px-2" title="Edit">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </a>
+                                    
+                                    <form asp-area="Admin" asp-controller="Categories" asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Are you sure you want to delete the category \'@item.NameEn\'? This action cannot be undone.');" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-premium btn-premium-danger py-1 px-2" title="Delete">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

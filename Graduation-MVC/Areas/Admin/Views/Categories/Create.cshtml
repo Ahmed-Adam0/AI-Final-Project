@@ -1,0 +1,64 @@
+@model AdminCategoryFormViewModel
+@{
+    ViewData["Title"] = "Create Category";
+}
+
+<div class="row align-items-center mb-4">
+    <div class="col-md-8">
+        <h1 class="display-font text-light mb-1">Create Category</h1>
+        <p class="text-muted mb-0">Add a new product category to the marketplace.</p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <a asp-area="Admin" asp-controller="Categories" asp-action="Index" class="btn btn-premium btn-premium-secondary">
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to List
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="glass-card p-4">
+            <form asp-area="Admin" asp-controller="Categories" asp-action="Create" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <!-- English Name -->
+                <div class="mb-4">
+                    <label asp-for="NameEn" class="form-label text-light font-weight-bold"></label>
+                    <input asp-for="NameEn" class="form-control form-control-premium" placeholder="e.g. Electronics" />
+                    <span asp-validation-for="NameEn" class="text-danger small mt-1 d-block"></span>
+                </div>
+
+                <!-- Arabic Name -->
+                <div class="mb-4">
+                    <label asp-for="NameAr" class="form-label text-light font-weight-bold"></label>
+                    <input asp-for="NameAr" class="form-control form-control-premium text-end" placeholder="مثال: إلكترونيات" dir="rtl" />
+                    <span asp-validation-for="NameAr" class="text-danger small mt-1 d-block"></span>
+                </div>
+
+                <!-- Image File -->
+                <div class="mb-4">
+                    <label asp-for="ImageFile" class="form-label text-light font-weight-bold"></label>
+                    <input asp-for="ImageFile" type="file" class="form-control form-control-premium" accept=".jpg,.jpeg,.png" />
+                    <span asp-validation-for="ImageFile" class="text-danger small mt-1 d-block"></span>
+                    <div class="form-text text-muted small mt-1">Allowed formats: JPG, JPEG, PNG. Image will be uploaded to Cloudinary.</div>
+                </div>
+
+                <!-- Actions -->
+                <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top" style="border-color: rgba(255,255,255,0.05) !important;">
+                    <a asp-area="Admin" asp-controller="Categories" asp-action="Index" class="btn btn-premium btn-premium-secondary">
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn btn-premium btn-premium-primary">
+                        <i class="fa-solid fa-check me-1"></i> Create Category
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
