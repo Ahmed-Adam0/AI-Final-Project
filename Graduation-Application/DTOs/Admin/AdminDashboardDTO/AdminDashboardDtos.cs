@@ -41,6 +41,7 @@ namespace Graduation_Application.DTOs.Admin.AdminDashboardDTO
         public string VendorName { get; set; }
         public decimal TotalAmount { get; set; }
         public string Status { get; set; }
+        public string PaymentStatus { get; set; }  // Payment status as string
         public DateTime CreatedAt { get; set; }
     }
 

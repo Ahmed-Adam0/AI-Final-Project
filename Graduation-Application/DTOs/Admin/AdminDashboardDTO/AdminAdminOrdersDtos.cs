@@ -48,6 +48,7 @@ namespace Graduation_Application.DTOs.Admin.AdminDashboardDTO
         public int Id { get; set; }
         public string OrderNumber { get; set; }
         public string Status { get; set; }
+        public string PaymentStatus { get; set; }
         public decimal Subtotal { get; set; }
         public decimal ShippingFee { get; set; }
         public decimal Tax { get; set; }

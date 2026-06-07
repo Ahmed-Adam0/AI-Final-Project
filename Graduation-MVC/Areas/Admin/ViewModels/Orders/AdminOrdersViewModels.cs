@@ -6,10 +6,13 @@ namespace Graduation_MVC.Areas.Admin.ViewModels.Orders
     public class AdminOrdersPageViewModel
     {
         public AdminOrderFilterViewModel Filter { get; set; } = new();
-        public IReadOnlyList<AdminOrderListItemViewModel> Orders { get; set; } = Array.Empty<AdminOrderListItemViewModel>();
+        public IReadOnlyList<AdminOrderListItemViewModel> Orders { get; set; } =
+            Array.Empty<AdminOrderListItemViewModel>();
         public AdminOrderPagingViewModel Paging { get; set; } = new();
-        public IReadOnlyList<AdminOrderStatusOptionViewModel> StatusOptions { get; set; } = Array.Empty<AdminOrderStatusOptionViewModel>();
-        public IReadOnlyList<AdminVendorOptionViewModel> Vendors { get; set; } = Array.Empty<AdminVendorOptionViewModel>();
+        public IReadOnlyList<AdminOrderStatusOptionViewModel> StatusOptions { get; set; } =
+            Array.Empty<AdminOrderStatusOptionViewModel>();
+        public IReadOnlyList<AdminVendorOptionViewModel> Vendors { get; set; } =
+            Array.Empty<AdminVendorOptionViewModel>();
     }
 
     public class AdminOrderFilterViewModel
@@ -42,14 +45,17 @@ namespace Graduation_MVC.Areas.Admin.ViewModels.Orders
         public string VendorName { get; set; }
         public decimal TotalPrice { get; set; }
         public string Status { get; set; }
+        public string PaymentStatus { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 
     public class AdminOrderDetailsViewModel
     {
         public AdminOrderSummaryViewModel Summary { get; set; } = new();
-        public IReadOnlyList<AdminOrderItemViewModel> Items { get; set; } = Array.Empty<AdminOrderItemViewModel>();
-        public IReadOnlyList<AdminOrderTimelineItemViewModel> Timeline { get; set; } = Array.Empty<AdminOrderTimelineItemViewModel>();
+        public IReadOnlyList<AdminOrderItemViewModel> Items { get; set; } =
+            Array.Empty<AdminOrderItemViewModel>();
+        public IReadOnlyList<AdminOrderTimelineItemViewModel> Timeline { get; set; } =
+            Array.Empty<AdminOrderTimelineItemViewModel>();
         public AdminOrderCustomerViewModel Customer { get; set; } = new();
         public AdminOrderVendorViewModel Vendor { get; set; } = new();
     }
@@ -59,6 +65,7 @@ namespace Graduation_MVC.Areas.Admin.ViewModels.Orders
         public int Id { get; set; }
         public string OrderNumber { get; set; }
         public string Status { get; set; }
+        public string PaymentStatus { get; set; }
         public decimal Subtotal { get; set; }
         public decimal ShippingFee { get; set; }
         public decimal Tax { get; set; }
