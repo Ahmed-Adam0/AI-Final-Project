@@ -1,0 +1,88 @@
+@model AdminFaqFormViewModel
+@{
+    ViewData["Title"] = "Edit FAQ";
+}
+
+<div class="row align-items-center mb-4">
+    <div class="col-md-8">
+        <h1 class="display-font text-light mb-1">Edit FAQ</h1>
+        <p class="text-muted mb-0">Modify details of an existing FAQ item.</p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <a asp-area="Admin" asp-controller="Faq" asp-action="Index" class="btn btn-premium btn-premium-secondary">
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to List
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="glass-card p-4">
+            <form asp-area="Admin" asp-controller="Faq" asp-action="Edit" asp-route-id="@Model.Id" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+                
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <!-- English Question -->
+                <div class="mb-4">
+                    <label asp-for="QuestionEn" class="form-label text-light font-weight-bold"></label>
+                    <input asp-for="QuestionEn" class="form-control form-control-premium" placeholder="e.g. How do I track my order?" />
+                    <span asp-validation-for="QuestionEn" class="text-danger small mt-1 d-block"></span>
+                </div>
+
+                <!-- Arabic Question -->
+                <div class="mb-4">
+                    <label asp-for="QuestionAr" class="form-label text-light font-weight-bold"></label>
+                    <input asp-for="QuestionAr" class="form-control form-control-premium text-end" placeholder="مثال: كيف يمكنني تتبع طلبي؟" dir="rtl" />
+                    <span asp-validation-for="QuestionAr" class="text-danger small mt-1 d-block"></span>
+                </div>
+
+                <!-- English Answer -->
+                <div class="mb-4">
+                    <label asp-for="AnswerEn" class="form-label text-light font-weight-bold"></label>
+                    <textarea asp-for="AnswerEn" class="form-control form-control-premium" rows="4" placeholder="Enter the English answer here..."></textarea>
+                    <span asp-validation-for="AnswerEn" class="text-danger small mt-1 d-block"></span>
+                </div>
+
+                <!-- Arabic Answer -->
+                <div class="mb-4">
+                    <label asp-for="AnswerAr" class="form-label text-light font-weight-bold"></label>
+                    <textarea asp-for="AnswerAr" class="form-control form-control-premium text-end" rows="4" placeholder="أدخل الإجابة باللغة العربية هنا..." dir="rtl"></textarea>
+                    <span asp-validation-for="AnswerAr" class="text-danger small mt-1 d-block"></span>
+                </div>
+
+                <div class="row mb-4">
+                    <!-- Display Order -->
+                    <div class="col-md-6">
+                        <label asp-for="DisplayOrder" class="form-label text-light font-weight-bold"></label>
+                        <input asp-for="DisplayOrder" type="number" class="form-control form-control-premium" />
+                        <span asp-validation-for="DisplayOrder" class="text-danger small mt-1 d-block"></span>
+                    </div>
+
+                    <!-- Is Active Switch -->
+                    <div class="col-md-6 d-flex align-items-end">
+                        <div class="form-check form-switch mb-2">
+                            <input asp-for="IsActive" class="form-check-input" type="checkbox" id="IsActiveSwitch" />
+                            <label class="form-check-label text-light ms-2" for="IsActiveSwitch">Show on Platform (Active)</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top" style="border-color: rgba(255,255,255,0.05) !important;">
+                    <a asp-area="Admin" asp-controller="Faq" asp-action="Index" class="btn btn-premium btn-premium-secondary">
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn btn-premium btn-premium-primary">
+                        <i class="fa-solid fa-check me-1"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

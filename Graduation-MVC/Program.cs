@@ -1,6 +1,9 @@
 using Graduation_infrastructure.ProgramService.ServicesMVC;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.FileProviders;
+using Graduation_Application.IServices;
+using Graduation_Application.Services;
+using Graduation_infrastructure.Services;
 
 namespace Graduation_MVC
 {
@@ -17,6 +20,12 @@ namespace Graduation_MVC
 
             // Infrastructure (MVC services)
             builder.Services.AddInfrastructureMVC(builder.Configuration);
+
+            // Register Category and File services
+            builder.Services.AddScoped<ICategoryService, CategoryService>();
+            builder.Services.AddScoped<IFileService, FileService>();
+            builder.Services.AddScoped<IFaqService, FaqService>();
+            builder.Services.AddScoped<IBannerService, BannerService>();
 
             builder.Services.AddAuthorization(options =>
             {

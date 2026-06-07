@@ -32,6 +32,8 @@ namespace Graduation_infrastructure.AppDbContext
         public DbSet<ProductReport> ProductReports { get; set; }
         public DbSet<VendorVerificationHistory> VendorVerificationHistory { get; set; }
         public DbSet<VendorAccountStatusHistory> VendorAccountStatusHistory { get; set; }
+        public DbSet<Faq> Faqs { get; set; }
+        public DbSet<Banner> Banners { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
