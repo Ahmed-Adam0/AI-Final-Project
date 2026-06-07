@@ -18,6 +18,7 @@ namespace Graduation_Application.Services.Admin
         private readonly IGenaricRepositories<Review> _reviewRepository;
         private readonly IGenaricRepositories<ProductReport> _productReportRepository;
         private readonly IGenaricRepositories<Product> _productRepository;
+        private readonly IGenaricRepositories<PaymentTransaction> _paymentTransactionRepository;
 
         public AdminDashboardService(
             IGenaricRepositories<Order> orderRepository,
@@ -25,7 +26,8 @@ namespace Graduation_Application.Services.Admin
             IGenaricRepositories<ApplicationUser> userRepository,
             IGenaricRepositories<Review> reviewRepository,
             IGenaricRepositories<ProductReport> productReportRepository,
-            IGenaricRepositories<Product> productRepository
+            IGenaricRepositories<Product> productRepository,
+            IGenaricRepositories<PaymentTransaction> paymentTransactionRepository
         )
         {
             _orderRepository = orderRepository;
@@ -34,6 +36,7 @@ namespace Graduation_Application.Services.Admin
             _reviewRepository = reviewRepository;
             _productReportRepository = productReportRepository;
             _productRepository = productRepository;
+            _paymentTransactionRepository = paymentTransactionRepository;
         }
 
         public async Task<AdminDashboardDto> GetDashboardAsync()
@@ -280,14 +283,6 @@ namespace Graduation_Application.Services.Admin
                 query = query.Where(o => o.Status == filter.Status);
             }
 
-            if (
-                !string.IsNullOrWhiteSpace(filter.VendorId)
-                && int.TryParse(filter.VendorId, out var vendorId)
-            )
-            {
-                query = query.Where(o => o.WorkshopId == vendorId);
-            }
-
             if (filter.FromDate.HasValue)
             {
                 query = query.Where(o => o.CreatedAt >= filter.FromDate.Value);
@@ -307,6 +302,13 @@ namespace Graduation_Application.Services.Admin
                 .Take(pageSize)
                 .ToListAsync();
             var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            // Get all payment transactions for these orders
+            var orderIds = orders.Select(o => o.Id).ToList();
+            var paymentTransactions = await _paymentTransactionRepository
+                .GetAllAsNoTracking()
+                .Where(pt => orderIds.Contains(pt.LocalOrderId))
+                .ToListAsync();
 
             var vendorOptions = await _workshopRepository
                 .GetAllAsNoTracking()
@@ -331,6 +333,11 @@ namespace Graduation_Application.Services.Admin
                         VendorName = o.Workshop?.WorkshopNameEn ?? "N/A",
                         TotalAmount = o.TotalPrice,
                         Status = o.Status,
+                        PaymentStatus =
+                            paymentTransactions
+                                .FirstOrDefault(pt => pt.LocalOrderId == o.Id)
+                                ?.Status.ToString()
+                            ?? "Pending",
                         CreatedAt = o.CreatedAt,
                     })
                     .ToList(),
@@ -374,6 +381,11 @@ namespace Graduation_Application.Services.Admin
                 return null;
             }
 
+            // Get payment status
+            var paymentTransaction = await _paymentTransactionRepository
+                .GetAllAsNoTracking()
+                .FirstOrDefaultAsync(pt => pt.LocalOrderId == orderId);
+
             var subtotal = order.Items?.Sum(x => x.UnitPrice * x.Quantity) ?? 0m;
 
             return new AdminOrderDetailsDto
@@ -383,6 +395,7 @@ namespace Graduation_Application.Services.Admin
                     Id = order.Id,
                     OrderNumber = $"ORD-{order.Id:D5}",
                     Status = order.Status,
+                    PaymentStatus = paymentTransaction?.Status.ToString() ?? "Pending",
                     Subtotal = subtotal,
                     ShippingFee = 0m,
                     Tax = 0m,

@@ -12,8 +12,60 @@
         <p class="text-muted mb-0">Order details, customer, vendor, items, and timeline.</p>
     </div>
     <div class="col-md-4 text-md-end mt-3 mt-md-0">
-        <span class="badge-status badge-status-pending">@Model.Summary.Status</span>
-        <div class="mt-2 fw-semibold text-light">EGP @Model.Summary.TotalPrice.ToString("N0")</div>
+        <div class="glass-card p-3 d-inline-block text-start border-1" style="min-width: 290px; background: var(--bg-card); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);">
+            @{
+                var StatusClass = Model.Summary.Status switch
+                {
+                    "Confirmed" => "badge-status-active",
+                    "Delivered" => "badge-status-active",
+                    "Cancelled" => "badge-status-inactive",
+                    "Rejected" => "badge-status-hidden",
+                    _ => "badge-status-pending"
+                };
+
+                var statusIcon = Model.Summary.Status switch
+                {
+                    "Confirmed" => "fa-solid fa-circle-check",
+                    "Delivered" => "fa-solid fa-truck-fast",
+                    "Cancelled" => "fa-solid fa-circle-xmark",
+                    "Rejected" => "fa-solid fa-ban",
+                    _ => "fa-solid fa-hourglass-half"
+                };
+
+                var paymentStatusClass = Model.Summary.PaymentStatus switch
+                {
+                    "Paid" => "badge-status-active",
+                    "Failed" => "badge-status-hidden",
+                    _ => "badge-status-pending"
+                };
+
+                var paymentStatusIcon = Model.Summary.PaymentStatus switch
+                {
+                    "Paid" => "fa-solid fa-circle-check",
+                    "Failed" => "fa-solid fa-circle-xmark",
+                    _ => "fa-solid fa-hourglass-half"
+                };
+            }
+
+            <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                <span class="text-muted small fw-medium">Order Status</span>
+                <span class="badge-status @StatusClass">
+                    <i class="@statusIcon"></i> @Model.Summary.Status
+                </span>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                <span class="text-muted small fw-medium">Payment Status</span>
+                <span class="badge-status @paymentStatusClass">
+                    <i class="@paymentStatusIcon"></i> @Model.Summary.PaymentStatus
+                </span>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted small fw-medium">Total Amount</span>
+                <span class="fs-5 fw-bold text-indigo">EGP @Model.Summary.TotalPrice.ToString("N0")</span>
+            </div>
+        </div>
     </div>
 </div>
 

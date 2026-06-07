@@ -14,7 +14,10 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         private readonly IAdminDashboardService _adminDashboardService;
         private readonly IOrderService _orderService;
 
-        public OrdersController(IAdminDashboardService adminDashboardService, IOrderService orderService)
+        public OrdersController(
+            IAdminDashboardService adminDashboardService,
+            IOrderService orderService
+        )
         {
             _adminDashboardService = adminDashboardService;
             _orderService = orderService;
@@ -50,6 +53,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                             VendorName = x.VendorName,
                             TotalPrice = x.TotalAmount,
                             Status = x.Status,
+                            PaymentStatus = x.PaymentStatus,
                             CreatedAt = x.CreatedAt,
                         })
                         .ToList(),
@@ -95,6 +99,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                         Id = dto.Summary.Id,
                         OrderNumber = dto.Summary.OrderNumber,
                         Status = dto.Summary.Status,
+                        PaymentStatus = dto.Summary.PaymentStatus,
                         Subtotal = dto.Summary.Subtotal,
                         ShippingFee = dto.Summary.ShippingFee,
                         Tax = dto.Summary.Tax,
