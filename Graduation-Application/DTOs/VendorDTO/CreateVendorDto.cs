@@ -35,6 +35,7 @@ namespace Graduation_Application.DTOs.VendorDTO
         [Required(ErrorMessage = "DescriptionEn is required")]
         public string DescriptionEn { get; set; } = string.Empty;
 
+
         public WorkshopAddressDto? WorkshopAddress { get; set; }
     }
 }

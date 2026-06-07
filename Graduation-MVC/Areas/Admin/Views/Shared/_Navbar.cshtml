@@ -23,21 +23,52 @@
             </ul>
         </div>
 
+        @using System.Security.Claims
         <div class="dropdown">
-            <button class="btn btn-premium btn-premium-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <button class="btn btn-premium btn-premium-secondary btn-sm dropdown-toggle" 
+                    type="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="fa-solid fa-circle-user"></i>
-                <span class="d-none d-md-inline">Profile</span>
+                <span class="d-none d-md-inline">@User.FindFirstValue(ClaimTypes.Name)</span>
             </button>
             <ul class="dropdown-menu dropdown-menu-end">
-                <li><span class="dropdown-item-text text-muted small">Admin Profile (placeholder)</span></li>
+                <li>
+                    <span class="dropdown-item-text">
+                        <strong>@User.FindFirstValue(ClaimTypes.Name)</strong>
+                        <br>
+                        <small class="text-muted">@User.FindFirstValue(ClaimTypes.Email)</small>
+                    </span>
+                </li>
                 <li><hr class="dropdown-divider" /></li>
-                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-user-gear me-2"></i>Account Settings</a></li>
+                <li>
+                    <a class="dropdown-item" 
+                       asp-area="Admin" asp-controller="Profile" asp-action="Index">
+                        <i class="fa-solid fa-user me-2"></i>View Profile
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" 
+                       asp-area="Admin" asp-controller="Profile" asp-action="Edit">
+                        <i class="fa-solid fa-user-gear me-2"></i>Edit Profile
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" 
+                       asp-area="Admin" asp-controller="Profile" asp-action="ChangePassword">
+                        <i class="fa-solid fa-lock me-2"></i>Change Password
+                    </a>
+                </li>
             </ul>
         </div>
 
-        <a href="#" class="btn btn-premium btn-premium-primary btn-sm">
+        @* <a href="#" class="btn btn-premium btn-premium-primary btn-sm">
             <i class="fa-solid fa-right-from-bracket"></i>
             <span class="d-none d-md-inline">Logout</span>
-        </a>
+        </a> *@
+        <form asp-area="Admin" asp-controller="Account" asp-action="Logout" method="post">
+            <button type="submit" class="btn btn-premium btn-premium-primary btn-sm">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span class="d-none d-md-inline">Logout</span>
+            </button>
+        </form>
     </div>
 </header>
