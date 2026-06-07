@@ -1,13 +1,15 @@
+using System;
+using System.IO;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Graduation_Application.DTOs.PaymentDTO;
 using Graduation_Application.IRepositories;
 using Graduation_Application.IServices;
 using Graduation_domain.Entities;
 using Graduation_Domain.Enums;
-using Graduation_infrastructure.AppDbContext;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Graduation_API.Controllers
 {
@@ -17,23 +19,29 @@ namespace Graduation_API.Controllers
     {
         private readonly IPaymentGateway _paymentGateway;
         private readonly IPaymobHmacValidator _hmacValidator;
-        private readonly ApplicationDbContext _context;
-        private readonly ILogger<PaymentsController> _logger;
         private readonly IPaymentWebhookLogRepository _webhookLogRepository;
+        private readonly IOrderRepository _orderRepository;
+        private readonly IPaymentTransactionRepository _paymentTransactionRepository;
+        private readonly IPaymentService _paymentService;
+        private readonly ILogger<PaymentsController> _logger;
 
         public PaymentsController(
             IPaymentGateway paymentGateway,
             IPaymobHmacValidator hmacValidator,
-            ApplicationDbContext context,
-            ILogger<PaymentsController> logger,
-            IPaymentWebhookLogRepository webhookLogRepository
+            IPaymentWebhookLogRepository webhookLogRepository,
+            IOrderRepository orderRepository,
+            IPaymentTransactionRepository paymentTransactionRepository,
+            IPaymentService paymentService,
+            ILogger<PaymentsController> logger
         )
         {
             _paymentGateway = paymentGateway;
             _hmacValidator = hmacValidator;
-            _context = context;
-            _logger = logger;
             _webhookLogRepository = webhookLogRepository;
+            _orderRepository = orderRepository;
+            _paymentTransactionRepository = paymentTransactionRepository;
+            _paymentService = paymentService;
+            _logger = logger;
         }
 
         [HttpPost("paymob")]
@@ -131,9 +139,6 @@ namespace Graduation_API.Controllers
 
                 // --- 4. HMAC validation ---
                 var hmacHeader = Request.Query["hmac"].ToString();
-                //var hmacPrefix = hmacHeader.Length > 8 ? hmacHeader[..8] + "…" : "(empty)";
-                //_logger.LogInformation("HMAC header prefix: {HmacPrefix}", hmacPrefix);
-                //;
                 if (!_hmacValidator.Validate(hmacHeader, rawPayload))
                 {
                     _logger.LogWarning(
@@ -157,9 +162,7 @@ namespace Graduation_API.Controllers
                 );
 
                 // --- 5. Look up the local PaymentTransaction ---
-                var transaction = await _context.PaymentTransactions.FirstOrDefaultAsync(t =>
-                    t.PaymobOrderId == paymobOrderId
-                );
+                var transaction = await _paymentTransactionRepository.GetByPaymobOrderIdAsync(paymobOrderId?.ToString() ?? "");
 
                 if (transaction == null)
                 {
@@ -195,9 +198,7 @@ namespace Graduation_API.Controllers
                 }
 
                 // --- 7. Load the related Order in the same round-trip scope ---
-                var order = await _context.Orders.FirstOrDefaultAsync(o =>
-                    o.Id == transaction.LocalOrderId
-                );
+                var order = await _orderRepository.GetByIdAsync(transaction.LocalOrderId);
 
                 if (order == null)
                 {
@@ -213,7 +214,7 @@ namespace Graduation_API.Controllers
                 // --- 8. Apply payment outcome ---
                 if (payload.Obj.Success)
                 {
-                    await ProcessPaymentAsync(
+                    await _paymentService.ProcessPaymentAsync(
                         transaction,
                         order,
                         true,
@@ -233,12 +234,7 @@ namespace Graduation_API.Controllers
                     transaction.TransactionId = paymobTransactionId.ToString();
                     transaction.FailureReason = "Transaction voided";
 
-                    if (order != null)
-                    {
-                        order.Status = OrderStatus.Cancelled.ToString();
-                    }
-
-                    await _context.SaveChangesAsync();
+                    await _paymentTransactionRepository.SaveChangesAsync();
 
                     _logger.LogInformation(
                         "Payment VOIDED — TransactionId: {TransactionId}, PaymobOrderId: {PaymobOrderId}, LocalOrderId: {LocalOrderId}",
@@ -249,7 +245,7 @@ namespace Graduation_API.Controllers
                 }
                 else
                 {
-                    await ProcessPaymentAsync(
+                    await _paymentService.ProcessPaymentAsync(
                         transaction,
                         order,
                         false,
@@ -272,7 +268,7 @@ namespace Graduation_API.Controllers
                 // We add the webhook log to the same unit of work and save once.
                 var webhookLog = BuildWebhookLog(rawPayload, success: true, error: null);
                 await _webhookLogRepository.AddAsync(webhookLog);
-                await _context.SaveChangesAsync();
+                await _webhookLogRepository.SaveChangesAsync();
 
                 return Ok(new { Message = "Received" });
             }
@@ -313,9 +309,7 @@ namespace Graduation_API.Controllers
                     success
                 );
 
-                var transaction = await _context.PaymentTransactions.FirstOrDefaultAsync(x =>
-                    x.LocalOrderId == localOrderId
-                );
+                var transaction = await _paymentTransactionRepository.GetByLocalOrderIdAsync(localOrderId);
 
                 if (transaction == null)
                 {
@@ -328,7 +322,7 @@ namespace Graduation_API.Controllers
 
                 transaction.TransactionId = Request.Query["id"];
 
-                await _context.SaveChangesAsync();
+                await _paymentTransactionRepository.SaveChangesAsync();
 
                 return Ok(new { Message = "Success" });
             }
@@ -341,46 +335,6 @@ namespace Graduation_API.Controllers
                     new { Error = ex.Message, InnerError = ex.InnerException?.Message }
                 );
             }
-        }
-
-        private async Task ProcessPaymentAsync(
-            PaymentTransaction transaction,
-            Order? order,
-            bool success,
-            string transactionId,
-            string? failureReason = null
-        )
-        {
-            _logger.LogInformation(
-                "ProcessPaymentAsync called => Success={Success}, TransactionId={TransactionId}",
-                success,
-                transactionId
-            );
-            transaction.TransactionId = transactionId;
-
-            if (success)
-            {
-                transaction.Status = PaymentStatus.Paid;
-                transaction.PaidAt = DateTime.UtcNow;
-                transaction.FailureReason = null;
-
-                if (order != null)
-                {
-                    order.Status = OrderStatus.Confirmed.ToString();
-                }
-            }
-            else
-            {
-                transaction.Status = PaymentStatus.Failed;
-                transaction.FailureReason = failureReason ?? "Payment failed";
-
-                if (order != null)
-                {
-                    order.Status = OrderStatus.Cancelled.ToString();
-                }
-            }
-
-            await _context.SaveChangesAsync();
         }
 
         // ── Private helpers ───────────────────────────────────────────────────

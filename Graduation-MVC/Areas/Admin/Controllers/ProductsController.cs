@@ -2,11 +2,13 @@ using System.Threading.Tasks;
 using Graduation_Application.DTOs.Admin.AdminProductDTO;
 using Graduation_Application.IServices.Admin;
 using Graduation_MVC.Areas.Admin.ViewModels.Products;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Graduation_MVC.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = "SuperAdmin")]
     public class ProductsController : Controller
     {
         private readonly IAdminProductService _adminProductService;

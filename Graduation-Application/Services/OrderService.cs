@@ -8,6 +8,7 @@ using Graduation_Application.IRepositories;
 using Graduation_Application.IServices;
 using Graduation_domain.Entities;
 using Graduation_domain.Enums;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Graduation_Application.Services
@@ -21,6 +22,8 @@ namespace Graduation_Application.Services
         private readonly ICartService _cartService;
         private readonly INotificationService _notificationService;
         private readonly IInternalNotificationService _internalNotificationService;
+        private readonly IPaymentGateway _paymentGateway;
+        private readonly UserManager<ApplicationUser> _userManager;
 
         public OrderService(
             IGenaricRepositories<Order> orderRepository,
@@ -29,7 +32,9 @@ namespace Graduation_Application.Services
             IGenaricRepositories<CartItem> cartItemRepository,
             ICartService cartService,
             INotificationService notificationService,
-            IInternalNotificationService internalNotificationService
+            IInternalNotificationService internalNotificationService,
+            IPaymentGateway paymentGateway,
+            UserManager<ApplicationUser> userManager
         )
         {
             _orderRepository = orderRepository;
@@ -39,6 +44,8 @@ namespace Graduation_Application.Services
             _cartService = cartService;
             _notificationService = notificationService;
             _internalNotificationService = internalNotificationService;
+            _paymentGateway = paymentGateway;
+            _userManager = userManager;
         }
 
         public async Task<List<OrderResponseDto>> GetAllOrdersAsync()
@@ -132,7 +139,41 @@ namespace Graduation_Application.Services
                 order.TotalPrice
             );
 
-            return await GetOrderByIdAsync(order.Id);
+            // Fetch user info for payment gateway
+            var appUser = await _userManager.FindByIdAsync(userId);
+            string firstName = "Customer";
+            string lastName = "User";
+            if (appUser != null && !string.IsNullOrWhiteSpace(appUser.FullName))
+            {
+                var nameParts = appUser.FullName.Trim().Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+                if (nameParts.Length > 0)
+                {
+                    firstName = nameParts[0];
+                }
+                if (nameParts.Length > 1)
+                {
+                    lastName = nameParts[1];
+                }
+            }
+
+            string email = appUser?.Email ?? "customer@example.com";
+            string phone = !string.IsNullOrWhiteSpace(phoneNumber) ? phoneNumber 
+                           : (!string.IsNullOrWhiteSpace(appUser?.PhoneNumber) ? appUser.PhoneNumber 
+                           : "01000000000");
+
+            var paymentUrl = await _paymentGateway.CreatePaymentUrlAsync(
+                order.Id,
+                order.TotalPrice,
+                firstName,
+                lastName,
+                email,
+                phone
+            );
+
+            var responseDto = await GetOrderByIdAsync(order.Id);
+            responseDto.PaymentUrl = paymentUrl;
+
+            return responseDto;
         }
 
         public async Task<OrderResponseDto> GetOrderByIdAsync(int orderId)

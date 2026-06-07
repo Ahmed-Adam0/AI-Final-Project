@@ -1,0 +1,11 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace Graduation_MVC.Areas.Admin.ViewModels.Auth
+{
+    public class ForgotPasswordViewModel
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; }
+    }
+}

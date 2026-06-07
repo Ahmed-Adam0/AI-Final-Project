@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Graduation_MVC.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    //[Authorize(Roles = "Admin", Policy = "AdminOnly")]
+    [Authorize(Roles = "SuperAdmin")]
     public class DashboardController : Controller
     {
         private readonly IAdminDashboardService _adminDashboardService;
