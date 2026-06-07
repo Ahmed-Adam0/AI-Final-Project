@@ -35,9 +35,15 @@
             </ul>
         </div>
 
-        <a href="#" class="btn btn-premium btn-premium-primary btn-sm">
+        @* <a href="#" class="btn btn-premium btn-premium-primary btn-sm">
             <i class="fa-solid fa-right-from-bracket"></i>
             <span class="d-none d-md-inline">Logout</span>
-        </a>
+        </a> *@
+        <form asp-area="Admin" asp-controller="Account" asp-action="Logout" method="post">
+            <button type="submit" class="btn btn-premium btn-premium-primary btn-sm">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span class="d-none d-md-inline">Logout</span>
+            </button>
+        </form>
     </div>
 </header>

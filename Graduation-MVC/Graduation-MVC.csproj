@@ -19,4 +19,8 @@
     <ProjectReference Include="..\Graduation-infrastructure\Graduation-infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Areas\Admin\Mapper\AuthMapping\" />
+  </ItemGroup>
+
 </Project>

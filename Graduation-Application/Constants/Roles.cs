@@ -8,6 +8,7 @@ namespace Graduation_Application.Constants
     {
         public const string Customer = "Customer";
         public const string Vendor = "Vendor";
+        public const string SuperAdmin = "SuperAdmin";
 
     }
 }
