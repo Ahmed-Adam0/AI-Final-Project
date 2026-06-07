@@ -158,6 +158,7 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             services.Configure<PaymobSettings>(configuration.GetSection("Paymob"));
             services.AddScoped<IPaymentGateway, PaymobService>();
             services.AddScoped<IPaymobHmacValidator, PaymobHmacValidator>();
+            services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepository>();
 
             services.AddAuthorization();
         }

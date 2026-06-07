@@ -1,15 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Graduation_Application.DTOs.PaymentDTO;
 using Graduation_Application.ExternalServices.EmailServices;
 using Graduation_Application.IRepositories;
+using Graduation_Application.IRepositories.Admin;
 using Graduation_Application.IServices;
 using Graduation_Application.IServices.Admin;
 using Graduation_Application.Mapper.ProductMapping;
 using Graduation_Application.Options;
 using Graduation_Application.Services;
 using Graduation_Application.Services.Admin;
-using Graduation_Application.IRepositories.Admin;
 using Graduation_domain.Entities;
 using Graduation_infrastructure.AppDbContext;
 using Graduation_infrastructure.Repositories;
@@ -66,6 +67,11 @@ namespace Graduation_infrastructure.ProgramService.ServicesMVC
             services.AddScoped<IInternalNotificationRepository, InternalNotificationRepository>();
             services.AddHttpClient();
             services.AddHttpContextAccessor();
+
+            services.Configure<PaymobSettings>(configuration.GetSection("Paymob"));
+            services.AddScoped<IPaymentGateway, PaymobService>();
+            services.AddScoped<IPaymobHmacValidator, PaymobHmacValidator>();
+            services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepository>();
         }
     }
 }
