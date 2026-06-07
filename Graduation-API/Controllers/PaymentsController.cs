@@ -234,11 +234,6 @@ namespace Graduation_API.Controllers
                     transaction.TransactionId = paymobTransactionId.ToString();
                     transaction.FailureReason = "Transaction voided";
 
-                    if (order != null)
-                    {
-                        order.Status = OrderStatus.Cancelled.ToString();
-                    }
-
                     await _paymentTransactionRepository.SaveChangesAsync();
 
                     _logger.LogInformation(

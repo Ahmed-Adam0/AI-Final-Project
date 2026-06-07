@@ -45,21 +45,11 @@ namespace Graduation_Application.Services
                 t.Status = PaymentStatus.Paid;
                 t.PaidAt = DateTime.UtcNow;
                 t.FailureReason = null;
-
-                if (o != null)
-                {
-                    o.Status = OrderStatus.Confirmed.ToString();
-                }
             }
             else
             {
                 t.Status = PaymentStatus.Failed;
                 t.FailureReason = failureReason ?? "Payment failed";
-
-                if (o != null)
-                {
-                    o.Status = OrderStatus.Cancelled.ToString();
-                }
             }
 
             await _paymentTransactionRepository.SaveChangesAsync();
