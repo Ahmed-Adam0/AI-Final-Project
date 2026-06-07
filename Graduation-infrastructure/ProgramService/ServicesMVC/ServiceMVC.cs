@@ -18,6 +18,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Graduation_infrastructure.Identity;
+using Graduation_Application.Mapper.Admin;
+using Graduation_infrastructure.Services;
 
 namespace Graduation_infrastructure.ProgramService.ServicesMVC
 {
@@ -60,7 +62,8 @@ namespace Graduation_infrastructure.ProgramService.ServicesMVC
 
             // Mapping
             ProductMappingConfig.RegisterMappings();
-            Graduation_Application.Mapper.Admin.AdminAuthMappingConfig.RegisterMappings();
+            AdminAuthMappingConfig.RegisterMappings();
+            AdminProfileMappingConfig.RegisterMappings();
 
             // Admin Services
             services.AddScoped<IAdminProductService, AdminProductService>();
@@ -68,11 +71,12 @@ namespace Graduation_infrastructure.ProgramService.ServicesMVC
             services.AddScoped<IAdminDashboardService, AdminDashboardService>();
             services.AddScoped<IAdminVendorsRepository, AdminVendorsRepository>();
             services.AddScoped<IAdminVendorsService, AdminVendorsService>();
-
+            services.AddScoped<IFileService, FileService>();
             // Application Services
             services.AddScoped<IJwtTokenGenerator, NullJwtTokenGenerator>();
             // Do not register existing IAuthService here for MVC; register Admin auth service instead
             services.AddScoped<IAdminAuthService, AdminAuthService>();
+            services.AddScoped<IAdminProfileService, AdminProfileService>();
             services.AddScoped<ICartService, CartService>();
             services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<IEmailService, EmailService>();
