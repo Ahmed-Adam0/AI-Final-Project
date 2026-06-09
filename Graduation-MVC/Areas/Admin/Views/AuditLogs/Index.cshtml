@@ -1,0 +1,200 @@
+@model Graduation_MVC.Areas.Admin.ViewModels.AuditLogs.AuditLogsPageViewModel
+@{
+    ViewData["Title"] = "Audit Logs";
+}
+
+<div class="row align-items-center mb-4">
+    <div class="col-md-7">
+        <h1 class="display-font text-light mb-1">Audit Logs</h1>
+        <p class="text-muted mb-0">Track admin and user activities across the platform.</p>
+    </div>
+
+    <div class="col-md-5 text-md-end mt-3 mt-md-0">
+        <div class="glass-card px-3 py-2 d-inline-flex align-items-center gap-3">
+            <span class="text-muted small">Total Logs:</span>
+            <span class="badge fs-6 font-monospace" style="background-color: var(--accent-primary);">
+                @Model.TotalCount
+            </span>
+        </div>
+    </div>
+</div>
+
+<div class="glass-card p-4 mb-4">
+    <form method="get" asp-area="Admin" asp-controller="AuditLogs" asp-action="Index">
+        <div class="row g-3 align-items-end">
+            <div class="col-lg-4 col-md-6">
+                <label class="form-label text-muted small">Search</label>
+                <input name="Search" value="@Model.Filter.Search" class="form-control form-control-premium" placeholder="User, action, entity, description" />
+            </div>
+
+            <div class="col-lg-2 col-md-3">
+                <label class="form-label text-muted small">Role</label>
+                <select name="UserRole" class="form-select form-select-premium">
+                    <option value="">All</option>
+                    @foreach (var role in Model.RoleOptions)
+                    {
+                        <option value="@role" selected="@(Model.Filter.UserRole == role)">@role</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-lg-2 col-md-3">
+                <label class="form-label text-muted small">Action</label>
+                <select name="ActionFilter" class="form-select form-select-premium">
+                    <option value="">All</option>
+                    @foreach (var action in Model.ActionOptions)
+                    {
+                        <option value="@action" selected="@(Model.Filter.Action == action)">@action</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-lg-2 col-md-6">
+                <label class="form-label text-muted small">From Date</label>
+                <input type="date" name="FromDate" value="@(Model.Filter.FromDate?.ToString("yyyy-MM-dd"))" class="form-control form-control-premium" />
+            </div>
+
+            <div class="col-lg-2 col-md-6">
+                <label class="form-label text-muted small">To Date</label>
+                <input type="date" name="ToDate" value="@(Model.Filter.ToDate?.ToString("yyyy-MM-dd"))" class="form-control form-control-premium" />
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
+            <a asp-area="Admin" asp-controller="AuditLogs" asp-action="Index" class="btn btn-premium btn-premium-secondary">Reset</a>
+            <button type="submit" class="btn btn-premium btn-premium-primary">Apply Filters</button>
+        </div>
+    </form>
+
+  
+
+<div class="glass-card p-4">
+    <div class="table-responsive">
+        <table class="table table-premium mb-0">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Role</th>
+                    <th>Action</th>
+                    <th>Entity Type</th>
+                    <th>Description</th>
+                    <th>Date</th>
+                    <th class="text-center">Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Logs == null || !Model.Logs.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">No activity logs found.</td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var log in Model.Logs)
+                    {
+                        <tr>
+                            <td class="fw-semibold text-light">@log.UserName</td>
+                            <td><span class="badge-status badge-status-active">@log.UserRole</span></td>
+                            <td class="text-muted small">@log.Action</td>
+                            <td class="text-muted small">@log.EntityType</td>
+                            <td class="text-muted small">@log.Description</td>
+                            <td class="text-muted small">@log.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                            <td class="text-center">
+                                <a asp-area="Admin" asp-controller="AuditLogs" asp-action="Details" asp-route-id="@log.Id" class="btn btn-sm btn-premium btn-premium-secondary">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-4">
+        <div class="text-muted small">
+            Page @Model.Page of @Model.TotalPages
+        </div>
+
+        <div class="btn-group">
+            @if (Model.Page > 1)
+            {
+                <a class="btn btn-premium btn-premium-secondary btn-sm"
+                   asp-route-page="@(Model.Page - 1)"
+                   asp-route-search="@Model.Filter.Search"
+                   asp-route-userRole="@Model.Filter.UserRole"
+                   asp-route-actionFilter="@Model.Filter.Action"
+                   asp-route-fromDate="@(Model.Filter.FromDate?.ToString("yyyy-MM-dd"))"
+                   asp-route-toDate="@(Model.Filter.ToDate?.ToString("yyyy-MM-dd"))">
+                    Previous
+                </a>
+            }
+
+            @if (Model.Page < Model.TotalPages)
+            {
+                <a class="btn btn-premium btn-premium-secondary btn-sm"
+                   asp-route-page="@(Model.Page + 1)"
+                   asp-route-search="@Model.Filter.Search"
+                   asp-route-userRole="@Model.Filter.UserRole"
+                   asp-route-actionFilter="@Model.Filter.Action"
+                   asp-route-fromDate="@(Model.Filter.FromDate?.ToString("yyyy-MM-dd"))"
+                   asp-route-toDate="@(Model.Filter.ToDate?.ToString("yyyy-MM-dd"))">
+                    Next
+                </a>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const roleSelect = document.querySelector('select[name="UserRole"]');
+            const actionSelect = document.querySelector('select[name="ActionFilter"]');
+            if (!roleSelect || !actionSelect) return;
+
+            const allowedMap = {
+                @foreach (var pair in Model.AllowedActionsByRole)
+                {
+                    <text>"@pair.Key": [@Html.Raw(string.Join(",", pair.Value.Select(v => $"\"{v}\"")))],</text>
+                }
+            };
+
+            const allActions = [
+                @Html.Raw(string.Join(",", Model.ActionOptions.Select(v => $"\"{v}\"")))
+            ];
+
+            const selectedAction = '@(Model.Filter.Action ?? string.Empty)';
+
+            function rebuildActions() {
+                const role = roleSelect.value;
+                const allowed = role && allowedMap[role] ? allowedMap[role] : allActions;
+
+                actionSelect.innerHTML = '';
+
+                const allOption = document.createElement('option');
+                allOption.value = '';
+                allOption.textContent = 'All';
+                actionSelect.appendChild(allOption);
+
+                allowed.forEach(function (action) {
+                    const option = document.createElement('option');
+                    option.value = action;
+                    option.textContent = action;
+                    if (selectedAction === action) {
+                        option.selected = true;
+                    }
+                    actionSelect.appendChild(option);
+                });
+
+                if (selectedAction && !allowed.includes(selectedAction)) {
+                    actionSelect.value = '';
+                }
+            }
+
+            roleSelect.addEventListener('change', rebuildActions);
+            rebuildActions();
+        })();
+    </script>
+}

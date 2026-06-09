@@ -13,10 +13,15 @@ namespace Graduation_MVC.Areas.Admin.Controllers
     public class VendorsController : Controller
     {
         private readonly IAdminVendorsService _adminVendorsService;
+        private readonly IAdminAuditLogsService _adminAuditLogsService;
 
-        public VendorsController(IAdminVendorsService adminVendorsService)
+        public VendorsController(
+            IAdminVendorsService adminVendorsService,
+            IAdminAuditLogsService adminAuditLogsService
+        )
         {
             _adminVendorsService = adminVendorsService;
+            _adminAuditLogsService = adminAuditLogsService;
         }
 
         [HttpGet]
@@ -201,7 +206,17 @@ namespace Graduation_MVC.Areas.Admin.Controllers
 
             try
             {
+                var vendor = await _adminVendorsService.GetVendorDetailsAsync(workshopId);
                 await _adminVendorsService.ApproveVendorAsync(workshopId, notes);
+                await _adminAuditLogsService.CreateLogAsync(
+                    GetAdminId(),
+                    GetAdminName(),
+                    GetAdminRole(),
+                    "ApproveVendor",
+                    "Vendor",
+                    workshopId.ToString(),
+                    $"Approved vendor '{vendor?.Profile?.VendorName ?? "Unknown"}' (WorkshopId: {workshopId})."
+                );
                 TempData["SuccessMessage"] = "Vendor approved successfully.";
             }
             catch (ArgumentException ex)
@@ -231,11 +246,21 @@ namespace Graduation_MVC.Areas.Admin.Controllers
 
             try
             {
+                var vendor = await _adminVendorsService.GetVendorDetailsAsync(model.WorkshopId);
                 await _adminVendorsService.RejectVendorAsync(
                     model.WorkshopId,
                     adminId,
                     model.RejectionReason,
                     model.Notes
+                );
+                await _adminAuditLogsService.CreateLogAsync(
+                    GetAdminId(),
+                    GetAdminName(),
+                    GetAdminRole(),
+                    "RejectVendor",
+                    "Vendor",
+                    model.WorkshopId.ToString(),
+                    $"Rejected vendor '{vendor?.Profile?.VendorName ?? "Unknown"}' (WorkshopId: {model.WorkshopId}). Reason: {model.RejectionReason}"
                 );
                 TempData["SuccessMessage"] = "Vendor rejected successfully.";
             }
@@ -309,7 +334,17 @@ namespace Graduation_MVC.Areas.Admin.Controllers
 
         private string GetAdminId()
         {
-            return User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+            return User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "system";
+        }
+
+        private string GetAdminName()
+        {
+            return User.FindFirstValue(ClaimTypes.Name) ?? User.Identity?.Name ?? "SuperAdmin";
+        }
+
+        private string GetAdminRole()
+        {
+            return User.FindFirstValue(ClaimTypes.Role) ?? "SuperAdmin";
         }
 
         private static AdminVendorsPageViewModel MapPage(

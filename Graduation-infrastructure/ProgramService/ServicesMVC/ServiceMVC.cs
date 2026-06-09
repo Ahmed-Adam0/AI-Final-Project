@@ -77,6 +77,7 @@ namespace Graduation_infrastructure.ProgramService.ServicesMVC
             services.AddScoped<IAdminVendorsService, AdminVendorsService>();
             services.AddScoped<IFileService, FileService>();
             services.AddScoped<IAdminUsersService, AdminUsersService>();
+            services.AddScoped<IAdminAuditLogsService, AdminAuditLogsService>();
             // Application Services
             services.AddScoped<IJwtTokenGenerator, NullJwtTokenGenerator>();
             // Do not register existing IAuthService here for MVC; register Admin auth service instead

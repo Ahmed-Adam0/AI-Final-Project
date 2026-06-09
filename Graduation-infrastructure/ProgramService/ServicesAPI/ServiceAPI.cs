@@ -5,6 +5,7 @@ using Graduation_Application.DTOs.PaymentDTO;
 using Graduation_Application.ExternalServices.EmailServices;
 using Graduation_Application.IRepositories;
 using Graduation_Application.IServices;
+using Graduation_Application.IServices.Admin;
 using Graduation_Application.Mapper.CategoryMapping;
 using Graduation_Application.Mapper.NotificationMapping;
 using Graduation_Application.Mapper.ProductMapping;
@@ -13,6 +14,7 @@ using Graduation_Application.Mapper.UsersMapping;
 using Graduation_Application.Mapper.VendorMapping;
 using Graduation_Application.Options;
 using Graduation_Application.Services;
+using Graduation_Application.Services.Admin;
 using Graduation_domain.Entities;
 using Graduation_infrastructure.AppDbContext;
 using Graduation_Infrastructure.Identity;
@@ -116,6 +118,7 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepository>();
             services.AddScoped<IPaymentWebhookLogRepository, PaymentWebhookLogRepository>();
             services.AddScoped<IPaymentService, PaymentService>();
+            services.AddScoped<IAdminAuditLogsService, AdminAuditLogsService>();
             services.AddHttpClient();
             services.AddHttpContextAccessor();
             // Add CORS policy for development / frontend

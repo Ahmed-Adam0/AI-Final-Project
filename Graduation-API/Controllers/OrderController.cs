@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Graduation_Application.DTOs.OrderDTO;
 using Graduation_Application.IServices;
+using Graduation_Application.IServices.Admin;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,10 +15,15 @@ namespace Graduation_API.Controllers
     public class OrderController : ControllerBase
     {
         private readonly IOrderService _orderService;
+        private readonly IAdminAuditLogsService _adminAuditLogsService;
 
-        public OrderController(IOrderService orderService)
+        public OrderController(
+            IOrderService orderService,
+            IAdminAuditLogsService adminAuditLogsService
+        )
         {
             _orderService = orderService;
+            _adminAuditLogsService = adminAuditLogsService;
         }
 
         private string GetUserId()
@@ -58,6 +64,15 @@ namespace Graduation_API.Controllers
             {
                 var userId = GetUserId();
                 var order = await _orderService.CreateOrderAsync(userId, request, User);
+                await _adminAuditLogsService.CreateLogAsync(
+                    userId,
+                    GetCurrentUserName(),
+                    GetCurrentUserRole(),
+                    "CreateOrder",
+                    "Order",
+                    order.Id.ToString(),
+                    $"Created order #{order.Id}."
+                );
                 return Ok(new { Message = "Order created successfully", Data = order });
             }
             catch (Exception ex)
@@ -105,6 +120,15 @@ namespace Graduation_API.Controllers
             try
             {
                 await _orderService.UpdateOrderStatusAsync(id, request.Status);
+                await _adminAuditLogsService.CreateLogAsync(
+                    GetUserId(),
+                    GetCurrentUserName(),
+                    GetCurrentUserRole(),
+                    "UpdateOrderStatus",
+                    "Order",
+                    id.ToString(),
+                    $"Updated order #{id} status to '{request.Status}'."
+                );
                 return Ok(new { Message = "Order status updated" });
             }
             catch (Exception ex)
@@ -120,6 +144,15 @@ namespace Graduation_API.Controllers
             {
                 var userId = GetUserId();
                 await _orderService.CancelOrderAsync(id, userId);
+                await _adminAuditLogsService.CreateLogAsync(
+                    userId,
+                    GetCurrentUserName(),
+                    GetCurrentUserRole(),
+                    "CancelOrder",
+                    "Order",
+                    id.ToString(),
+                    $"Cancelled order #{id}."
+                );
                 return Ok(new { Message = "Order cancelled successfully" });
             }
             catch (Exception ex)
@@ -147,6 +180,15 @@ namespace Graduation_API.Controllers
                 return BadRequest(new { Message = ex.Message });
             }
         }
+
+        private string GetCurrentUserName() =>
+            User.FindFirstValue(ClaimTypes.Name)
+            ?? User.FindFirstValue(ClaimTypes.Email)
+            ?? User.Identity?.Name
+            ?? "Unknown";
+
+        private string GetCurrentUserRole() =>
+            User.FindFirstValue(ClaimTypes.Role) ?? "Customer";
     }
 
     public class UpdateOrderStatusRequest

@@ -1,0 +1,64 @@
+@model Graduation_MVC.Areas.Admin.ViewModels.AuditLogs.AuditLogDetailsViewModel
+@{
+    ViewData["Title"] = "Audit Log Details";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="display-font text-light mb-1">Audit Log Details</h1>
+        <p class="text-muted mb-0">Complete information for activity log #@Model.Id</p>
+    </div>
+
+    <a asp-area="Admin" asp-controller="AuditLogs" asp-action="Index" class="btn btn-premium btn-premium-secondary">
+        <i class="fa-solid fa-arrow-left"></i> Back to Audit Logs
+    </a>
+</div>
+
+<div class="glass-card p-4">
+    <div class="row g-4">
+        <div class="col-md-6">
+            <label class="form-label text-muted small">Log Id</label>
+            <div class="fw-semibold text-light">@Model.Id</div>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label text-muted small">Date</label>
+            <div class="text-light">@Model.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label text-muted small">User Id</label>
+            <div class="text-light">@Model.UserId</div>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label text-muted small">User Name</label>
+            <div class="text-light">@Model.UserName</div>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label text-muted small">User Role</label>
+            <div><span class="badge-status badge-status-active">@Model.UserRole</span></div>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label text-muted small">Action</label>
+            <div class="text-light">@Model.Action</div>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label text-muted small">Entity Type</label>
+            <div class="text-light">@Model.EntityType</div>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label text-muted small">Entity Id</label>
+            <div class="text-light">@(string.IsNullOrWhiteSpace(Model.EntityId) ? "-" : Model.EntityId)</div>
+        </div>
+
+        <div class="col-12">
+            <label class="form-label text-muted small">Description</label>
+            <div class="text-light">@Model.Description</div>
+        </div>
+    </div>
+</div>

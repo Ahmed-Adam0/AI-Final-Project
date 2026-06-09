@@ -29,6 +29,7 @@ namespace Graduation_infrastructure.AppDbContext
         public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
         public DbSet<PaymentWebhookLog> PaymentWebhookLogs { get; set; }
         public DbSet<InternalNotification> InternalNotifications { get; set; }
+        public DbSet<ActivityLog> ActivityLogs { get; set; }
         public DbSet<ProductReport> ProductReports { get; set; }
         public DbSet<VendorVerificationHistory> VendorVerificationHistory { get; set; }
         public DbSet<VendorAccountStatusHistory> VendorAccountStatusHistory { get; set; }
@@ -216,6 +217,17 @@ namespace Graduation_infrastructure.AppDbContext
                 .WithMany()
                 .HasForeignKey(r => r.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<ActivityLog>(entity =>
+            {
+                entity.Property(x => x.UserId).IsRequired().HasMaxLength(450);
+                entity.Property(x => x.UserName).IsRequired().HasMaxLength(150);
+                entity.Property(x => x.UserRole).IsRequired().HasMaxLength(50);
+                entity.Property(x => x.Action).IsRequired().HasMaxLength(100);
+                entity.Property(x => x.EntityType).IsRequired().HasMaxLength(50);
+                entity.Property(x => x.EntityId).HasMaxLength(100);
+                entity.Property(x => x.Description).IsRequired().HasMaxLength(1000);
+            });
         }
     }
 }
