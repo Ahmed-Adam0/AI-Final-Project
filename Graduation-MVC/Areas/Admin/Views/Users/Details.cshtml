@@ -1,0 +1,504 @@
+@model Graduation_MVC.Areas.Admin.ViewModels.Users.AdminUserDetailsViewModel
+@{
+    ViewData["Title"] = "Customer Details";
+
+    var fullNameParts = (Model.FullName ?? string.Empty)
+        .Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+    var initials = fullNameParts.Length switch
+    {
+        0 => "U",
+        1 => fullNameParts[0].Substring(0, 1).ToUpperInvariant(),
+        _ => string.Concat(fullNameParts[0][0], fullNameParts[fullNameParts.Length - 1][0]).ToUpperInvariant()
+    };
+}
+
+<div class="row align-items-center mb-4">
+    <div class="col-md-8">
+        <a asp-area="Admin"
+           asp-controller="Users"
+           asp-action="Index"
+           class="btn btn-premium btn-premium-secondary mb-3">
+            <i class="fa-solid fa-arrow-left me-2"></i>
+            Back to Customers
+        </a>
+
+        <h1 class="display-font text-light mb-1">@Model.FullName</h1>
+        <p class="text-muted mb-0">Customer profile, contact information, and activity summary.</p>
+    </div>
+
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        @if (Model.IsActive)
+        {
+            <span class="badge-status badge-status-active">
+                <i class="fa-solid fa-circle-check me-1"></i>
+                Active
+            </span>
+        }
+        else
+        {
+            <span class="badge-status badge-status-hidden">
+                <i class="fa-solid fa-ban me-1"></i>
+                Suspended
+            </span>
+        }
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="glass-card p-4 h-100 user-profile-card text-center">
+            @if (!string.IsNullOrWhiteSpace(Model.ProfileImage))
+            {
+                <img src="@Model.ProfileImage"
+                     alt="@Model.FullName"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                     class="user-avatar-image mx-auto mb-3" />
+
+                <div class="user-avatar user-avatar-fallback mx-auto mb-3" style="display:none;">@initials</div>
+            }
+            else
+            {
+                <div class="user-avatar mx-auto mb-3">@initials</div>
+            }
+
+            <h4 class="text-light mb-1">@Model.FullName</h4>
+            <p class="text-muted mb-3">Customer Account</p>
+
+            <div class="d-flex flex-wrap justify-content-center gap-2 mb-4">
+                <span class="badge-status @(Model.EmailConfirmed ? "badge-status-active" : "badge-status-pending")">
+                    <i class="fa-solid @(Model.EmailConfirmed ? "fa-circle-check" : "fa-hourglass-half") me-1"></i>
+                    @(Model.EmailConfirmed ? "Email Confirmed" : "Email Not Confirmed")
+                </span>
+
+                <span class="badge-status @(Model.IsActive ? "badge-status-active" : "badge-status-hidden")">
+                    <i class="fa-solid @(Model.IsActive ? "fa-circle-check" : "fa-ban") me-1"></i>
+                    @(Model.IsActive ? "Active" : "Suspended")
+                </span>
+            </div>
+
+            <hr class="border-secondary my-4" />
+
+            <div class="profile-meta text-start">
+                <div class="meta-row">
+                    <span class="meta-label">Email</span>
+                    <span class="meta-separator">:</span>
+                    <span class="meta-value text-break">@Model.Email</span>
+                </div>
+
+                <div class="meta-row">
+                    <span class="meta-label">Phone</span>
+                    <span class="meta-separator">:</span>
+                    <span class="meta-value">@(string.IsNullOrWhiteSpace(Model.PhoneNumber) ? "Not provided" : Model.PhoneNumber)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="glass-card p-4 mb-4">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <h5 class="mb-0 text-light">
+                    <i class="fa-solid fa-id-card me-2"></i>
+                    Customer Details
+                </h5>
+                <span class="text-muted small">Contact and account information</span>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="details-tile h-100">
+                        <small class="text-muted d-block mb-2">Full Name</small>
+                        <div class="fw-semibold text-light">@Model.FullName</div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="details-tile h-100">
+                        <small class="text-muted d-block mb-2">Email Address</small>
+                        <div class="fw-semibold text-light text-break">@Model.Email</div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="details-tile h-100">
+                        <small class="text-muted d-block mb-2">Phone Number</small>
+                        <div class="fw-semibold text-light">@(string.IsNullOrWhiteSpace(Model.PhoneNumber) ? "Not Provided" : Model.PhoneNumber)</div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="details-tile h-100">
+                        <small class="text-muted d-block mb-2">Email Confirmation</small>
+                        <div>
+                            @if (Model.EmailConfirmed)
+                            {
+                                <span class="badge-status badge-status-active">
+                                    <i class="fa-solid fa-circle-check me-1"></i>
+                                    Confirmed
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge-status badge-status-pending">
+                                    <i class="fa-solid fa-hourglass-half me-1"></i>
+                                    Not Confirmed
+                                </span>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="details-tile h-100">
+                        <small class="text-muted d-block mb-2">Account Status</small>
+                        <div>
+                            @if (Model.IsActive)
+                            {
+                                <span class="badge-status badge-status-active">
+                                    <i class="fa-solid fa-circle-check me-1"></i>
+                                    Active
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge-status badge-status-hidden">
+                                    <i class="fa-solid fa-ban me-1"></i>
+                                    Suspended
+                                </span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card p-4">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <h5 class="mb-0 text-light">
+                    <i class="fa-solid fa-chart-line me-2"></i>
+                    Activity Summary
+                </h5>
+                <span class="text-muted small">Orders and spending</span>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="details-stat-card">
+                        <div class="text-muted small mb-2">Total Orders</div>
+                        <div class="fs-3 fw-semibold text-light">@Model.TotalOrders</div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="details-stat-card">
+                        <div class="text-muted small mb-2">Total Spent</div>
+                        <div class="fs-3 fw-semibold text-light">@Model.TotalSpent.ToString("C")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card p-4 mt-4">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div>
+                    <h5 class="mb-1 text-light">Actions</h5>
+                    <p class="text-muted mb-0">Manage the customer account from here.</p>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2 user-actions">
+                    @if (Model.IsActive)
+                    {
+                        <form asp-action="Suspend"
+                              asp-route-id="@Model.Id"
+                              method="post"
+                            onsubmit="return showSuspendConfirm(this);">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-premium btn-suspend-action">
+                                <i class="fa-solid fa-ban me-2"></i>
+                                Suspend
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form asp-action="Activate"
+                              asp-route-id="@Model.Id"
+                              method="post"
+                            onsubmit="return showActivateConfirm(this);">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-premium btn-activate-action">
+                                <i class="fa-solid fa-circle-check me-2"></i>
+                                Activate
+                            </button>
+                        </form>
+                    }
+
+                    <form asp-action="Delete"
+                          asp-route-id="@Model.Id"
+                          method="post"
+                          onsubmit="return showDeleteConfirm(this);">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-premium user-danger-btn">
+                            <i class="fa-solid fa-trash me-2"></i>
+                            Delete
+                        </button>
+                    </form>
+
+                    <a asp-action="Index" class="btn btn-premium btn-premium-secondary">
+                        <i class="fa-solid fa-arrow-left me-2"></i>
+                        Back to list
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .glass-card .text-muted,
+    .glass-card .text-muted.small {
+        color: #475569 !important;
+        font-weight: 700;
+    }
+
+    .user-profile-card {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .user-profile-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(255, 255, 255, .04), transparent 45%);
+        pointer-events: none;
+    }
+
+    .user-avatar {
+        width: 126px;
+        height: 126px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(circle at top, rgba(255, 255, 255, .16), rgba(255, 255, 255, .06));
+        border: 3px solid var(--accent-primary);
+        box-shadow: 0 18px 40px rgba(0, 0, 0, .25);
+        color: #000;
+        font-size: 2.3rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        margin-top: .25rem;
+    }
+
+    .user-avatar-image {
+        width: 126px;
+        height: 126px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 3px solid var(--accent-primary);
+        box-shadow: 0 18px 40px rgba(0, 0, 0, .25);
+        margin-top: .25rem;
+        display: block;
+    }
+
+    .profile-meta {
+        display: grid;
+        gap: .9rem;
+    }
+
+    .meta-row {
+        display: grid;
+        grid-template-columns: auto auto 1fr;
+        gap: .3rem;
+        align-items: center;
+    }
+
+    .meta-label {
+        color: #475569;
+        font-size: .85rem;
+        font-weight: 700;
+    }
+
+    .meta-value {
+        color: #1f2937;
+        font-weight: 600;
+        opacity: 1;
+    }
+
+    .meta-separator {
+        color: #64748b;
+        font-weight: 600;
+    }
+
+    .profile-meta .meta-row:nth-child(1) .meta-value,
+    .profile-meta .meta-row:nth-child(2) .meta-value {
+        color: #1f2937 !important;
+        text-shadow: none;
+    }
+
+    .details-tile,
+    .details-stat-card {
+        padding: 1rem;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, .08);
+        background: rgba(255, 255, 255, .03);
+    }
+
+    .details-tile small.text-muted,
+    .details-stat-card .text-muted.small {
+        color: #475569 !important;
+        font-weight: 700;
+    }
+
+    .details-tile .fw-semibold,
+    .details-stat-card .fs-3.fw-semibold {
+        color: #0f172a !important;
+        font-weight: 700;
+    }
+
+    .details-stat-card {
+        height: 100%;
+    }
+
+    .details-empty {
+        padding: 1.5rem;
+        border-radius: 14px;
+        border: 1px dashed rgba(255, 255, 255, .15);
+        background: rgba(255, 255, 255, .02);
+        text-align: center;
+    }
+
+    .user-actions {
+        justify-content: flex-end;
+    }
+
+    .user-actions form {
+        margin: 0;
+    }
+
+    .user-danger-btn {
+        background: var(--color-danger);
+        color: #fff;
+        border: 0;
+    }
+
+    .btn-suspend-action {
+        background: var(--color-warning);
+        color: #1a1a1a;
+        border: 0;
+    }
+
+    .btn-activate-action {
+        background: var(--color-success);
+        color: #fff;
+        border: 0;
+    }
+
+    .user-actions .btn:hover,
+    .user-actions .btn:focus,
+    .user-actions .btn:focus-visible {
+        background: #3f7fff;
+        border-color: #3f7fff;
+        color: #eef5ff;
+        box-shadow: 0 0 0 .18rem rgba(63, 127, 255, .25);
+    }
+
+    @@media (max-width: 575.98px) {
+        .meta-row {
+            grid-template-columns: auto auto 1fr;
+            gap: .25rem;
+        }
+
+        .user-avatar {
+            width: 108px;
+            height: 108px;
+            font-size: 2rem;
+        }
+
+        .user-avatar-image {
+            width: 108px;
+            height: 108px;
+        }
+
+        .user-actions {
+            width: 100%;
+            justify-content: stretch;
+        }
+
+        .user-actions .btn,
+        .user-actions form,
+        .user-actions a {
+            width: 100%;
+        }
+
+        .user-actions form {
+            flex: 1 1 100%;
+        }
+    }
+</style>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function showSuspendConfirm(form) {
+            Swal.fire({
+                title: 'Suspend User?',
+                text: 'This user will lose access to the system.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Suspend',
+                cancelButtonText: 'Cancel',
+                reverseButtons: true,
+                customClass: { popup: 'swal2-rounded' }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+
+            return false;
+        }
+
+        function showActivateConfirm(form) {
+            Swal.fire({
+                title: 'Activate User?',
+                text: 'This user will regain access to the system.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Activate',
+                cancelButtonText: 'Cancel',
+                reverseButtons: true,
+                customClass: { popup: 'swal2-rounded' }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+
+            return false;
+        }
+
+        function showDeleteConfirm(form) {
+            Swal.fire({
+                title: 'Delete User?',
+                text: 'This action cannot be undone.',
+                icon: 'error',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Delete',
+                cancelButtonText: 'Cancel',
+                reverseButtons: true,
+                confirmButtonColor: '#d33',
+                customClass: { popup: 'swal2-rounded' }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+
+            return false;
+        }
+    </script>
+}

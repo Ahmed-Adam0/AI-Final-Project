@@ -23,6 +23,13 @@
         <li class="sidebar-item"><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="@LinkClass("Dashboard", "Index")"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a></li>
         <li class="sidebar-item"><a asp-area="Admin" asp-controller="Orders" asp-action="Index" class="@LinkClass("Orders", "Index")"><i class="fa-solid fa-cart-shopping"></i><span>Orders</span></a></li>
         <li class="sidebar-item"><a asp-area="Admin" asp-controller="Vendors" asp-action="Index" class="@LinkClass("Vendors", "Index")"><i class="fa-solid fa-store"></i><span>Vendors</span></a></li>
+        <li class="sidebar-item">
+            <a asp-area="Admin" asp-controller="Users" asp-action="Index"
+               class="@LinkClass("Users", "Index")">
+                <i class="fa-solid fa-users"></i>
+                <span>Customers</span>
+            </a>
+        </li>
         <li class="sidebar-item"><a asp-area="Admin" asp-controller="Analytics" asp-action="Index" class="@LinkClass("Analytics", "Index")"><i class="fa-solid fa-chart-line"></i><span>Analytics</span></a></li>
         <li class="sidebar-item"><a asp-area="Admin" asp-controller="Reports" asp-action="Index" class="@LinkClass("Reports", "Index")"><i class="fa-solid fa-flag"></i><span>Reports</span></a></li>
         <li class="sidebar-item"><a asp-area="Admin" asp-controller="Settings" asp-action="Index" class="@LinkClass("Settings", "Index")"><i class="fa-solid fa-gear"></i><span>Settings</span></a></li>
@@ -37,6 +44,13 @@
         <li class="sidebar-item"><a asp-area="Admin" asp-controller="Faq" asp-action="Index" class="@LinkClass("Faq", "Index")"><i class="fa-solid fa-circle-question"></i><span>FAQs</span></a></li>
 
         <li class="sidebar-section-title">System</li>
+        @* <li class="sidebar-item">
+            <a asp-area="Admin" asp-controller="Users" asp-action="Index" 
+               class="@LinkClass("Users", "Index")">
+                <i class="fa-solid fa-users"></i>
+                <span>Customers</span>
+            </a>
+        </li> *@
         <li class="sidebar-item">
             <a href="/" class="sidebar-link">
                 <i class="fa-solid fa-arrow-left"></i><span>Main Site</span>

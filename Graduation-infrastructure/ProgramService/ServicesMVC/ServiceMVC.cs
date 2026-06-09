@@ -67,6 +67,7 @@ namespace Graduation_infrastructure.ProgramService.ServicesMVC
             ProductMappingConfig.RegisterMappings();
             AdminAuthMappingConfig.RegisterMappings();
             AdminProfileMappingConfig.RegisterMappings();
+            AdminUsersMappingConfig.RegisterMappings();
 
             // Admin Services
             services.AddScoped<IAdminProductService, AdminProductService>();
@@ -75,6 +76,7 @@ namespace Graduation_infrastructure.ProgramService.ServicesMVC
             services.AddScoped<IAdminVendorsRepository, AdminVendorsRepository>();
             services.AddScoped<IAdminVendorsService, AdminVendorsService>();
             services.AddScoped<IFileService, FileService>();
+            services.AddScoped<IAdminUsersService, AdminUsersService>();
             // Application Services
             services.AddScoped<IJwtTokenGenerator, NullJwtTokenGenerator>();
             // Do not register existing IAuthService here for MVC; register Admin auth service instead
