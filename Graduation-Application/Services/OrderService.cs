@@ -23,6 +23,7 @@ namespace Graduation_Application.Services
         private readonly INotificationService _notificationService;
         private readonly IInternalNotificationService _internalNotificationService;
         private readonly IPaymentGateway _paymentGateway;
+        private readonly IPaymentTransactionRepository _paymentTransactionRepository;
         private readonly UserManager<ApplicationUser> _userManager;
 
         public OrderService(
@@ -34,6 +35,7 @@ namespace Graduation_Application.Services
             INotificationService notificationService,
             IInternalNotificationService internalNotificationService,
             IPaymentGateway paymentGateway,
+            IPaymentTransactionRepository paymentTransactionRepository,
             UserManager<ApplicationUser> userManager
         )
         {
@@ -45,6 +47,7 @@ namespace Graduation_Application.Services
             _notificationService = notificationService;
             _internalNotificationService = internalNotificationService;
             _paymentGateway = paymentGateway;
+            _paymentTransactionRepository = paymentTransactionRepository;
             _userManager = userManager;
         }
 
@@ -57,7 +60,13 @@ namespace Graduation_Application.Services
                 .Include(o => o.StatusHistory)
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
-            return orders.Select(MapToDto).ToList();
+
+            var mappedOrders = new List<OrderResponseDto>();
+            foreach (var order in orders)
+            {
+                mappedOrders.Add(await MapToDtoAsync(order));
+            }
+            return mappedOrders;
         }
 
         public async Task<OrderResponseDto> CreateOrderAsync(
@@ -145,7 +154,9 @@ namespace Graduation_Application.Services
             string lastName = "User";
             if (appUser != null && !string.IsNullOrWhiteSpace(appUser.FullName))
             {
-                var nameParts = appUser.FullName.Trim().Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+                var nameParts = appUser
+                    .FullName.Trim()
+                    .Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
                 if (nameParts.Length > 0)
                 {
                     firstName = nameParts[0];
@@ -157,9 +168,13 @@ namespace Graduation_Application.Services
             }
 
             string email = appUser?.Email ?? "customer@example.com";
-            string phone = !string.IsNullOrWhiteSpace(phoneNumber) ? phoneNumber 
-                           : (!string.IsNullOrWhiteSpace(appUser?.PhoneNumber) ? appUser.PhoneNumber 
-                           : "01000000000");
+            string phone = !string.IsNullOrWhiteSpace(phoneNumber)
+                ? phoneNumber
+                : (
+                    !string.IsNullOrWhiteSpace(appUser?.PhoneNumber)
+                        ? appUser.PhoneNumber
+                        : "01000000000"
+                );
 
             var paymentUrl = await _paymentGateway.CreatePaymentUrlAsync(
                 order.Id,
@@ -190,7 +205,7 @@ namespace Graduation_Application.Services
                 throw new Exception("Order not found");
             }
 
-            return MapToDto(order);
+            return await MapToDtoAsync(order);
         }
 
         public async Task<List<OrderResponseDto>> GetMyOrdersAsync(string userId)
@@ -203,7 +218,12 @@ namespace Graduation_Application.Services
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
 
-            return orders.Select(MapToDto).ToList();
+            var mappedOrders = new List<OrderResponseDto>();
+            foreach (var order in orders)
+            {
+                mappedOrders.Add(await MapToDtoAsync(order));
+            }
+            return mappedOrders;
         }
 
         public async Task CancelOrderAsync(int orderId, string userId)
@@ -413,11 +433,15 @@ namespace Graduation_Application.Services
 
             await _orderRepository.SaveChangesAsync();
 
-            return MapToDto(order);
+            return await MapToDtoAsync(order);
         }
 
-        private OrderResponseDto MapToDto(Order order)
+        private async Task<OrderResponseDto> MapToDtoAsync(Order order)
         {
+            var paymentTransaction = await _paymentTransactionRepository.GetByLocalOrderIdAsync(
+                order.Id
+            );
+
             return new OrderResponseDto
             {
                 Id = order.Id,
@@ -450,6 +474,7 @@ namespace Graduation_Application.Services
                             })
                             .ToList()
                         : new List<OrderStatusHistoryResponseDto>(),
+                PaymentStatus = paymentTransaction?.Status.ToString() ?? "Unpaid",
             };
         }
     }
