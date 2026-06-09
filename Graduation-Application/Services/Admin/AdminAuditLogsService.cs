@@ -34,9 +34,14 @@ namespace Graduation_Application.Services.Admin
                 query = query.Where(x =>
                     (x.UserName ?? string.Empty).ToLower().Contains(search)
                     || (x.Action ?? string.Empty).ToLower().Contains(search)
+                    || (x.ActionAr ?? string.Empty).ToLower().Contains(search)
                     || (x.EntityType ?? string.Empty).ToLower().Contains(search)
+                    || (x.EntityTypeAr ?? string.Empty).ToLower().Contains(search)
                     || (x.EntityId ?? string.Empty).ToLower().Contains(search)
                     || (x.Description ?? string.Empty).ToLower().Contains(search)
+                    || (x.UserRole ?? string.Empty).ToLower().Contains(search)
+                    || (x.UserRoleAr ?? string.Empty).ToLower().Contains(search)
+                    || (x.DescriptionAr ?? string.Empty).ToLower().Contains(search)
                 );
             }
 
@@ -95,7 +100,11 @@ namespace Graduation_Application.Services.Admin
             string action,
             string entityType,
             string? entityId,
-            string description
+            string description,
+            string? userRoleAr = null,
+            string? actionAr = null,
+            string? entityTypeAr = null,
+            string? descriptionAr = null
         )
         {
             var entity = new ActivityLog
@@ -103,10 +112,14 @@ namespace Graduation_Application.Services.Admin
                 UserId = userId,
                 UserName = userName,
                 UserRole = userRole,
+                UserRoleAr = userRoleAr ?? userRole,
                 Action = action,
+                ActionAr = actionAr ?? action,
                 EntityType = entityType,
+                EntityTypeAr = entityTypeAr ?? entityType,
                 EntityId = entityId,
                 Description = description,
+                DescriptionAr = descriptionAr ?? description,
                 CreatedAt = DateTime.UtcNow,
             };
 

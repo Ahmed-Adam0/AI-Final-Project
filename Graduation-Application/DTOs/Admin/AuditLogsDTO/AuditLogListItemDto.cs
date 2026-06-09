@@ -14,6 +14,7 @@ namespace Graduation_Application.DTOs.Admin.AuditLogsDTO
         public string EntityTypeAr { get; set; } = string.Empty;
         public string? EntityId { get; set; }
         public string Description { get; set; } = string.Empty;
+        public string DescriptionAr { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
     }
 }

@@ -15,7 +15,11 @@ namespace Graduation_Application.IServices.Admin
             string action,
             string entityType,
             string? entityId,
-            string description
+            string description,
+            string? userRoleAr = null,
+            string? actionAr = null,
+            string? entityTypeAr = null,
+            string? descriptionAr = null
         );
     }
 }

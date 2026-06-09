@@ -107,7 +107,11 @@ namespace Graduation_API.Controllers
                     "CreateReview",
                     "Review",
                     result.Id.ToString(),
-                    $"Created review for product #{createReviewDto.ProductId}."
+                    $"Created review for product #{createReviewDto.ProductId}.",
+                    GetCurrentUserRoleAr(),
+                    "إضافة تقييم",
+                    "تقييم",
+                    $"تم إضافة تقييم للمنتج رقم {createReviewDto.ProductId}."
                 );
                 return CreatedAtAction(nameof(GetReviewDetails), new { id = result.Id }, result);
             }
@@ -157,7 +161,11 @@ namespace Graduation_API.Controllers
                     "DeleteReview",
                     "Review",
                     id.ToString(),
-                    $"Deleted review #{id}."
+                    $"Deleted review #{id}.",
+                    GetCurrentUserRoleAr(),
+                    "حذف تقييم",
+                    "تقييم",
+                    $"تم حذف التقييم رقم {id}."
                 );
 
                 return Ok(new { message = "Review deleted successfully" });
@@ -305,5 +313,14 @@ namespace Graduation_API.Controllers
 
         private string GetCurrentUserRole() =>
             User.FindFirst(ClaimTypes.Role)?.Value ?? "Customer";
+
+        private string GetCurrentUserRoleAr() =>
+            GetCurrentUserRole() switch
+            {
+                "SuperAdmin" => "مشرف عام",
+                "Customer" => "عميل",
+                "Vendor" => "بائع",
+                _ => GetCurrentUserRole(),
+            };
     }
 }

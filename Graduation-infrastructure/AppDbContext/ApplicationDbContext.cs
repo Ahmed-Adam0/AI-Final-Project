@@ -223,10 +223,14 @@ namespace Graduation_infrastructure.AppDbContext
                 entity.Property(x => x.UserId).IsRequired().HasMaxLength(450);
                 entity.Property(x => x.UserName).IsRequired().HasMaxLength(150);
                 entity.Property(x => x.UserRole).IsRequired().HasMaxLength(50);
+                entity.Property(x => x.UserRoleAr).HasMaxLength(50);
                 entity.Property(x => x.Action).IsRequired().HasMaxLength(100);
+                entity.Property(x => x.ActionAr).HasMaxLength(100);
                 entity.Property(x => x.EntityType).IsRequired().HasMaxLength(50);
+                entity.Property(x => x.EntityTypeAr).HasMaxLength(50);
                 entity.Property(x => x.EntityId).HasMaxLength(100);
                 entity.Property(x => x.Description).IsRequired().HasMaxLength(1000);
+                entity.Property(x => x.DescriptionAr).HasMaxLength(1000);
             });
         }
     }

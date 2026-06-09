@@ -71,6 +71,15 @@ namespace Graduation_API.Controllers
         private string GetCurrentUserRole() =>
             User.FindFirstValue(ClaimTypes.Role) ?? "Vendor";
 
+        private string GetCurrentUserRoleAr() =>
+            GetCurrentUserRole() switch
+            {
+                "SuperAdmin" => "مشرف عام",
+                "Customer" => "عميل",
+                "Vendor" => "بائع",
+                _ => GetCurrentUserRole(),
+            };
+
         /// <summary>
         /// Get vendor orders with filtering and pagination
         /// </summary>
@@ -163,7 +172,11 @@ namespace Graduation_API.Controllers
                     "UpdateOrderStatus",
                     "Order",
                     orderId.ToString(),
-                    $"Vendor updated order #{orderId} status to '{request.NewStatus}'."
+                    $"Vendor updated order #{orderId} status to '{request.NewStatus}'.",
+                    GetCurrentUserRoleAr(),
+                    "تحديث حالة الطلب",
+                    "طلب",
+                    $"قام البائع بتحديث حالة الطلب رقم {orderId} إلى '{request.NewStatus}'."
                 );
                 return Ok(new { message = "Status updated successfully" });
             }

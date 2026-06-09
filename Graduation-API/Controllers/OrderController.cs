@@ -71,7 +71,11 @@ namespace Graduation_API.Controllers
                     "CreateOrder",
                     "Order",
                     order.Id.ToString(),
-                    $"Created order #{order.Id}."
+                    $"Created order #{order.Id}.",
+                    GetCurrentUserRoleAr(),
+                    "إنشاء طلب",
+                    "طلب",
+                    $"تم إنشاء الطلب رقم {order.Id}."
                 );
                 return Ok(new { Message = "Order created successfully", Data = order });
             }
@@ -119,6 +123,9 @@ namespace Graduation_API.Controllers
         {
             try
             {
+                if (request == null || string.IsNullOrWhiteSpace(request.Status))
+                    return BadRequest(new { Message = "Status is required" });
+
                 await _orderService.UpdateOrderStatusAsync(id, request.Status);
                 await _adminAuditLogsService.CreateLogAsync(
                     GetUserId(),
@@ -127,7 +134,11 @@ namespace Graduation_API.Controllers
                     "UpdateOrderStatus",
                     "Order",
                     id.ToString(),
-                    $"Updated order #{id} status to '{request.Status}'."
+                    $"Updated order #{id} status to '{request.Status}'.",
+                    GetCurrentUserRoleAr(),
+                    "تحديث حالة الطلب",
+                    "طلب",
+                    $"تم تحديث حالة الطلب رقم {id} إلى '{request.Status}'."
                 );
                 return Ok(new { Message = "Order status updated" });
             }
@@ -151,7 +162,11 @@ namespace Graduation_API.Controllers
                     "CancelOrder",
                     "Order",
                     id.ToString(),
-                    $"Cancelled order #{id}."
+                    $"Cancelled order #{id}.",
+                    GetCurrentUserRoleAr(),
+                    "إلغاء طلب",
+                    "طلب",
+                    $"تم إلغاء الطلب رقم {id}."
                 );
                 return Ok(new { Message = "Order cancelled successfully" });
             }
@@ -189,10 +204,19 @@ namespace Graduation_API.Controllers
 
         private string GetCurrentUserRole() =>
             User.FindFirstValue(ClaimTypes.Role) ?? "Customer";
+
+        private string GetCurrentUserRoleAr() =>
+            GetCurrentUserRole() switch
+            {
+                "SuperAdmin" => "مشرف عام",
+                "Customer" => "عميل",
+                "Vendor" => "بائع",
+                _ => GetCurrentUserRole(),
+            };
     }
 
     public class UpdateOrderStatusRequest
     {
-        public string Status { get; set; }
+        public string? Status { get; set; }
     }
 }
