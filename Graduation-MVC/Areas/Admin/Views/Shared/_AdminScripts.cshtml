@@ -15,6 +15,49 @@
                 if (!isClickInside && sidebar.classList.contains('show')) {
                     sidebar.classList.remove('show');
                 }
+
+// Generic confirm handler for forms with .js-confirm-form
+$(document).ready(function () {
+    $(document).on('submit', 'form.js-confirm-form', function (e) {
+        e.preventDefault();
+        var form = this;
+        var title = $(form).data('confirm-title') || 'Confirm';
+        var message = $(form).data('confirm-message') || 'Are you sure?';
+
+        // show custom modal
+        var modal = $('<div>').css({ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' });
+        var box = $('<div>').css({ background: '#1e1e2a', padding: '20px', borderRadius: '8px', minWidth: '320px', color: '#fff' });
+        box.append('<div class="fw-semibold mb-2">' + title + '</div>');
+        box.append('<div class="text-muted small mb-3">' + message + '</div>');
+        var btns = $('<div class="d-flex justify-content-end gap-2">');
+        var cancel = $('<button class="btn btn-premium btn-premium-secondary">الغاء</button>');
+        var ok = $('<button class="btn btn-premium btn-premium-primary">موافق</button>');
+        btns.append(cancel).append(ok);
+        box.append(btns);
+        modal.append(box);
+        $('body').append(modal);
+
+        cancel.on('click', function () { modal.remove(); });
+        ok.on('click', function () {
+            modal.remove();
+            // submit the form via ajax to show toast on success/failure
+            var formData = $(form).serialize();
+            $.post($(form).attr('action'), formData)
+                .done(function (resp) {
+                    showToast('تمت العملية بنجاح.', 'success');
+                    // Optionally redirect or refresh
+                    setTimeout(function () { location.reload(); }, 900);
+                })
+                .fail(function (xhr) {
+                    var msg = 'فشلت العملية.';
+                    if (xhr && xhr.responseText) msg = xhr.responseText;
+                    showToast(msg, 'error');
+                });
+        });
+    });
+});
+
+
             });
         }
 
@@ -35,4 +78,54 @@
             }
         });
     })();
+</script>
+
+<script>
+    $(document).ready(function() {
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <text>showToast('@TempData["SuccessMessage"]', 'success');</text>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <text>showToast('@TempData["ErrorMessage"]', 'error');</text>
+        }
+        @if (TempData["WarningMessage"] != null)
+        {
+            <text>showToast('@TempData["WarningMessage"]', 'warning');</text>
+        }
+        @if (TempData["InfoMessage"] != null)
+        {
+            <text>showToast('@TempData["InfoMessage"]', 'info');</text>
+        }
+    });
+
+    function showToast(message, type) {
+        var bgColor = type === 'success' ? 'var(--color-success)' : type === 'warning' ? 'var(--color-warning)' : type === 'info' ? 'var(--color-info)' : 'var(--color-danger)';
+        var icon = type === 'success' ? 'fa-circle-check' : type === 'warning' ? 'fa-circle-exclamation' : type === 'info' ? 'fa-circle-info' : 'fa-triangle-exclamation';
+
+        var toast = $('<div>')
+            .css({
+                position: 'fixed',
+                top: '20px',
+                right: '20px',
+                zIndex: 9999,
+                background: bgColor,
+                color: '#fff',
+                padding: '12px 20px',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                minWidth: '280px'
+            })
+            .html('<i class="fa-solid ' + icon + '"></i> ' + message);
+
+        $('body').append(toast);
+
+        setTimeout(function() {
+            toast.fadeOut(500, function() { $(this).remove(); });
+        }, 4000);
+    }
 </script>
