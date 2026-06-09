@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Graduation_Application.DTOs.OrderDTO;
 using Graduation_Application.IRepositories;
 using Graduation_Application.IServices;
+using Graduation_Application.IServices.Admin;
 using Graduation_domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,14 +20,17 @@ namespace Graduation_API.Controllers
     {
         private readonly IVendorOrderService _vendorOrderService;
         private readonly IGenaricRepositories<Workshop> _workshopRepository;
+        private readonly IAdminAuditLogsService _adminAuditLogsService;
 
         public VendorOrdersController(
             IVendorOrderService vendorOrderService,
-            IGenaricRepositories<Workshop> workshopRepository
+            IGenaricRepositories<Workshop> workshopRepository,
+            IAdminAuditLogsService adminAuditLogsService
         )
         {
             _vendorOrderService = vendorOrderService;
             _workshopRepository = workshopRepository;
+            _adminAuditLogsService = adminAuditLogsService;
         }
 
         private string GetUserId()
@@ -57,6 +61,24 @@ namespace Graduation_API.Controllers
 
             return workshop.Id;
         }
+
+        private string GetCurrentUserName() =>
+            User.FindFirstValue(ClaimTypes.Name)
+            ?? User.FindFirstValue(ClaimTypes.Email)
+            ?? User.Identity?.Name
+            ?? "Unknown";
+
+        private string GetCurrentUserRole() =>
+            User.FindFirstValue(ClaimTypes.Role) ?? "Vendor";
+
+        private string GetCurrentUserRoleAr() =>
+            GetCurrentUserRole() switch
+            {
+                "SuperAdmin" => "مشرف عام",
+                "Customer" => "عميل",
+                "Vendor" => "بائع",
+                _ => GetCurrentUserRole(),
+            };
 
         /// <summary>
         /// Get vendor orders with filtering and pagination
@@ -142,6 +164,19 @@ namespace Graduation_API.Controllers
                     orderId,
                     workshopId,
                     request.NewStatus
+                );
+                await _adminAuditLogsService.CreateLogAsync(
+                    GetUserId(),
+                    GetCurrentUserName(),
+                    GetCurrentUserRole(),
+                    "UpdateOrderStatus",
+                    "Order",
+                    orderId.ToString(),
+                    $"Vendor updated order #{orderId} status to '{request.NewStatus}'.",
+                    GetCurrentUserRoleAr(),
+                    "تحديث حالة الطلب",
+                    "طلب",
+                    $"قام البائع بتحديث حالة الطلب رقم {orderId} إلى '{request.NewStatus}'."
                 );
                 return Ok(new { message = "Status updated successfully" });
             }

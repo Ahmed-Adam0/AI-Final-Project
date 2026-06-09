@@ -18,10 +18,15 @@ namespace Graduation_MVC.Areas.Admin.Controllers
     public class UsersController : Controller
     {
         private readonly IAdminUsersService _adminUsersService;
+        private readonly IAdminAuditLogsService _adminAuditLogsService;
 
-        public UsersController(IAdminUsersService adminUsersService)
+        public UsersController(
+            IAdminUsersService adminUsersService,
+            IAdminAuditLogsService adminAuditLogsService
+        )
         {
             _adminUsersService = adminUsersService;
+            _adminAuditLogsService = adminAuditLogsService;
         }
 
         [HttpGet]
@@ -83,7 +88,17 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Activate(string id)
         {
+            var targetUser = await _adminUsersService.GetUserDetailsAsync(id);
             await _adminUsersService.ActivateUserAsync(id);
+            await _adminAuditLogsService.CreateLogAsync(
+                GetCurrentUserId(),
+                GetCurrentUserName(),
+                GetCurrentUserRole(),
+                "ActivateUser",
+                "User",
+                id,
+                $"Activated user '{targetUser.FullName}' ({targetUser.Email})."
+            );
             TempData["SuccessMessage"] = "User activated successfully";
             return RedirectToAction(nameof(Index));
         }
@@ -92,7 +107,17 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Suspend(string id)
         {
+            var targetUser = await _adminUsersService.GetUserDetailsAsync(id);
             await _adminUsersService.SuspendUserAsync(id);
+            await _adminAuditLogsService.CreateLogAsync(
+                GetCurrentUserId(),
+                GetCurrentUserName(),
+                GetCurrentUserRole(),
+                "SuspendUser",
+                "User",
+                id,
+                $"Suspended user '{targetUser.FullName}' ({targetUser.Email})."
+            );
             TempData["SuccessMessage"] = "User suspended successfully";
             return RedirectToAction(nameof(Index));
         }
@@ -101,9 +126,30 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(string id)
         {
+            var targetUser = await _adminUsersService.GetUserDetailsAsync(id);
             await _adminUsersService.DeleteUserAsync(id);
+            await _adminAuditLogsService.CreateLogAsync(
+                GetCurrentUserId(),
+                GetCurrentUserName(),
+                GetCurrentUserRole(),
+                "DeleteUser",
+                "User",
+                id,
+                $"Deleted user '{targetUser.FullName}' ({targetUser.Email})."
+            );
             TempData["SuccessMessage"] = "User deleted successfully";
             return RedirectToAction(nameof(Index));
         }
+
+        private string GetCurrentUserId() =>
+            User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "system";
+
+        private string GetCurrentUserName() =>
+            User.FindFirstValue(ClaimTypes.Name)
+            ?? User.Identity?.Name
+            ?? "SuperAdmin";
+
+        private string GetCurrentUserRole() =>
+            User.FindFirstValue(ClaimTypes.Role) ?? "SuperAdmin";
     }
 }

@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using System.Security.Claims;
 using Graduation_Application.DTOs.Admin.AdminProductDTO;
 using Graduation_Application.IServices.Admin;
 using Graduation_MVC.Areas.Admin.ViewModels.Products;
@@ -12,10 +13,15 @@ namespace Graduation_MVC.Areas.Admin.Controllers
     public class ProductsController : Controller
     {
         private readonly IAdminProductService _adminProductService;
+        private readonly IAdminAuditLogsService _adminAuditLogsService;
 
-        public ProductsController(IAdminProductService adminProductService)
+        public ProductsController(
+            IAdminProductService adminProductService,
+            IAdminAuditLogsService adminAuditLogsService
+        )
         {
             _adminProductService = adminProductService;
+            _adminAuditLogsService = adminAuditLogsService;
         }
 
         // GET: /Admin/Products
@@ -78,7 +84,17 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Hide(int id)
         {
+            var product = await _adminProductService.GetProductDetailsAsync(id);
             await _adminProductService.HideProductAsync(id);
+            await _adminAuditLogsService.CreateLogAsync(
+                GetCurrentUserId(),
+                GetCurrentUserName(),
+                GetCurrentUserRole(),
+                "DeleteProduct",
+                "Product",
+                id.ToString(),
+                $"Deleted product '{product?.NameEn ?? "Unknown"}' (Id: {id}) by hiding it from marketplace."
+            );
             TempData["SuccessMessage"] = "Product has been hidden successfully.";
             return RedirectToAction(nameof(Index));
         }
@@ -135,5 +151,16 @@ namespace Graduation_MVC.Areas.Admin.Controllers
             TempData["SuccessMessage"] = "Report has been resolved successfully.";
             return RedirectToAction(nameof(Reported));
         }
+
+        private string GetCurrentUserId() =>
+            User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "system";
+
+        private string GetCurrentUserName() =>
+            User.FindFirstValue(ClaimTypes.Name)
+            ?? User.Identity?.Name
+            ?? "SuperAdmin";
+
+        private string GetCurrentUserRole() =>
+            User.FindFirstValue(ClaimTypes.Role) ?? "SuperAdmin";
     }
 }

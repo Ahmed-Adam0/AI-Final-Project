@@ -44,6 +44,12 @@
         <li class="sidebar-item"><a asp-area="Admin" asp-controller="Faq" asp-action="Index" class="@LinkClass("Faq", "Index")"><i class="fa-solid fa-circle-question"></i><span>FAQs</span></a></li>
 
         <li class="sidebar-section-title">System</li>
+        <li class="sidebar-item">
+            <a asp-area="Admin" asp-controller="AuditLogs" asp-action="Index" class="@LinkClass("AuditLogs", "Index")">
+                <i class="fa-solid fa-clipboard-list"></i>
+                <span>Audit Logs</span>
+            </a>
+        </li>
         @* <li class="sidebar-item">
             <a asp-area="Admin" asp-controller="Users" asp-action="Index" 
                class="@LinkClass("Users", "Index")">

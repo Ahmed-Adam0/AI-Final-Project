@@ -2,6 +2,7 @@ using Graduation_Application.DTOs.Admin.AdminDashboardDTO;
 using Graduation_Application.IServices;
 using Graduation_Application.IServices.Admin;
 using Graduation_MVC.Areas.Admin.ViewModels.Orders;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,14 +14,17 @@ namespace Graduation_MVC.Areas.Admin.Controllers
     {
         private readonly IAdminDashboardService _adminDashboardService;
         private readonly IOrderService _orderService;
+        private readonly IAdminAuditLogsService _adminAuditLogsService;
 
         public OrdersController(
             IAdminDashboardService adminDashboardService,
-            IOrderService orderService
+            IOrderService orderService,
+            IAdminAuditLogsService adminAuditLogsService
         )
         {
             _adminDashboardService = adminDashboardService;
             _orderService = orderService;
+            _adminAuditLogsService = adminAuditLogsService;
         }
 
         [HttpGet]
@@ -147,7 +151,21 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangeStatus(int id)
         {
+            var orderBeforeUpdate = await _adminDashboardService.GetOrderDetailsAsync(id);
+            var oldStatus = orderBeforeUpdate?.Summary?.Status ?? "Unknown";
+
             await _orderService.UpdateOrderStatusAsync(id, "Confirmed");
+
+            await _adminAuditLogsService.CreateLogAsync(
+                GetCurrentUserId(),
+                GetCurrentUserName(),
+                GetCurrentUserRole(),
+                "UpdateOrderStatus",
+                "Order",
+                id.ToString(),
+                $"Changed order status for order #{id} from '{oldStatus}' to 'Confirmed'."
+            );
+
             TempData["SuccessMessage"] = $"Order #{id} status changed to Confirmed.";
             return RedirectToAction(nameof(Details), new { id });
         }
@@ -157,5 +175,16 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         {
             return RedirectToAction(nameof(Details), new { id });
         }
+
+        private string GetCurrentUserId() =>
+            User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "system";
+
+        private string GetCurrentUserName() =>
+            User.FindFirstValue(ClaimTypes.Name)
+            ?? User.Identity?.Name
+            ?? "SuperAdmin";
+
+        private string GetCurrentUserRole() =>
+            User.FindFirstValue(ClaimTypes.Role) ?? "SuperAdmin";
     }
 }

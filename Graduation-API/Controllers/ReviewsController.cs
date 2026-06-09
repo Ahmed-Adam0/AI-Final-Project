@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Graduation_Application.DTOs.ReviewDTO;
 using Graduation_Application.IServices;
+using Graduation_Application.IServices.Admin;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -15,10 +16,15 @@ namespace Graduation_API.Controllers
     public class ReviewsController : ControllerBase
     {
         private readonly IReviewService _reviewService;
+        private readonly IAdminAuditLogsService _adminAuditLogsService;
 
-        public ReviewsController(IReviewService reviewService)
+        public ReviewsController(
+            IReviewService reviewService,
+            IAdminAuditLogsService adminAuditLogsService
+        )
         {
             _reviewService = reviewService;
+            _adminAuditLogsService = adminAuditLogsService;
         }
 
         /// <summary>
@@ -94,6 +100,19 @@ namespace Graduation_API.Controllers
                     return StatusCode(403, new { message = "Vendors are not allowed to create reviews." });
 
                 var result = await _reviewService.CreateReviewAsync(userId, createReviewDto);
+                await _adminAuditLogsService.CreateLogAsync(
+                    userId,
+                    GetCurrentUserName(),
+                    GetCurrentUserRole(),
+                    "CreateReview",
+                    "Review",
+                    result.Id.ToString(),
+                    $"Created review for product #{createReviewDto.ProductId}.",
+                    GetCurrentUserRoleAr(),
+                    "إضافة تقييم",
+                    "تقييم",
+                    $"تم إضافة تقييم للمنتج رقم {createReviewDto.ProductId}."
+                );
                 return CreatedAtAction(nameof(GetReviewDetails), new { id = result.Id }, result);
             }
             catch (ArgumentException ex)
@@ -134,6 +153,20 @@ namespace Graduation_API.Controllers
                 var result = await _reviewService.DeleteReviewAsync(id, userId);
                 if (!result)
                     return NotFound(new { message = "Review not found" });
+
+                await _adminAuditLogsService.CreateLogAsync(
+                    userId,
+                    GetCurrentUserName(),
+                    GetCurrentUserRole(),
+                    "DeleteReview",
+                    "Review",
+                    id.ToString(),
+                    $"Deleted review #{id}.",
+                    GetCurrentUserRoleAr(),
+                    "حذف تقييم",
+                    "تقييم",
+                    $"تم حذف التقييم رقم {id}."
+                );
 
                 return Ok(new { message = "Review deleted successfully" });
             }
@@ -271,5 +304,23 @@ namespace Graduation_API.Controllers
             return User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                 ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
         }
+
+        private string GetCurrentUserName() =>
+            User.FindFirst(ClaimTypes.Name)?.Value
+            ?? User.FindFirst(ClaimTypes.Email)?.Value
+            ?? User.Identity?.Name
+            ?? "Unknown";
+
+        private string GetCurrentUserRole() =>
+            User.FindFirst(ClaimTypes.Role)?.Value ?? "Customer";
+
+        private string GetCurrentUserRoleAr() =>
+            GetCurrentUserRole() switch
+            {
+                "SuperAdmin" => "مشرف عام",
+                "Customer" => "عميل",
+                "Vendor" => "بائع",
+                _ => GetCurrentUserRole(),
+            };
     }
 }
