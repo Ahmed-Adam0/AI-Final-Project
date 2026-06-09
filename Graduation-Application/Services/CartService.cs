@@ -12,6 +12,7 @@ namespace Graduation_Application.Services
 {
     public class CartService : ICartService
     {
+        private const string ProductImagesBaseUrl = "http://home-ai.runasp.net";
         private readonly IGenaricRepositories<Cart> _cartRepository;
         private readonly IGenaricRepositories<CartItem> _cartItemRepository;
         private readonly IGenaricRepositories<Product> _productRepository;
@@ -33,6 +34,7 @@ namespace Graduation_Application.Services
                 .Where(c => c.UserId == userId)
                 .Include(c => c.Items)
                     .ThenInclude(ci => ci.Product)
+                        .ThenInclude(p => p.Images)
                 .FirstOrDefaultAsync();
 
             if (cart == null)
@@ -55,6 +57,14 @@ namespace Graduation_Application.Services
                         Quantity = ci.Quantity,
                         Price = ci.Price,
                         TotalPrice = ci.Price * ci.Quantity,
+                        Images =
+                            ci.Product.Images != null
+                                ? ci
+                                    .Product.Images.Select(i =>
+                                        NormalizeProductImageUrl(i.ImageUrl)
+                                    )
+                                    .ToList()
+                                : new List<string>(),
                     })
                     .ToList(),
             };
@@ -65,7 +75,10 @@ namespace Graduation_Application.Services
 
         public async Task<CartItemResponseDto> AddToCartAsync(string userId, AddToCartDto dto)
         {
-            var product = await _productRepository.GetByIdAsync(dto.ProductId);
+            var product = await _productRepository
+                .Where(p => p.Id == dto.ProductId)
+                .Include(p => p.Images)
+                .FirstOrDefaultAsync();
             if (product == null)
             {
                 throw new Exception("Product not found");
@@ -119,6 +132,10 @@ namespace Graduation_Application.Services
                 Quantity = addedItem.Quantity,
                 Price = product.Price,
                 TotalPrice = product.Price * addedItem.Quantity,
+                Images =
+                    product.Images != null
+                        ? product.Images.Select(i => NormalizeProductImageUrl(i.ImageUrl)).ToList()
+                        : new List<string>(),
             };
 
             return cartItemResponseDto;
@@ -188,6 +205,21 @@ namespace Graduation_Application.Services
 
             _cartItemRepository.DeleteRange(cart.Items);
             await _cartItemRepository.SaveChangesAsync();
+        }
+
+        private static string NormalizeProductImageUrl(string imageUrl)
+        {
+            if (string.IsNullOrWhiteSpace(imageUrl))
+            {
+                return imageUrl;
+            }
+
+            if (imageUrl.StartsWith("/images/products/", StringComparison.OrdinalIgnoreCase))
+            {
+                return $"{ProductImagesBaseUrl}{imageUrl}";
+            }
+
+            return imageUrl;
         }
     }
 }

@@ -8,5 +8,7 @@ namespace Graduation_Application.DTOs.CartDTO
         public int Quantity { get; set; }
         public decimal Price { get; set; }
         public decimal TotalPrice { get; set; }
+
+        public List<string> Images { get; set; } = new List<string>();
     }
 }
