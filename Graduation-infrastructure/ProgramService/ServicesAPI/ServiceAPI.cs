@@ -118,8 +118,13 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepository>();
             services.AddScoped<IPaymentWebhookLogRepository, PaymentWebhookLogRepository>();
             services.AddScoped<IPaymentService, PaymentService>();
+            services.AddScoped<IChatService, ChatService>();
             services.AddScoped<IAdminAuditLogsService, AdminAuditLogsService>();
             services.AddHttpClient();
+            services.AddHttpClient("N8NChatClient", client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(30);
+            });
             services.AddHttpContextAccessor();
             // Add CORS policy for development / frontend
             services.AddCors(options =>
@@ -159,6 +164,7 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
                 });
 
             services.Configure<PaymobSettings>(configuration.GetSection("Paymob"));
+            services.Configure<N8NOptions>(configuration.GetSection("N8N"));
             services.AddScoped<IPaymentGateway, PaymobService>();
             services.AddScoped<IPaymobHmacValidator, PaymobHmacValidator>();
             services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepository>();
