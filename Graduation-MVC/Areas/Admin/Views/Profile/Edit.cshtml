@@ -1,12 +1,15 @@
 @model Graduation_MVC.Areas.Admin.ViewModels.Profile.AdminEditProfileViewModel
+@using Graduation_Application.IServices.Admin
+@inject ILocalizationService LocalizationService
 @{
-    ViewData["Title"] = "Edit Profile";
+    var isArabic = LocalizationService.GetCurrentCulture() == "ar";
+    ViewData["Title"] = LocalizationService.Get("auth.profile.editProfile");
 }
 
 <div class="row align-items-center mb-4">
     <div class="col-md-8">
-        <h1 class="display-font text-light mb-1">Edit Profile</h1>
-        <p class="text-muted mb-0">Update your account information and preferences.</p>
+        <h1 class="display-font text-light mb-1">@LocalizationService.Get("auth.profile.editProfile")</h1>
+        <p class="text-muted mb-0">@LocalizationService.Get("auth.profile.editSubtitle")</p>
     </div>
 </div>
 
@@ -18,7 +21,7 @@
 
                 <div asp-validation-summary="ModelOnly" class="alert alert-danger small mb-3"></div>
                  <div class="mb-4">
-                    <label for="ProfileImage" class="form-label text-light">Profile Image</label>
+                    <label for="ProfileImage" class="form-label text-light">@LocalizationService.Get("auth.profile.profileImage")</label>
 
                     <div class="text-center mb-4">
                         <div class="profile-image-wrapper" onclick="document.getElementById('profileImageInput').click()" style="cursor:pointer; display:inline-block; position:relative;">
@@ -40,65 +43,42 @@
                             </div>
                         </div>
                         <input type="file" id="profileImageInput" name="ProfileImage" accept="image/*" style="display:none">
-                        <p class="text-muted small mt-2">Click to change photo</p>
+                        <p class="text-muted small mt-2">@LocalizationService.Get("auth.profile.changePhotoClick")</p>
                     </div>
-
-                    @* <div class="row g-3 align-items-start">
-                        <div class="col-12 col-md-6" style="display:none;">
-                            <input type="file" 
-                                   class="form-control form-control-premium" 
-                                   id="ProfileImage" 
-                                   asp-for="ProfileImage" 
-                                   accept="image/*">
-                            <small class="text-muted d-block mt-1">Supported formats: JPG, PNG, GIF (Max 5MB)</small>
-                            <span asp-validation-for="ProfileImage" class="text-danger small d-block mt-1"></span>
-                        </div>
-                        @if (!string.IsNullOrEmpty(Model.CurrentProfileImage))
-                        {
-                            <div class="col-12 col-md-6">
-                                <div class="text-center">
-                                    <p class="text-muted small mb-2">Current Image</p>
-                                    <img src="@Model.CurrentProfileImage" alt="Current Profile" class="rounded" style="max-width: 150px; max-height: 150px; object-fit: cover; border: 2px solid var(--accent-primary);">
-                                </div>
-                            </div>
-                        }
-                    </div> *@
                 </div>
                 <div class="mb-3">
-                    <label for="FullName" class="form-label text-light">Full Name</label>
+                    <label for="FullName" class="form-label text-light">@LocalizationService.Get("auth.profile.fullName")</label>
                     <input type="text" 
                            class="form-control form-control-premium @(Html.ViewData.ModelState.ContainsKey("FullName") && !Html.ViewData.ModelState["FullName"].Errors.Any() ? "" : Html.ViewData.ModelState.ContainsKey("FullName") ? "is-invalid" : "")" 
                            id="FullName" 
                            asp-for="FullName" 
-                           placeholder="Enter your full name"
+                           placeholder="@LocalizationService.Get("auth.profile.fullNamePlace")"
                            required>
                     <span asp-validation-for="FullName" class="text-danger small d-block mt-1"></span>
                 </div>
 
                 <div class="mb-3">
-                    <label for="PhoneNumber" class="form-label text-light">Phone Number</label>
+                    <label for="PhoneNumber" class="form-label text-light">@LocalizationService.Get("auth.profile.phoneNumber")</label>
                     <input type="tel" 
                            class="form-control form-control-premium @(Html.ViewData.ModelState.ContainsKey("PhoneNumber") && !Html.ViewData.ModelState["PhoneNumber"].Errors.Any() ? "" : Html.ViewData.ModelState.ContainsKey("PhoneNumber") ? "is-invalid" : "")" 
                            id="PhoneNumber" 
                            asp-for="PhoneNumber" 
-                           placeholder="Enter your phone number">
+                           placeholder="@LocalizationService.Get("auth.profile.phonePlace")">
                     <span asp-validation-for="PhoneNumber" class="text-danger small d-block mt-1"></span>
                 </div>
 
                 <div class="mb-3">
-                    <label for="PreferredLanguage" class="form-label text-light">Preferred Language</label>
+                    <label for="PreferredLanguage" class="form-label text-light">@LocalizationService.Get("auth.profile.preferredLanguage")</label>
                     <select class="form-select form-control-premium @(Html.ViewData.ModelState.ContainsKey("PreferredLanguage") && !Html.ViewData.ModelState["PreferredLanguage"].Errors.Any() ? "" : Html.ViewData.ModelState.ContainsKey("PreferredLanguage") ? "is-invalid" : "")" 
                             id="PreferredLanguage" 
                             asp-for="PreferredLanguage" 
                             required>
-                        <option value="">-- Select Language --</option>
-                        <option value="ar" selected="@(Model?.PreferredLanguage == "ar")">العربية</option>
-                        <option value="en" selected="@(Model?.PreferredLanguage == "en")">English</option>
+                        <option value="">@LocalizationService.Get("auth.profile.selectLanguage")</option>
+                        <option value="ar" selected="@(Model?.PreferredLanguage == "ar")">@LocalizationService.Get("auth.layout.arabic")</option>
+                        <option value="en" selected="@(Model?.PreferredLanguage == "en")">@LocalizationService.Get("auth.layout.english")</option>
                     </select>
                     <span asp-validation-for="PreferredLanguage" class="text-danger small d-block mt-1"></span>
                 </div>
-
-               
 
                 <div class="d-flex flex-column flex-sm-row gap-2 justify-content-between">
 
@@ -106,14 +86,14 @@
                        asp-controller="Profile"
                        asp-action="Index"
                        class="btn btn-premium btn-premium-secondary w-100 w-sm-auto">
-                        <i class="fa-solid fa-arrow-left me-2"></i>
-                        Cancel
+                        <i class="fa-solid @(isArabic ? "fa-arrow-right" : "fa-arrow-left") me-2"></i>
+                        @LocalizationService.Get("auth.profile.cancel")
                     </a>
 
                     <button type="submit"
                             class="btn btn-premium btn-premium-primary w-100 w-sm-auto">
                         <i class="fa-solid fa-check me-2"></i>
-                        Save Changes
+                        @LocalizationService.Get("auth.profile.saveChanges")
                     </button>
 
                 </div>

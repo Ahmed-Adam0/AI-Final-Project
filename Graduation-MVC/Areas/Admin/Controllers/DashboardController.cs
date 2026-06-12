@@ -96,6 +96,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                     .LatestVendors.Select(x => new AdminDashboardVendorViewModel
                     {
                         Name = x.Name,
+                        NameAr = x.NameAr,
                         Email = x.Email,
                         Revenue = x.Revenue,
                         OrdersCount = x.OrdersCount,

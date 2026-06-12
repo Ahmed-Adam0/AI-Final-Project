@@ -1,28 +1,25 @@
 @using Graduation_MVC.Areas.Admin.ViewModels.Auth
+@using Graduation_Application.IServices.Admin
+@inject ILocalizationService LocalizationService
 @model VerifyOtpViewModel
 @{
-    ViewData["Title"] = "Verify OTP";
+    ViewData["Title"] = LocalizationService.Get("auth.verifyOtp.title");
     Layout = "~/Areas/Admin/Views/Shared/_LayoutAuth.cshtml";
 }
 
-<div class="d-flex align-items-center justify-content-center vh-100">
-    <div class="w-100" style="max-width:480px;">
-        <div class="text-center mb-4">
-            <div class="logo"><i class="fa-solid fa-shield-halved me-2"></i> Verify OTP</div>
-        </div>
+<h4 class="text-center mb-4">@LocalizationService.Get("auth.verifyOtp.title")</h4>
 
-        <form asp-action="VerifyOtp" method="post">
-            <input asp-for="Email" type="hidden" />
+<form asp-action="VerifyOtp" method="post">
+    <input asp-for="Email" type="hidden" />
 
-            <div class="mb-3 text-center">
-                <input asp-for="OtpCode" class="form-control form-control-premium text-center" style="font-size:1.4rem;" />
-            </div>
-
-            <button type="submit" class="btn btn-premium btn-premium-primary w-100">Verify</button>
-
-            <div class="mt-3 text-center">
-                <a asp-action="ForgotPassword">Back</a>
-            </div>
-        </form>
+    <div class="mb-3 text-center">
+        <input asp-for="OtpCode" class="form-control form-control-premium text-center" style="font-size:1.4rem;" placeholder="@LocalizationService.Get("auth.verifyOtp.otpCode")" />
+        <span asp-validation-for="OtpCode" class="text-danger small d-block mt-1"></span>
     </div>
-</div>
+
+    <button type="submit" class="btn btn-premium-primary w-100">@LocalizationService.Get("auth.verifyOtp.submit")</button>
+
+    <div class="mt-3 text-center">
+        <a asp-action="ForgotPassword">@LocalizationService.Get("auth.verifyOtp.back")</a>
+    </div>
+</form>

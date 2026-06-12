@@ -1,11 +1,13 @@
+@using Graduation_Application.IServices.Admin
+@inject ILocalizationService LocalizationService
 @{
-    ViewData["Title"] = "Access Denied";
+    ViewData["Title"] = LocalizationService.Get("auth.AccessDenied");
     Layout = "~/Areas/Admin/Views/Shared/_LayoutAuth.cshtml";
 }
 
 <div class="text-center">
     <div class="mb-3 text-danger" style="font-size:3rem;"><i class="fa-solid fa-triangle-exclamation"></i></div>
-    <h3 class="mb-2">Access Denied</h3>
-    <p>You don't have permission to access this page</p>
-    <a asp-action="Login" class="btn btn-premium-primary">Back to Login</a>
+    <h3 class="mb-2">@LocalizationService.Get("auth.AccessDenied")</h3>
+    <p>@LocalizationService.Get("auth.AccessDeniedMessage")</p>
+    <a asp-action="Login" class="btn btn-premium-primary">@LocalizationService.Get("auth.BackToLogin")</a>
 </div>

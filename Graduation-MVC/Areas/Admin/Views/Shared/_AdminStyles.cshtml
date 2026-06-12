@@ -473,9 +473,26 @@
         color: var(--text-main);
     }
 
-    .admin-navbar .dropdown-item:hover {
-        background: #f8f9fa;
-        color: var(--text-main);
+    .dropdown-item {
+        cursor: pointer;
+        transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .dropdown-item:hover,
+    .dropdown-item:focus {
+        background-color: #e9ecef !important;
+        color: #1a1a1a !important;
+    }
+
+    .dropdown-item.active {
+        background-color: var(--accent-primary) !important;
+        color: #ffffff !important;
+    }
+
+    .dropdown-item.active:hover,
+    .dropdown-item.active:focus {
+        background-color: var(--accent-primary-hover) !important;
+        color: #ffffff !important;
     }
 
     .admin-navbar .dropdown-item-text {

@@ -1,3 +1,5 @@
+@using Graduation_Application.IServices.Admin
+@inject ILocalizationService LocalizationService
 @{
     var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
     var action = ViewContext.RouteData.Values["action"]?.ToString() ?? string.Empty;
@@ -10,56 +12,51 @@
 
         return "sidebar-link" + (isActive ? " active" : "") + (disabled ? " disabled-module" : "");
     }
+    
+    var isArabic = LocalizationService.GetCurrentCulture() == "ar";
 }
 
 <aside class="admin-sidebar" id="sidebar">
     <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="sidebar-brand">
         <i class="fa-solid fa-house-laptop"></i>
-        <span>HomeAi <small style="font-size: 0.6rem; letter-spacing: 0.05em; text-transform: uppercase;">Admin</small></span>
+        <span>HomeAi <small style="font-size: 0.6rem; letter-spacing: 0.05em; text-transform: uppercase;">@LocalizationService.Get("auth.layout.adminPanel")</small></span>
     </a>
 
     <ul class="sidebar-menu">
-        <li class="sidebar-section-title">Main</li>
-        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="@LinkClass("Dashboard", "Index")"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a></li>
-        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Orders" asp-action="Index" class="@LinkClass("Orders", "Index")"><i class="fa-solid fa-cart-shopping"></i><span>Orders</span></a></li>
-        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Vendors" asp-action="Index" class="@LinkClass("Vendors", "Index")"><i class="fa-solid fa-store"></i><span>Vendors</span></a></li>
+        <li class="sidebar-section-title">@LocalizationService.Get("auth.sidebar.main")</li>
+        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="@LinkClass("Dashboard", "Index")"><i class="fa-solid fa-gauge-high"></i><span>@LocalizationService.Get("auth.sidebar.dashboard")</span></a></li>
+        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Orders" asp-action="Index" class="@LinkClass("Orders", "Index")"><i class="fa-solid fa-cart-shopping"></i><span>@LocalizationService.Get("auth.sidebar.orders")</span></a></li>
+        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Vendors" asp-action="Index" class="@LinkClass("Vendors", "Index")"><i class="fa-solid fa-store"></i><span>@LocalizationService.Get("auth.sidebar.vendors")</span></a></li>
         <li class="sidebar-item">
             <a asp-area="Admin" asp-controller="Users" asp-action="Index"
                class="@LinkClass("Users", "Index")">
                 <i class="fa-solid fa-users"></i>
-                <span>Customers</span>
+                <span>@LocalizationService.Get("auth.sidebar.customers")</span>
             </a>
         </li>
-        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Analytics" asp-action="Index" class="@LinkClass("Analytics", "Index")"><i class="fa-solid fa-chart-line"></i><span>Analytics</span></a></li>
-        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Reports" asp-action="Index" class="@LinkClass("Reports", "Index")"><i class="fa-solid fa-flag"></i><span>Reports</span></a></li>
-        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Settings" asp-action="Index" class="@LinkClass("Settings", "Index")"><i class="fa-solid fa-gear"></i><span>Settings</span></a></li>
+        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Analytics" asp-action="Index" class="@LinkClass("Analytics", "Index")"><i class="fa-solid fa-chart-line"></i><span>@LocalizationService.Get("auth.sidebar.analytics")</span></a></li>
+        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Reports" asp-action="Index" class="@LinkClass("Reports", "Index")"><i class="fa-solid fa-flag"></i><span>@LocalizationService.Get("auth.sidebar.reports")</span></a></li>
+        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Settings" asp-action="Index" class="@LinkClass("Settings", "Index")"><i class="fa-solid fa-gear"></i><span>@LocalizationService.Get("auth.sidebar.settings")</span></a></li>
 
-        <li class="sidebar-section-title">Catalog</li>
-        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Categories" asp-action="Index" class="@LinkClass("Categories", "Index")"><i class="fa-solid fa-layer-group"></i><span>Categories</span></a></li>
-        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Banners" asp-action="Index" class="@LinkClass("Banners", "Index")"><i class="fa-solid fa-images"></i><span>Banners</span></a></li>
-        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Products" asp-action="Index" class="@LinkClass("Products", "Index")"><i class="fa-solid fa-cubes"></i><span>Products</span></a></li>
-        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Products" asp-action="Reported" class="@LinkClass("Products", "Reported")"><i class="fa-solid fa-flag"></i><span>Product Reports</span></a></li>
-        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Reviews" asp-action="Index" class="@LinkClass("Reviews", "Index")"><i class="fa-solid fa-star"></i><span>Reviews</span></a></li>
-        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Reviews" asp-action="Reported" class="@LinkClass("Reviews", "Reported")"><i class="fa-solid fa-triangle-exclamation"></i><span>Reported Reviews</span></a></li>
-        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Faq" asp-action="Index" class="@LinkClass("Faq", "Index")"><i class="fa-solid fa-circle-question"></i><span>FAQs</span></a></li>
+        <li class="sidebar-section-title">@LocalizationService.Get("auth.sidebar.catalog")</li>
+        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Categories" asp-action="Index" class="@LinkClass("Categories", "Index")"><i class="fa-solid fa-layer-group"></i><span>@LocalizationService.Get("auth.sidebar.categories")</span></a></li>
+        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Banners" asp-action="Index" class="@LinkClass("Banners", "Index")"><i class="fa-solid fa-images"></i><span>@LocalizationService.Get("auth.sidebar.banners")</span></a></li>
+        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Products" asp-action="Index" class="@LinkClass("Products", "Index")"><i class="fa-solid fa-cubes"></i><span>@LocalizationService.Get("auth.sidebar.products")</span></a></li>
+        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Products" asp-action="Reported" class="@LinkClass("Products", "Reported")"><i class="fa-solid fa-flag"></i><span>@LocalizationService.Get("auth.sidebar.productReports")</span></a></li>
+        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Reviews" asp-action="Index" class="@LinkClass("Reviews", "Index")"><i class="fa-solid fa-star"></i><span>@LocalizationService.Get("auth.sidebar.reviews")</span></a></li>
+        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Reviews" asp-action="Reported" class="@LinkClass("Reviews", "Reported")"><i class="fa-solid fa-triangle-exclamation"></i><span>@LocalizationService.Get("auth.sidebar.reportedReviews")</span></a></li>
+        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Faq" asp-action="Index" class="@LinkClass("Faq", "Index")"><i class="fa-solid fa-circle-question"></i><span>@LocalizationService.Get("auth.sidebar.faqs")</span></a></li>
 
-        <li class="sidebar-section-title">System</li>
+        <li class="sidebar-section-title">@LocalizationService.Get("auth.sidebar.system")</li>
         <li class="sidebar-item">
             <a asp-area="Admin" asp-controller="AuditLogs" asp-action="Index" class="@LinkClass("AuditLogs", "Index")">
                 <i class="fa-solid fa-clipboard-list"></i>
-                <span>Audit Logs</span>
+                <span>@LocalizationService.Get("auth.sidebar.auditLogs")</span>
             </a>
         </li>
-        @* <li class="sidebar-item">
-            <a asp-area="Admin" asp-controller="Users" asp-action="Index" 
-               class="@LinkClass("Users", "Index")">
-                <i class="fa-solid fa-users"></i>
-                <span>Customers</span>
-            </a>
-        </li> *@
         <li class="sidebar-item">
             <a href="/" class="sidebar-link">
-                <i class="fa-solid fa-arrow-left"></i><span>Main Site</span>
+                <i class="fa-solid @(isArabic ? "fa-arrow-right" : "fa-arrow-left")"></i><span>@LocalizationService.Get("auth.sidebar.mainSite")</span>
             </a>
         </li>
     </ul>

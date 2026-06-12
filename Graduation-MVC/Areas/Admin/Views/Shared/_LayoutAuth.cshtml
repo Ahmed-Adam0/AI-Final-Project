@@ -1,8 +1,14 @@
+@using Graduation_Application.IServices.Admin
+@inject ILocalizationService LocalizationService
 @{
     Layout = null;
+    var currentCulture = LocalizationService.GetCurrentCulture();
+    var isArabic = currentCulture == "ar";
+    var htmlDir = isArabic ? "rtl" : "ltr";
+    var htmlLang = currentCulture;
 }
 <!DOCTYPE html>
-<html lang="en">
+<html lang="@htmlLang" dir="@htmlDir">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -12,7 +18,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    @if (isArabic)
+    {
+        <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.rtl.min.css" />
+    }
+    else
+    {
+        <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    }
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
     <partial name="_AdminStyles" />
@@ -21,17 +34,78 @@
         body { display: flex; align-items: center; justify-content: center; background: var(--css--bg-primary); font-family: 'Inter', 'Outfit', sans-serif; }
         .auth-card { max-width: 540px; width: 100%; padding: 2rem; }
         .logo { font-size: 1.5rem; font-weight: 700; color: var(--accent-primary); }
+        @if (isArabic)
+        {
+            <text>
+            .form-control, .input-group-text { direction: rtl; text-align: right; }
+            .btn { direction: rtl; text-align: center; }
+            input::placeholder { text-align: right; }
+            </text>
+        }
     </style>
 </head>
 <body>
     <div class="container h-100 d-flex align-items-center justify-content-center">
         <div class="auth-card glass-card shadow-sm">
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="logo"><i class="fa-solid fa-house-laptop me-2"></i> @LocalizationService.Get("auth.layout.adminPanel")</div>
+
+                    <!-- Language Dropdown -->
+                    <div>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-solid fa-language"></i>
+                                @if (isArabic)
+                                {
+                                    <span>@LocalizationService.Get("auth.layout.arabic")</span>
+                                }
+                                else
+                                {
+                                    <span>@LocalizationService.Get("auth.layout.english")</span>
+                                }
+                            </button>
+                            <ul class="dropdown-menu @(isArabic ? "dropdown-menu-end" : "")" aria-labelledby="languageDropdown">
+                                <li>
+                                    <button type="button" class="dropdown-item w-100 text-start @(!isArabic ? "active" : "")" onclick="setLanguage('en');">
+                                        <i class="fa-solid fa-check me-2"></i>@LocalizationService.Get("auth.layout.english")
+                                    </button>
+                                </li>
+                                <li>
+                                    <button type="button" class="dropdown-item w-100 text-start @(isArabic ? "active" : "")" onclick="setLanguage('ar');">
+                                        <i class="fa-solid fa-check me-2"></i>@LocalizationService.Get("auth.layout.arabic")
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr class="text-muted opacity-25 mb-4" />
             <partial name="_Alerts" />
             @RenderBody()
         </div>
     </div>
 
     <partial name="_AdminScripts" />
+    <script>
+        function setLanguage(culture) {
+            // Set cookie immediately for instant language change
+            const expiryDate = new Date();
+            expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+            // Remove SameSite to ensure cookie is sent on reload
+            document.cookie = `culture=${culture};expires=${expiryDate.toUTCString()};path=/`;
+
+            // Debug logging
+            console.log('Language cookie set:', culture, document.cookie);
+
+            // Reload page to apply new language
+            setTimeout(() => {
+                console.log('Reloading page with culture:', culture);
+                location.reload();
+            }, 100);
+        }
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
