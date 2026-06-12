@@ -87,6 +87,7 @@ namespace Graduation_Application.Services.Admin
                 {
                     WorkshopId = w.Id,
                     Name = w.WorkshopNameEn,
+                    NameAr = w.WorkshopNameAr,
                     Email = w.User.Email,
                     OrdersCount = _orderRepository
                         .GetAllAsNoTracking()
@@ -216,6 +217,7 @@ namespace Graduation_Application.Services.Admin
                         OrderNumber = $"ORD-{o.Id:D5}",
                         CustomerName = o.User?.FullName ?? o.UserId,
                         VendorName = o.Workshop?.WorkshopNameEn ?? "N/A",
+                        VendorNameAr = o.Workshop?.WorkshopNameAr ?? "غير متاح",
                         TotalAmount = o.TotalPrice,
                         Status = o.Status,
                         CreatedAt = o.CreatedAt,
@@ -318,6 +320,8 @@ namespace Graduation_Application.Services.Admin
                 {
                     Value = w.Id.ToString(),
                     Label = w.WorkshopNameEn,
+                    NameAr = w.WorkshopNameAr,
+                    NameEn = w.WorkshopNameEn,
                 })
                 .ToListAsync();
 
@@ -331,6 +335,7 @@ namespace Graduation_Application.Services.Admin
                         OrderNumber = $"ORD-{o.Id:D5}",
                         CustomerName = o.User?.FullName ?? o.UserId,
                         VendorName = o.Workshop?.WorkshopNameEn ?? "N/A",
+                        VendorNameAr = o.Workshop?.WorkshopNameAr ?? "غير متاح",
                         TotalAmount = o.TotalPrice,
                         Status = o.Status,
                         PaymentStatus =
@@ -412,6 +417,7 @@ namespace Graduation_Application.Services.Admin
                 Vendor = new AdminOrderVendorDto
                 {
                     Name = order.Workshop?.WorkshopNameEn ?? "N/A",
+                    NameAr = order.Workshop?.WorkshopNameAr ?? "غير متاح",
                     Email = order.Workshop?.User?.Email,
                     Phone = order.Workshop?.User?.PhoneNumber,
                     RevenueShare = 0m,

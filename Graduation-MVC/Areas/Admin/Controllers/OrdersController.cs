@@ -15,16 +15,19 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         private readonly IAdminDashboardService _adminDashboardService;
         private readonly IOrderService _orderService;
         private readonly IAdminAuditLogsService _adminAuditLogsService;
+        private readonly ILocalizationService _localizationService;
 
         public OrdersController(
             IAdminDashboardService adminDashboardService,
             IOrderService orderService,
-            IAdminAuditLogsService adminAuditLogsService
+            IAdminAuditLogsService adminAuditLogsService,
+            ILocalizationService localizationService
         )
         {
             _adminDashboardService = adminDashboardService;
             _orderService = orderService;
             _adminAuditLogsService = adminAuditLogsService;
+            _localizationService = localizationService;
         }
 
         [HttpGet]
@@ -55,6 +58,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                             OrderNumber = x.OrderNumber,
                             CustomerName = x.CustomerName,
                             VendorName = x.VendorName,
+                            VendorNameAr = x.VendorNameAr,
                             TotalPrice = x.TotalAmount,
                             Status = x.Status,
                             PaymentStatus = x.PaymentStatus,
@@ -80,6 +84,8 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                         {
                             Value = x.Value,
                             Label = x.Label,
+                            NameAr = x.NameAr,
+                            NameEn = x.NameEn,
                         })
                         .ToList(),
                 }
@@ -120,6 +126,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                     Vendor = new AdminOrderVendorViewModel
                     {
                         Name = dto.Vendor.Name,
+                        NameAr = dto.Vendor.NameAr,
                         Email = dto.Vendor.Email,
                         Phone = dto.Vendor.Phone,
                         RevenueShare = dto.Vendor.RevenueShare,
@@ -166,7 +173,8 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 $"Changed order status for order #{id} from '{oldStatus}' to 'Confirmed'."
             );
 
-            TempData["SuccessMessage"] = $"Order #{id} status changed to Confirmed.";
+            var msgTemplate = _localizationService.Get("auth.orders.statusChanged");
+            TempData["SuccessMessage"] = msgTemplate.Replace("{0}", id.ToString());
             return RedirectToAction(nameof(Details), new { id });
         }
 

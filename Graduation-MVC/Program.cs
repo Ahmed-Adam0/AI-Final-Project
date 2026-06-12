@@ -1,9 +1,10 @@
-using Graduation_infrastructure.ProgramService.ServicesMVC;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.FileProviders;
 using Graduation_Application.IServices;
 using Graduation_Application.Services;
+using Graduation_infrastructure.ProgramService.ServicesMVC;
 using Graduation_infrastructure.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.FileProviders;
+using System.Globalization;
 
 namespace Graduation_MVC
 {
@@ -71,7 +72,27 @@ namespace Graduation_MVC
                     }
                 );
             }
+            app.UseHttpsRedirection();
 
+
+            var supportedCultures = new[] { "en", "ar" };
+
+            app.Use(async (context, next) =>
+            {
+                var culture = context.Request.Cookies["culture"];
+
+                if (string.IsNullOrEmpty(culture))
+                {
+                    culture = "en";
+                }
+
+                var cultureInfo = new CultureInfo(culture);
+
+                CultureInfo.CurrentCulture = cultureInfo;
+                CultureInfo.CurrentUICulture = cultureInfo;
+
+                await next();
+            });
             app.UseRouting();
 
             app.UseAuthentication();

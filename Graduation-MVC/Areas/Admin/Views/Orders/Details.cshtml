@@ -1,69 +1,144 @@
 @model Graduation_MVC.Areas.Admin.ViewModels.Orders.AdminOrderDetailsViewModel
+@using Graduation_Application.IServices.Admin
+@inject ILocalizationService LocalizationService
 @{
-    ViewData["Title"] = $"Order {Model.Summary.OrderNumber}";
+    var isArabic = LocalizationService.GetCurrentCulture() == "ar";
+    ViewData["Title"] = Model.Summary.OrderNumber;
+
+    string LocalStatus(string s) => s switch
+    {
+        "Pending"   => LocalizationService.Get("auth.orders.statusPending"),
+        "Confirmed" => LocalizationService.Get("auth.orders.statusConfirmed"),
+        "Delivered" => LocalizationService.Get("auth.orders.statusDelivered"),
+        "Cancelled" => LocalizationService.Get("auth.orders.statusCancelled"),
+        "Rejected"  => LocalizationService.Get("auth.orders.statusRejected"),
+        _           => s
+    };
+
+    string LocalPayStatus(string s) => s switch
+    {
+        "Paid"    => LocalizationService.Get("auth.orders.payPaid"),
+        "Failed"  => LocalizationService.Get("auth.orders.payFailed"),
+        "Pending" => LocalizationService.Get("auth.orders.payPending"),
+        _         => s
+    };
+
+    string FormatCurrency(decimal amount)
+    {
+        var fmt    = LocalizationService.Get("auth.orders.currencyFormat");
+        var numStr = amount.ToString("N0");
+        if (isArabic) numStr = ToArabicDigits(numStr);
+        return fmt.Replace("{0}", numStr);
+    }
+
+    // Format date in Arabic (with Arabic month names) or English
+    string FormatDate(DateTime dt)
+    {
+        if (isArabic)
+        {
+            var arCulture = new System.Globalization.CultureInfo("ar-EG");
+            var formatted = dt.ToString("dd MMMM yyyy - HH:mm", arCulture);
+            return ToArabicDigits(formatted);
+        }
+        return dt.ToString("yyyy-MM-dd HH:mm");
+    }
+
+    // Translate timeline title (= raw status string from DB)
+    string LocalTimelineTitle(string title) => title switch
+    {
+        "Pending"   => LocalizationService.Get("auth.orders.statusPending"),
+        "Confirmed" => LocalizationService.Get("auth.orders.statusConfirmed"),
+        "Delivered" => LocalizationService.Get("auth.orders.statusDelivered"),
+        "Cancelled" => LocalizationService.Get("auth.orders.statusCancelled"),
+        "Rejected"  => LocalizationService.Get("auth.orders.statusRejected"),
+        _           => title
+    };
+
+    // Parse and translate timeline description: "Status changed from X to Y"
+    string LocalTimelineDesc(string desc)
+    {
+        // Description format from service: "Status changed from {old} to {new}"
+        var prefix = "Status changed from ";
+        var sep    = " to ";
+        if (desc.StartsWith(prefix))
+        {
+            var rest = desc.Substring(prefix.Length);
+            var idx  = rest.IndexOf(sep);
+            if (idx >= 0)
+            {
+                var oldStatus = rest.Substring(0, idx);
+                var newStatus = rest.Substring(idx + sep.Length);
+                var template  = LocalizationService.Get("auth.orders.statusChangedFrom");
+                return template
+                    .Replace("{0}", LocalTimelineTitle(oldStatus))
+                    .Replace("{1}", LocalTimelineTitle(newStatus));
+            }
+        }
+        return desc;
+    }
+
+    var StatusClass = Model.Summary.Status switch
+    {
+        "Confirmed" => "badge-status-active",
+        "Delivered" => "badge-status-active",
+        "Cancelled" => "badge-status-inactive",
+        "Rejected"  => "badge-status-hidden",
+        _           => "badge-status-pending"
+    };
+
+    var statusIcon = Model.Summary.Status switch
+    {
+        "Confirmed" => "fa-solid fa-circle-check",
+        "Delivered" => "fa-solid fa-truck-fast",
+        "Cancelled" => "fa-solid fa-circle-xmark",
+        "Rejected"  => "fa-solid fa-ban",
+        _           => "fa-solid fa-hourglass-half"
+    };
+
+    var paymentStatusClass = Model.Summary.PaymentStatus switch
+    {
+        "Paid"   => "badge-status-active",
+        "Failed" => "badge-status-hidden",
+        _        => "badge-status-pending"
+    };
+
+    var paymentStatusIcon = Model.Summary.PaymentStatus switch
+    {
+        "Paid"   => "fa-solid fa-circle-check",
+        "Failed" => "fa-solid fa-circle-xmark",
+        _        => "fa-solid fa-hourglass-half"
+    };
 }
 
 <div class="row align-items-center mb-4">
     <div class="col-md-8">
         <a asp-area="Admin" asp-controller="Orders" asp-action="Index" class="btn btn-premium btn-premium-secondary mb-3">
-            <i class="fa-solid fa-arrow-left"></i> Back to Orders
+            <i class="fa-solid @(isArabic ? "fa-arrow-right" : "fa-arrow-left")"></i>
+            @LocalizationService.Get("auth.orders.backToOrders")
         </a>
-        <h1 class="display-font text-light mb-1">@Model.Summary.OrderNumber</h1>
-        <p class="text-muted mb-0">Order details, customer, vendor, items, and timeline.</p>
+        <h1 class="display-font text-light mb-1">@(isArabic ? ToArabicDigits(Model.Summary.OrderNumber) : Model.Summary.OrderNumber)</h1>
+        <p class="text-muted mb-0">@LocalizationService.Get("auth.orders.orderDetails")</p>
     </div>
     <div class="col-md-4 text-md-end mt-3 mt-md-0">
         <div class="glass-card p-3 d-inline-block text-start border-1" style="min-width: 290px; background: var(--bg-card); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);">
-            @{
-                var StatusClass = Model.Summary.Status switch
-                {
-                    "Confirmed" => "badge-status-active",
-                    "Delivered" => "badge-status-active",
-                    "Cancelled" => "badge-status-inactive",
-                    "Rejected" => "badge-status-hidden",
-                    _ => "badge-status-pending"
-                };
-
-                var statusIcon = Model.Summary.Status switch
-                {
-                    "Confirmed" => "fa-solid fa-circle-check",
-                    "Delivered" => "fa-solid fa-truck-fast",
-                    "Cancelled" => "fa-solid fa-circle-xmark",
-                    "Rejected" => "fa-solid fa-ban",
-                    _ => "fa-solid fa-hourglass-half"
-                };
-
-                var paymentStatusClass = Model.Summary.PaymentStatus switch
-                {
-                    "Paid" => "badge-status-active",
-                    "Failed" => "badge-status-hidden",
-                    _ => "badge-status-pending"
-                };
-
-                var paymentStatusIcon = Model.Summary.PaymentStatus switch
-                {
-                    "Paid" => "fa-solid fa-circle-check",
-                    "Failed" => "fa-solid fa-circle-xmark",
-                    _ => "fa-solid fa-hourglass-half"
-                };
-            }
 
             <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
-                <span class="text-muted small fw-medium">Order Status</span>
+                <span class="text-muted small fw-medium">@LocalizationService.Get("auth.orders.orderStatus")</span>
                 <span class="badge-status @StatusClass">
-                    <i class="@statusIcon"></i> @Model.Summary.Status
+                    <i class="@statusIcon"></i> @LocalStatus(Model.Summary.Status)
                 </span>
             </div>
 
             <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
-                <span class="text-muted small fw-medium">Payment Status</span>
+                <span class="text-muted small fw-medium">@LocalizationService.Get("auth.orders.paymentStatus")</span>
                 <span class="badge-status @paymentStatusClass">
-                    <i class="@paymentStatusIcon"></i> @Model.Summary.PaymentStatus
+                    <i class="@paymentStatusIcon"></i> @LocalPayStatus(Model.Summary.PaymentStatus)
                 </span>
             </div>
 
             <div class="d-flex justify-content-between align-items-center">
-                <span class="text-muted small fw-medium">Total Amount</span>
-                <span class="fs-5 fw-bold text-indigo">EGP @Model.Summary.TotalPrice.ToString("N0")</span>
+                <span class="text-muted small fw-medium">@LocalizationService.Get("auth.orders.totalAmount")</span>
+                <span class="fs-5 fw-bold text-indigo">@FormatCurrency(Model.Summary.TotalPrice)</span>
             </div>
         </div>
     </div>
@@ -72,15 +147,15 @@
 <div class="row g-4">
     <div class="col-lg-8">
         <div class="glass-card p-4 mb-4">
-            <h5 class="text-light mb-3">Order Items</h5>
+            <h5 class="text-light mb-3">@LocalizationService.Get("auth.orders.orderItems")</h5>
             <div class="table-responsive">
                 <table class="table table-premium mb-0">
                     <thead>
                         <tr>
-                            <th>Product</th>
-                            <th class="text-end">Qty</th>
-                            <th class="text-end">Unit Price</th>
-                            <th class="text-end">Line Total</th>
+                            <th>@LocalizationService.Get("auth.orders.product")</th>
+                            <th class="text-end">@LocalizationService.Get("auth.orders.qty")</th>
+                            <th class="text-end">@LocalizationService.Get("auth.orders.unitPrice")</th>
+                            <th class="text-end">@LocalizationService.Get("auth.orders.lineTotal")</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -88,9 +163,9 @@
                         {
                             <tr>
                                 <td>@item.ProductName</td>
-                                <td class="text-end">@item.Quantity</td>
-                                <td class="text-end">EGP @item.UnitPrice.ToString("N0")</td>
-                                <td class="text-end fw-semibold">EGP @item.LineTotal.ToString("N0")</td>
+                                <td class="text-end">@(isArabic ? ToArabicDigits(item.Quantity.ToString()) : item.Quantity.ToString())</td>
+                                <td class="text-end">@FormatCurrency(item.UnitPrice)</td>
+                                <td class="text-end fw-semibold">@FormatCurrency(item.LineTotal)</td>
                             </tr>
                         }
                     </tbody>
@@ -99,16 +174,16 @@
         </div>
 
         <div class="glass-card p-4">
-            <h5 class="text-light mb-3">Order Timeline</h5>
+            <h5 class="text-light mb-3">@LocalizationService.Get("auth.orders.orderTimeline")</h5>
             <div class="timeline">
                 @foreach (var step in Model.Timeline)
                 {
                     <div class="timeline-item mb-3">
                         <div class="d-flex align-items-start gap-3">
-                            <span class="badge @step.StatusClass">@step.Title</span>
+                            <span class="badge @step.StatusClass">@LocalTimelineTitle(step.Title)</span>
                             <div>
-                                <div class="text-light fw-semibold">@step.Description</div>
-                                <div class="text-muted small">@step.CreatedAt.ToString("yyyy-MM-dd HH:mm")</div>
+                                <div class="text-light fw-semibold">@LocalTimelineDesc(step.Description)</div>
+                                <div class="text-muted small">@FormatDate(step.CreatedAt)</div>
                             </div>
                         </div>
                     </div>
@@ -119,33 +194,54 @@
 
     <div class="col-lg-4">
         <div class="glass-card p-4 mb-4">
-            <h5 class="text-light mb-3">Customer Information</h5>
-            <div class="text-light fw-semibold">@Model.Customer.Name</div>
-            <div class="text-muted small">@Model.Customer.Email</div>
-            <div class="text-muted small">@Model.Customer.Phone</div>
-            <div class="text-muted small mt-2">@Model.Customer.Address</div>
+            <h5 class="text-light mb-3">@LocalizationService.Get("auth.orders.customerInfo")</h5>
+            <div class="text-light fw-semibold">@(string.IsNullOrEmpty(Model.Customer.Name) || Model.Customer.Name == "N/A" ? LocalizationService.Get("auth.orders.notAvailable") : Model.Customer.Name)</div>
+            <div class="text-muted small">@(string.IsNullOrEmpty(Model.Customer.Email) || Model.Customer.Email == "N/A" ? LocalizationService.Get("auth.orders.notAvailable") : Model.Customer.Email)</div>
+            <div class="text-muted small">@(string.IsNullOrEmpty(Model.Customer.Phone) || Model.Customer.Phone == "N/A" ? LocalizationService.Get("auth.orders.notAvailable") : Model.Customer.Phone)</div>
+            <div class="text-muted small mt-2">@(string.IsNullOrEmpty(Model.Customer.Address) || Model.Customer.Address == "N/A" ? LocalizationService.Get("auth.orders.notAvailable") : Model.Customer.Address)</div>
         </div>
 
         <div class="glass-card p-4 mb-4">
-            <h5 class="text-light mb-3">Vendor Information</h5>
-            <div class="text-light fw-semibold">@Model.Vendor.Name</div>
-            <div class="text-muted small">@Model.Vendor.Email</div>
-            <div class="text-muted small">@Model.Vendor.Phone</div>
-            <div class="text-muted small mt-2">Revenue Share: @Model.Vendor.RevenueShare.ToString("F1")%</div>
+            <h5 class="text-light mb-3">@LocalizationService.Get("auth.orders.vendorInfo")</h5>
+            <div class="text-light fw-semibold">@(Model.Vendor.Name == "N/A" || string.IsNullOrEmpty(Model.Vendor.Name) ? LocalizationService.Get("auth.orders.notAvailable") : (isArabic ? Model.Vendor.NameAr : Model.Vendor.Name))</div>
+            <div class="text-muted small">@(string.IsNullOrEmpty(Model.Vendor.Email) ? LocalizationService.Get("auth.orders.notAvailable") : Model.Vendor.Email)</div>
+            <div class="text-muted small">@(string.IsNullOrEmpty(Model.Vendor.Phone) ? LocalizationService.Get("auth.orders.notAvailable") : Model.Vendor.Phone)</div>
+            <div class="text-muted small mt-2">
+                @LocalizationService.Get("auth.orders.revenueShare"): @(isArabic ? ToArabicDigits(Model.Vendor.RevenueShare.ToString("F1")) : Model.Vendor.RevenueShare.ToString("F1"))%
+            </div>
         </div>
 
         <div class="glass-card p-4">
-            <h5 class="text-light mb-3">Change Status</h5>
+            <h5 class="text-light mb-3">@LocalizationService.Get("auth.orders.changeStatus")</h5>
             @if (string.Equals(Model.Summary.Status, "Pending", StringComparison.OrdinalIgnoreCase))
             {
                 <form asp-area="Admin" asp-controller="Orders" asp-action="ChangeStatus" asp-route-id="@Model.Summary.Id" method="post" class="d-grid gap-2">
                     @Html.AntiForgeryToken()
                     <button type="submit" class="btn btn-premium btn-premium-primary">
-                        <i class="fa-solid fa-circle-check"></i> Confirm Order
+                        <i class="fa-solid fa-circle-check"></i> @LocalizationService.Get("auth.orders.confirmOrder")
                     </button>
                 </form>
             }
-            <a asp-area="Admin" asp-controller="Orders" asp-action="Export" asp-route-id="@Model.Summary.Id" class="btn btn-premium btn-premium-secondary w-100 mt-2">Export Order</a>
+            <a asp-area="Admin" asp-controller="Orders" asp-action="Export" asp-route-id="@Model.Summary.Id"
+               class="btn btn-premium btn-premium-secondary w-100 mt-2">
+                @LocalizationService.Get("auth.orders.exportOrder")
+            </a>
         </div>
     </div>
 </div>
+
+@functions {
+    public string ToArabicDigits(string input)
+    {
+        if (string.IsNullOrEmpty(input)) return input;
+        var english = "0123456789";
+        var arabic  = "٠١٢٣٤٥٦٧٨٩";
+        var result  = new System.Text.StringBuilder();
+        foreach (var ch in input)
+        {
+            var idx = english.IndexOf(ch);
+            result.Append(idx != -1 ? arabic[idx] : ch);
+        }
+        return result.ToString();
+    }
+}

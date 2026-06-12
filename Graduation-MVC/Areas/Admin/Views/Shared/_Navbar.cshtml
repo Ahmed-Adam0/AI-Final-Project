@@ -1,29 +1,56 @@
+@using System.Security.Claims
+@using Graduation_Application.IServices.Admin
+@inject ILocalizationService LocalizationService
+@{
+    var currentCulture = LocalizationService.GetCurrentCulture();
+    var isArabic = currentCulture == "ar";
+}
+
 <header class="admin-navbar">
     <button class="admin-nav-toggle" id="sidebarToggle" type="button" aria-label="Toggle Sidebar">
         <i class="fa-solid fa-bars"></i>
     </button>
 
     <div class="d-none d-md-block text-muted small">
-        <span class="text-uppercase" style="letter-spacing: 0.06em;">Admin Panel</span>
+        <span class="text-uppercase" style="letter-spacing: 0.06em;">@LocalizationService.Get("auth.layout.adminPanel")</span>
     </div>
 
     <div class="d-flex align-items-center gap-3 ms-auto">
         <span class="d-none d-lg-inline-block text-muted" style="font-size: 0.85rem;">
             <i class="fa-solid fa-user-shield me-1"></i>
-            <strong class="text-dark">Administrator</strong>
+            <strong class="text-dark">@LocalizationService.Get("auth.navbar.administrator")</strong>
         </span>
+
+        <!-- Language Dropdown -->
+        <div class="dropdown">
+            <button class="btn btn-premium btn-premium-secondary btn-sm dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fa-solid fa-language"></i>
+                <span class="d-none d-md-inline">@(isArabic ? LocalizationService.Get("auth.layout.arabic") : LocalizationService.Get("auth.layout.english"))</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
+                <li>
+                    <button type="button" class="dropdown-item w-100 @(!isArabic ? "active" : "")" onclick="setLanguage('en');">
+                        <i class="fa-solid fa-check me-2 @(isArabic ? "d-none" : "")"></i>@LocalizationService.Get("auth.layout.english")
+                    </button>
+                </li>
+                <li>
+                    <button type="button" class="dropdown-item w-100 @(isArabic ? "active" : "")" onclick="setLanguage('ar');">
+                        <i class="fa-solid fa-check me-2 @(!isArabic ? "d-none" : "")"></i>@LocalizationService.Get("auth.layout.arabic")
+                    </button>
+                </li>
+            </ul>
+        </div>
 
         <div class="dropdown">
             <button class="btn btn-premium btn-premium-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="fa-solid fa-bell"></i>
-                <span class="d-none d-md-inline">Notifications</span>
+                <span class="d-none d-md-inline">@LocalizationService.Get("auth.navbar.notifications")</span>
             </button>
             <ul class="dropdown-menu dropdown-menu-end">
-                <li><span class="dropdown-item-text text-muted small">No new notifications</span></li>
+                <li><span class="dropdown-item-text text-muted small">@LocalizationService.Get("auth.navbar.noNotifications")</span></li>
             </ul>
         </div>
 
-        @using System.Security.Claims
         <div class="dropdown">
             <button class="btn btn-premium btn-premium-secondary btn-sm dropdown-toggle" 
                     type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -42,33 +69,53 @@
                 <li>
                     <a class="dropdown-item" 
                        asp-area="Admin" asp-controller="Profile" asp-action="Index">
-                        <i class="fa-solid fa-user me-2"></i>View Profile
+                        <i class="fa-solid fa-user me-2"></i>@LocalizationService.Get("auth.navbar.profile")
                     </a>
                 </li>
                 <li>
                     <a class="dropdown-item" 
                        asp-area="Admin" asp-controller="Profile" asp-action="Edit">
-                        <i class="fa-solid fa-user-gear me-2"></i>Edit Profile
+                        <i class="fa-solid fa-user-gear me-2"></i>@LocalizationService.Get("auth.navbar.editProfile")
                     </a>
                 </li>
                 <li>
                     <a class="dropdown-item" 
                        asp-area="Admin" asp-controller="Profile" asp-action="ChangePassword">
-                        <i class="fa-solid fa-lock me-2"></i>Change Password
+                        <i class="fa-solid fa-lock me-2"></i>@LocalizationService.Get("auth.navbar.changePassword")
                     </a>
                 </li>
             </ul>
         </div>
 
-        @* <a href="#" class="btn btn-premium btn-premium-primary btn-sm">
-            <i class="fa-solid fa-right-from-bracket"></i>
-            <span class="d-none d-md-inline">Logout</span>
-        </a> *@
         <form asp-area="Admin" asp-controller="Account" asp-action="Logout" method="post">
             <button type="submit" class="btn btn-premium btn-premium-primary btn-sm">
                 <i class="fa-solid fa-right-from-bracket"></i>
-                <span class="d-none d-md-inline">Logout</span>
+                <span class="d-none d-md-inline">@LocalizationService.Get("auth.navbar.logout")</span>
             </button>
         </form>
     </div>
 </header>
+
+<script>
+    function setLanguage(culture) {
+        // Send a POST request to update the PreferredLanguage in DB and set cookie
+        fetch('/Admin/Account/SetLanguage?culture=' + culture, {
+            method: 'POST'
+        }).then(response => {
+            // Also update the client-side cookie immediately for consistency
+            const expiryDate = new Date();
+            expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+            document.cookie = `culture=${culture};expires=${expiryDate.toUTCString()};path=/`;
+
+            // Reload the page
+            location.reload();
+        }).catch(err => {
+            console.error('Language switch failed on server:', err);
+            // Fallback to client-side cookie update
+            const expiryDate = new Date();
+            expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+            document.cookie = `culture=${culture};expires=${expiryDate.toUTCString()};path=/`;
+            location.reload();
+        });
+    }
+</script>

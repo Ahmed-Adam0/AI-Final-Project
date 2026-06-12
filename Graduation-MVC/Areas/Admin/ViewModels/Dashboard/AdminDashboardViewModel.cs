@@ -48,6 +48,7 @@ namespace Graduation_MVC.Areas.Admin.ViewModels.Dashboard
     public class AdminDashboardVendorViewModel
     {
         public string Name { get; set; }
+        public string NameAr { get; set; }
         public string Email { get; set; }
         public decimal Revenue { get; set; }
         public int OrdersCount { get; set; }

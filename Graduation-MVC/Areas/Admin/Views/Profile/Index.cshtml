@@ -1,14 +1,15 @@
 @model Graduation_MVC.Areas.Admin.ViewModels.Profile.AdminProfileViewModel
-
+@using Graduation_Application.IServices.Admin
+@inject ILocalizationService LocalizationService
 @{
-    ViewData["Title"] = "My Profile";
+    ViewData["Title"] = LocalizationService.Get("auth.profile.title");
 }
 
 <div class="row align-items-center mb-4">
     <div class="col-md-8">
-        <h1 class="display-font text-light mb-1">My Profile</h1>
+        <h1 class="display-font text-light mb-1">@LocalizationService.Get("auth.profile.title")</h1>
         <p class="text-muted mb-0">
-            View and manage your admin account information.
+            @LocalizationService.Get("auth.profile.subtitle")
         </p>
     </div>
 
@@ -19,7 +20,7 @@
                asp-action="Edit"
                class="btn btn-premium btn-premium-primary">
                 <i class="fa-solid fa-user-gear me-2"></i>
-                Edit Profile
+                @LocalizationService.Get("auth.profile.editProfile")
             </a>
 
             <a asp-area="Admin"
@@ -27,7 +28,7 @@
                asp-action="ChangePassword"
                class="btn btn-premium btn-premium-secondary">
                 <i class="fa-solid fa-lock me-2"></i>
-                Change Password
+                @LocalizationService.Get("auth.profile.changePassword")
             </a>
         </div>
     </div>
@@ -46,14 +47,14 @@
                 @if (!string.IsNullOrWhiteSpace(Model.ProfileImage))
                 {
                     <img src="@Model.ProfileImage"
-                         alt="Profile"
-                         class="rounded-circle mb-3"
-                         style="width:130px;height:130px;object-fit:cover;border:3px solid var(--accent-primary);" />
+                          alt="Profile"
+                          class="rounded-circle mb-3"
+                          style="width:130px;height:130px;object-fit:cover;border:3px solid var(--accent-primary);" />
                 }
                 else
                 {
                     <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-                         style="width:130px;height:130px;background:rgba(255,255,255,.08)">
+                          style="width:130px;height:130px;background:rgba(255,255,255,.08)">
                         <i class="fa-solid fa-user fa-4x text-light"></i>
                     </div>
                 }
@@ -63,11 +64,11 @@
                 </h4>
 
                 <p class="text-muted mb-3">
-                    Administrator
+                    @LocalizationService.Get("auth.navbar.administrator")
                 </p>
 
                 <span class="badge bg-success px-3 py-2">
-                    Active Account
+                    @LocalizationService.Get("auth.profile.activeAccount")
                 </span>
 
             </div>
@@ -78,7 +79,7 @@
 
                 <div class="d-flex justify-content-between mb-3">
                     <span class="text-muted">
-                        <i class="fa-solid fa-envelope me-2"></i>Email
+                        <i class="fa-solid fa-envelope me-2"></i>@LocalizationService.Get("auth.profile.email")
                     </span>
 
                     <span>@Model.Email</span>
@@ -86,25 +87,25 @@
 
                 <div class="d-flex justify-content-between mb-3">
                     <span class="text-muted">
-                        <i class="fa-solid fa-phone me-2"></i>Phone
+                        <i class="fa-solid fa-phone me-2"></i>@LocalizationService.Get("auth.profile.phone")
                     </span>
 
                     <span>
                         @(string.IsNullOrWhiteSpace(Model.PhoneNumber)
-                            ? "Not Provided"
+                            ? LocalizationService.Get("auth.profile.notProvided")
                             : Model.PhoneNumber)
                     </span>
                 </div>
 
                 <div class="d-flex justify-content-between">
                     <span class="text-muted">
-                        <i class="fa-solid fa-globe me-2"></i>Language
+                        <i class="fa-solid fa-globe me-2"></i>@LocalizationService.Get("auth.profile.language")
                     </span>
 
                     <span>
                         @(Model.PreferredLanguage == "ar"
-                            ? "العربيه"
-                            : "English")
+                            ? LocalizationService.Get("auth.layout.arabic")
+                            : LocalizationService.Get("auth.layout.english"))
                     </span>
                 </div>
 
@@ -122,7 +123,7 @@
 
             <h5 class="mb-4">
                 <i class="fa-solid fa-user me-2"></i>
-                Personal Information
+                @LocalizationService.Get("auth.profile.personalInfo")
             </h5>
 
             <div class="row g-3">
@@ -130,7 +131,7 @@
                 <div class="col-md-6">
                     <div class="p-3 rounded border border-secondary-subtle">
                         <small class="text-muted d-block mb-2">
-                            Full Name
+                            @LocalizationService.Get("auth.profile.fullName")
                         </small>
 
                         <div class="fw-semibold">
@@ -142,7 +143,7 @@
                 <div class="col-md-6">
                     <div class="p-3 rounded border border-secondary-subtle">
                         <small class="text-muted d-block mb-2">
-                            Email Address
+                            @LocalizationService.Get("auth.profile.emailAddress")
                         </small>
 
                         <div class="fw-semibold">
@@ -154,12 +155,12 @@
                 <div class="col-md-6">
                     <div class="p-3 rounded border border-secondary-subtle">
                         <small class="text-muted d-block mb-2">
-                            Phone Number
+                            @LocalizationService.Get("auth.profile.phoneNumber")
                         </small>
 
                         <div class="fw-semibold">
                             @(string.IsNullOrWhiteSpace(Model.PhoneNumber)
-                                ? "Not Provided"
+                                ? LocalizationService.Get("auth.profile.notProvided")
                                 : Model.PhoneNumber)
                         </div>
                     </div>
@@ -168,13 +169,13 @@
                 <div class="col-md-6">
                     <div class="p-3 rounded border border-secondary-subtle">
                         <small class="text-muted d-block mb-2">
-                            Preferred Language
+                            @LocalizationService.Get("auth.profile.preferredLanguage")
                         </small>
 
                         <div class="fw-semibold">
                             @(Model.PreferredLanguage == "ar"
-                                ? "العربيه"
-                                : "English")
+                                ? LocalizationService.Get("auth.layout.arabic")
+                                : LocalizationService.Get("auth.layout.english"))
                         </div>
                     </div>
                 </div>
@@ -187,7 +188,7 @@
 
             <h5 class="mb-4">
                 <i class="fa-solid fa-shield-halved me-2"></i>
-                Security Overview
+                @LocalizationService.Get("auth.profile.securityOverview")
             </h5>
 
             <div class="row g-3">
@@ -196,11 +197,11 @@
                     <div class="p-3 rounded border border-success-subtle">
                         <div class="text-success mb-2">
                             <i class="fa-solid fa-circle-check"></i>
-                            Email Verification
+                            @LocalizationService.Get("auth.profile.emailVerification")
                         </div>
 
                         <div>
-                            Your email address is verified.
+                            @LocalizationService.Get("auth.profile.emailVerifiedMsg")
                         </div>
                     </div>
                 </div>
@@ -209,11 +210,11 @@
                     <div class="p-3 rounded border border-warning-subtle">
                         <div class="text-warning mb-2">
                             <i class="fa-solid fa-key"></i>
-                            Password Security
+                            @LocalizationService.Get("auth.profile.passwordSecurity")
                         </div>
 
                         <div>
-                            Keep your password updated regularly.
+                            @LocalizationService.Get("auth.profile.passwordTip")
                         </div>
                     </div>
                 </div>

@@ -43,6 +43,7 @@ namespace Graduation_MVC.Areas.Admin.ViewModels.Orders
         public string OrderNumber { get; set; }
         public string CustomerName { get; set; }
         public string VendorName { get; set; }
+        public string VendorNameAr { get; set; }
         public decimal TotalPrice { get; set; }
         public string Status { get; set; }
         public string PaymentStatus { get; set; }
@@ -101,6 +102,7 @@ namespace Graduation_MVC.Areas.Admin.ViewModels.Orders
     public class AdminOrderVendorViewModel
     {
         public string Name { get; set; }
+        public string NameAr { get; set; }
         public string Email { get; set; }
         public string Phone { get; set; }
         public decimal RevenueShare { get; set; }
@@ -116,5 +118,7 @@ namespace Graduation_MVC.Areas.Admin.ViewModels.Orders
     {
         public string Value { get; set; }
         public string Label { get; set; }
+        public string NameAr { get; set; }
+        public string NameEn { get; set; }
     }
 }

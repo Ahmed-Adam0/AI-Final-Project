@@ -16,10 +16,12 @@ namespace Graduation_MVC.Areas.Admin.Controllers
     public class ProfileController : Controller
     {
         private readonly IAdminProfileService _profileService;
+        private readonly ILocalizationService _localizationService;
 
-        public ProfileController(IAdminProfileService profileService)
+        public ProfileController(IAdminProfileService profileService, ILocalizationService localizationService)
         {
             _profileService = profileService;
+            _localizationService = localizationService;
         }
 
         [HttpGet]
@@ -112,7 +114,11 @@ namespace Graduation_MVC.Areas.Admin.Controllers
 
                 await _profileService.UpdateProfileAsync(adminId, dto);
 
-                TempData["SuccessMessage"] = "Profile updated successfully";
+                // Sync the language cookie with the newly updated profile language preference
+                await _localizationService.SetCultureAsync(vm.PreferredLanguage);
+
+                // Use the new language explicitly — the new cookie is not yet in the request at this point
+                TempData["SuccessMessage"] = _localizationService.Get("auth.profile.successUpdate", vm.PreferredLanguage);
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
@@ -148,7 +154,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 // Validate password confirmation
                 if (vm.NewPassword != vm.ConfirmPassword)
                 {
-                    ModelState.AddModelError("ConfirmPassword", "Passwords do not match");
+                    ModelState.AddModelError("ConfirmPassword", _localizationService.Get("auth.profile.passwordsDoNotMatch"));
                     return View(vm);
                 }
 
@@ -160,7 +166,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
 
                 await _profileService.ChangePasswordAsync(adminId, dto);
 
-                TempData["SuccessMessage"] = "Password changed successfully";
+                TempData["SuccessMessage"] = _localizationService.Get("auth.profile.successPasswordChange");
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)

@@ -23,6 +23,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Graduation_infrastructure.Identity;
 using Graduation_Application.Mapper.Admin;
 using Graduation_infrastructure.Services;
+using Graduation_infrastructure.Localization;
 
 namespace Graduation_infrastructure.ProgramService.ServicesMVC
 {
@@ -78,6 +79,7 @@ namespace Graduation_infrastructure.ProgramService.ServicesMVC
             services.AddScoped<IFileService, FileService>();
             services.AddScoped<IAdminUsersService, AdminUsersService>();
             services.AddScoped<IAdminAuditLogsService, AdminAuditLogsService>();
+            services.AddScoped<ILocalizationService, LocalizationService>();
             // Application Services
             services.AddScoped<IJwtTokenGenerator, NullJwtTokenGenerator>();
             // Do not register existing IAuthService here for MVC; register Admin auth service instead

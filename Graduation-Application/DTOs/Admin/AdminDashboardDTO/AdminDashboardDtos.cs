@@ -39,6 +39,7 @@ namespace Graduation_Application.DTOs.Admin.AdminDashboardDTO
         public string OrderNumber { get; set; }
         public string CustomerName { get; set; }
         public string VendorName { get; set; }
+        public string VendorNameAr { get; set; }
         public decimal TotalAmount { get; set; }
         public string Status { get; set; }
         public string PaymentStatus { get; set; }  // Payment status as string
@@ -49,6 +50,7 @@ namespace Graduation_Application.DTOs.Admin.AdminDashboardDTO
     {
         public int WorkshopId { get; set; }
         public string Name { get; set; }
+        public string NameAr { get; set; }
         public string Email { get; set; }
         public decimal Revenue { get; set; }
         public int OrdersCount { get; set; }

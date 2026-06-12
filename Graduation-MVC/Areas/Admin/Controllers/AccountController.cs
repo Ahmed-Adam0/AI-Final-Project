@@ -17,15 +17,18 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         private readonly IAdminAuthService _adminAuthService;
         private readonly UserManager<Graduation_domain.Entities.ApplicationUser> _userManager;
         private readonly SignInManager<Graduation_domain.Entities.ApplicationUser> _signInManager;
+        private readonly ILocalizationService _localizationService;
 
         public AccountController(
             IAdminAuthService adminAuthService,
             UserManager<Graduation_domain.Entities.ApplicationUser> userManager,
-            SignInManager<Graduation_domain.Entities.ApplicationUser> signInManager)
+            SignInManager<Graduation_domain.Entities.ApplicationUser> signInManager,
+            ILocalizationService localizationService)
         {
             _adminAuthService = adminAuthService;
             _userManager = userManager;
             _signInManager = signInManager;
+            _localizationService = localizationService;
         }
 
         [HttpGet]
@@ -58,21 +61,15 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 var principal = new ClaimsPrincipal(identity);
 
                 await HttpContext.SignInAsync(
-    CookieAuthenticationDefaults.AuthenticationScheme,
-    principal,
-    //new AuthenticationProperties
-    //{
-    //    IsPersistent = vm.RememberMe,  // ← ده Remember Me
-    //    ExpiresUtc = vm.RememberMe 
-    //        ? DateTimeOffset.UtcNow.AddDays(1)  // ← 30 يوم
-    //        : DateTimeOffset.UtcNow.AddHours(1)  // ← 8 ساعات
-    //}
-    new AuthenticationProperties
-    {
-        IsPersistent = false  // ← مش هيتحفظ لما يقفل المتصفح
-    }
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    principal,
+                    new AuthenticationProperties
+                    {
+                        IsPersistent = false  // ← مش هيتحفظ لما يقفل المتصفح
+                    }
+                );
 
-);
+                await _localizationService.SetCultureAsync(result.PreferredLanguage);
 
                 return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
             }
@@ -106,7 +103,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 if (!ModelState.IsValid) return View(vm);
 
                 await _adminAuthService.ForgotPasswordAsync(new AdminForgotPasswordDto { Email = vm.Email });
-                TempData["SuccessMessage"] = "OTP sent to your email";
+                TempData["SuccessMessage"] = _localizationService.Get("auth.forgotPassword.otpSentMessage");
                 TempData["OtpEmail"] = vm.Email;
                 return RedirectToAction("VerifyOtp");
             }
@@ -136,7 +133,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 var valid = await _adminAuthService.VerifyOtpAsync(new AdminVerifyOtpDto { Email = vm.Email, OtpCode = vm.OtpCode });
                 if (!valid)
                 {
-                    TempData["ErrorMessage"] = "Invalid OTP code";
+                    TempData["ErrorMessage"] = _localizationService.Get("auth.verifyOtp.invalidOtpMessage");
                     return View(vm);
                 }
 
@@ -169,7 +166,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 if (!ModelState.IsValid) return View(vm);
 
                 await _adminAuthService.ResetPasswordAsync(new AdminResetPasswordDto { Email = vm.Email, OtpCode = vm.OtpCode, NewPassword = vm.NewPassword });
-                TempData["SuccessMessage"] = "Password reset successfully";
+                TempData["SuccessMessage"] = _localizationService.Get("auth.resetPassword.successMessage");
                 return RedirectToAction("Login");
             }
             catch (Exception ex)
@@ -183,6 +180,18 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         public IActionResult AccessDenied()
         {
             return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> SetLanguage(string culture)
+        {
+            // Set culture using localization service
+            await _localizationService.SetCultureAsync(culture);
+
+            // Return NoContent to acknowledge the request
+            // The browser will reload via JavaScript
+            return NoContent();
         }
     }
 }

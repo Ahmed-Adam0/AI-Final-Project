@@ -1,17 +1,78 @@
 @model Graduation_MVC.Areas.Admin.ViewModels.Orders.AdminOrdersPageViewModel
+@using Graduation_Application.IServices.Admin
+@inject ILocalizationService LocalizationService
 @{
-    ViewData["Title"] = "Orders";
+    var isArabic = LocalizationService.GetCurrentCulture() == "ar";
+    ViewData["Title"] = LocalizationService.Get("auth.orders.title");
+
+    // Localized status display map
+    string LocalStatus(string s) => s switch
+    {
+        "Pending"   => LocalizationService.Get("auth.orders.statusPending"),
+        "Confirmed" => LocalizationService.Get("auth.orders.statusConfirmed"),
+        "Delivered" => LocalizationService.Get("auth.orders.statusDelivered"),
+        "Cancelled" => LocalizationService.Get("auth.orders.statusCancelled"),
+        "Rejected"  => LocalizationService.Get("auth.orders.statusRejected"),
+        _           => s
+    };
+
+    string LocalPayStatus(string s) => s switch
+    {
+        "Paid"    => LocalizationService.Get("auth.orders.payPaid"),
+        "Failed"  => LocalizationService.Get("auth.orders.payFailed"),
+        "Pending" => LocalizationService.Get("auth.orders.payPending"),
+        _         => s
+    };
+
+    // Translate the Label values coming from the Service (hardcoded English)
+    string LocalStatusLabel(string label) => label switch
+    {
+        "All Statuses" => LocalizationService.Get("auth.orders.allStatuses"),
+        "Pending"      => LocalizationService.Get("auth.orders.statusPending"),
+        "Processing"   => LocalizationService.Get("auth.orders.statusConfirmed"),
+        "Completed"    => LocalizationService.Get("auth.orders.statusDelivered"),
+        "Cancelled"    => LocalizationService.Get("auth.orders.statusCancelled"),
+        _              => label
+    };
+
+    string LocalVendorLabel(string label) => label switch
+    {
+        "All Vendors" => LocalizationService.Get("auth.orders.allVendors"),
+        _             => label
+    };
+
+    string FormatCurrency(decimal amount)
+    {
+        var fmt    = LocalizationService.Get("auth.orders.currencyFormat");
+        var numStr = amount.ToString("N0");
+        if (isArabic) numStr = ToArabicDigits(numStr);
+        return fmt.Replace("{0}", numStr);
+    }
+
+    // Format date in Arabic (with Arabic month names) or English
+    string FormatDate(DateTime dt)
+    {
+        if (isArabic)
+        {
+            var arCulture = new System.Globalization.CultureInfo("ar-EG");
+            var formatted = dt.ToString("dd MMMM yyyy - HH:mm", arCulture);
+            return ToArabicDigits(formatted);
+        }
+        return dt.ToString("yyyy-MM-dd HH:mm");
+    }
 }
 
 <div class="row align-items-center mb-4">
     <div class="col-md-7">
-        <h1 class="display-font text-light mb-1">Orders Management</h1>
-        <p class="text-muted mb-0">Search, filter, sort, and review marketplace orders.</p>
+        <h1 class="display-font text-light mb-1">@LocalizationService.Get("auth.orders.title")</h1>
+        <p class="text-muted mb-0">@LocalizationService.Get("auth.orders.subtitle")</p>
     </div>
     <div class="col-md-5 text-md-end mt-3 mt-md-0">
         <div class="glass-card px-3 py-2 d-inline-flex align-items-center gap-3">
-            <span class="text-muted small">Total Orders:</span>
-            <span class="badge bg-indigo fs-6 font-monospace" style="background-color: var(--accent-primary);">@Model.Paging.TotalCount</span>
+            <span class="text-muted small">@LocalizationService.Get("auth.orders.totalOrders"):</span>
+            <span class="badge bg-indigo fs-6 font-monospace" style="background-color: var(--accent-primary);">
+                @(isArabic ? ToArabicDigits(Model.Paging.TotalCount.ToString()) : Model.Paging.TotalCount.ToString())
+            </span>
         </div>
     </div>
 </div>
@@ -20,39 +81,43 @@
     <form method="get" asp-area="Admin" asp-controller="Orders" asp-action="Index">
         <div class="row g-3 align-items-end">
             <div class="col-md-4">
-                <label class="form-label text-muted small">Search</label>
-                <input asp-for="Filter.Search" class="form-control form-control-premium" placeholder="Order number or customer" />
+                <label class="form-label text-muted small">@LocalizationService.Get("auth.orders.search")</label>
+                <input asp-for="Filter.Search" class="form-control form-control-premium" placeholder="@LocalizationService.Get("auth.orders.searchPlace")" />
             </div>
             <div class="col-md-2">
-                <label class="form-label text-muted small">Status</label>
+                <label class="form-label text-muted small">@LocalizationService.Get("auth.orders.status")</label>
                 <select asp-for="Filter.Status" class="form-select form-select-premium">
                     @foreach (var item in Model.StatusOptions)
                     {
-                        <option value="@item.Value">@item.Label</option>
+                        <option value="@item.Value">@LocalStatusLabel(item.Label)</option>
                     }
                 </select>
             </div>
             <div class="col-md-2">
-                <label class="form-label text-muted small">Vendor</label>
+                <label class="form-label text-muted small">@LocalizationService.Get("auth.orders.vendor")</label>
                 <select asp-for="Filter.VendorId" class="form-select form-select-premium">
                     @foreach (var vendor in Model.Vendors)
                     {
-                        <option value="@vendor.Value">@vendor.Label</option>
+                        <option value="@vendor.Value">@(isArabic ? vendor.NameAr : vendor.NameEn)</option>
                     }
                 </select>
             </div>
             <div class="col-md-2">
-                <label class="form-label text-muted small">From</label>
-                <input asp-for="Filter.FromDate" type="date" class="form-control form-control-premium" />
+                <label class="form-label text-muted small">@LocalizationService.Get("auth.orders.from")</label>
+                <input asp-for="Filter.FromDate" id="fromDatePicker" type="date" class="form-control form-control-premium" />
             </div>
             <div class="col-md-2">
-                <label class="form-label text-muted small">To</label>
-                <input asp-for="Filter.ToDate" type="date" class="form-control form-control-premium" />
+                <label class="form-label text-muted small">@LocalizationService.Get("auth.orders.to")</label>
+                <input asp-for="Filter.ToDate" id="toDatePicker" type="date" class="form-control form-control-premium" />
             </div>
         </div>
         <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
-            <a asp-area="Admin" asp-controller="Orders" asp-action="Index" class="btn btn-premium btn-premium-secondary">Reset</a>
-            <button type="submit" class="btn btn-premium btn-premium-primary">Apply Filters</button>
+            <a asp-area="Admin" asp-controller="Orders" asp-action="Index" class="btn btn-premium btn-premium-secondary">
+                @LocalizationService.Get("auth.orders.reset")
+            </a>
+            <button type="submit" class="btn btn-premium btn-premium-primary">
+                @LocalizationService.Get("auth.orders.applyFilters")
+            </button>
         </div>
     </form>
 </div>
@@ -62,14 +127,14 @@
         <table class="table table-premium mb-0">
             <thead>
                 <tr>
-                    <th>Order</th>
-                    <th>Customer</th>
-                    <th>Vendor</th>
-                    <th>Status</th>
-                    <th>Payment</th>
-                    <th>Date</th>
-                    <th class="text-end">Total</th>
-                    <th class="text-end">Actions</th>
+                    <th>@LocalizationService.Get("auth.orders.order")</th>
+                    <th>@LocalizationService.Get("auth.orders.customer")</th>
+                    <th>@LocalizationService.Get("auth.orders.vendor")</th>
+                    <th>@LocalizationService.Get("auth.orders.status")</th>
+                    <th>@LocalizationService.Get("auth.orders.payment")</th>
+                    <th>@LocalizationService.Get("auth.orders.date")</th>
+                    <th class="text-end">@LocalizationService.Get("auth.orders.total")</th>
+                    <th class="text-end">@LocalizationService.Get("auth.orders.actions")</th>
                 </tr>
             </thead>
             <tbody>
@@ -77,11 +142,13 @@
                 {
                     <tr>
                         <td>
-                            <div class="fw-semibold text-light">@order.OrderNumber</div>
-                            <div class="text-muted small">#@order.Id</div>
+                            <div class="fw-semibold text-light">@(isArabic ? ToArabicDigits(order.OrderNumber) : order.OrderNumber)</div>
+                            <div class="text-muted small">#@(isArabic ? ToArabicDigits(order.Id.ToString()) : order.Id.ToString())</div>
                         </td>
                         <td>@order.CustomerName</td>
-                        <td>@order.VendorName</td>
+                        <td>@(order.VendorNameAr == "غير متاح" || string.IsNullOrEmpty(order.VendorNameAr) ? 
+                            (order.VendorName == "N/A" ? LocalizationService.Get("auth.orders.notAvailable") : order.VendorName) : 
+                            (isArabic ? order.VendorNameAr : order.VendorName))</td>
                         <td>
                             @{
                                 var StatusClass = order.Status switch
@@ -89,47 +156,48 @@
                                     "Confirmed" => "badge-status-active",
                                     "Delivered" => "badge-status-active",
                                     "Cancelled" => "badge-status-inactive",
-                                    "Rejected" => "badge-status-hidden",
-                                    _ => "badge-status-pending"
+                                    "Rejected"  => "badge-status-hidden",
+                                    _           => "badge-status-pending"
                                 };
-
                                 var statusIcon = order.Status switch
                                 {
                                     "Confirmed" => "fa-solid fa-circle-check",
                                     "Delivered" => "fa-solid fa-truck-fast",
                                     "Cancelled" => "fa-solid fa-circle-xmark",
-                                    "Rejected" => "fa-solid fa-ban",
-                                    _ => "fa-solid fa-hourglass-half"
+                                    "Rejected"  => "fa-solid fa-ban",
+                                    _           => "fa-solid fa-hourglass-half"
                                 };
                             }
                             <span class="badge-status @StatusClass">
-                                <i class="@statusIcon me-1"></i> @order.Status
+                                <i class="@statusIcon me-1"></i> @LocalStatus(order.Status)
                             </span>
                         </td>
                         <td>
                             @{
                                 var paymentStatusClass = order.PaymentStatus switch
                                 {
-                                    "Paid" => "badge-status-active",
+                                    "Paid"   => "badge-status-active",
                                     "Failed" => "badge-status-hidden",
-                                    _ => "badge-status-pending"
+                                    _        => "badge-status-pending"
                                 };
-
                                 var paymentStatusIcon = order.PaymentStatus switch
                                 {
-                                    "Paid" => "fa-solid fa-circle-check",
+                                    "Paid"   => "fa-solid fa-circle-check",
                                     "Failed" => "fa-solid fa-circle-xmark",
-                                    _ => "fa-solid fa-hourglass-half"
+                                    _        => "fa-solid fa-hourglass-half"
                                 };
                             }
                             <span class="badge-status @paymentStatusClass">
-                                <i class="@paymentStatusIcon me-1"></i> @order.PaymentStatus
+                                <i class="@paymentStatusIcon me-1"></i> @LocalPayStatus(order.PaymentStatus)
                             </span>
                         </td>
-                        <td class="text-muted small">@order.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                        <td class="text-end fw-semibold">@order.TotalPrice.ToString("C2")</td>
+                        <td class="text-muted small">@FormatDate(order.CreatedAt)</td>
+                        <td class="text-end fw-semibold">@FormatCurrency(order.TotalPrice)</td>
                         <td class="text-end">
-                            <a asp-area="Admin" asp-controller="Orders" asp-action="Details" asp-route-id="@order.Id" class="btn btn-sm btn-premium btn-premium-secondary">View Details</a>
+                            <a asp-area="Admin" asp-controller="Orders" asp-action="Details" asp-route-id="@order.Id"
+                               class="btn btn-sm btn-premium btn-premium-secondary">
+                                @LocalizationService.Get("auth.orders.viewDetails")
+                            </a>
                         </td>
                     </tr>
                 }
@@ -138,16 +206,163 @@
     </div>
 
     <div class="d-flex justify-content-between align-items-center mt-4">
-        <div class="text-muted small">Page @Model.Paging.Page of @Model.Paging.TotalPages</div>
+        <div class="text-muted small">
+            @{
+                var pageStr  = isArabic ? ToArabicDigits(Model.Paging.Page.ToString())       : Model.Paging.Page.ToString();
+                var totalStr = isArabic ? ToArabicDigits(Model.Paging.TotalPages.ToString()) : Model.Paging.TotalPages.ToString();
+                var pageLabel = LocalizationService.Get("auth.orders.pageOf")
+                                    .Replace("{0}", pageStr)
+                                    .Replace("{1}", totalStr);
+            }
+            @pageLabel
+        </div>
         <div class="btn-group">
             @if (Model.Paging.HasPrevious)
             {
-                <a class="btn btn-premium btn-premium-secondary btn-sm" asp-route-page="@(Model.Paging.Page - 1)">Previous</a>
+                <a class="btn btn-premium btn-premium-secondary btn-sm" asp-route-page="@(Model.Paging.Page - 1)">
+                    <i class="fa-solid @(isArabic ? "fa-arrow-right" : "fa-arrow-left") me-1"></i>
+                    @LocalizationService.Get("auth.orders.previous")
+                </a>
             }
             @if (Model.Paging.HasNext)
             {
-                <a class="btn btn-premium btn-premium-secondary btn-sm" asp-route-page="@(Model.Paging.Page + 1)">Next</a>
+                <a class="btn btn-premium btn-premium-secondary btn-sm" asp-route-page="@(Model.Paging.Page + 1)">
+                    @LocalizationService.Get("auth.orders.next")
+                    <i class="fa-solid @(isArabic ? "fa-arrow-left" : "fa-arrow-right") ms-1"></i>
+                </a>
             }
         </div>
     </div>
 </div>
+
+@functions {
+    public string ToArabicDigits(string input)
+    {
+        if (string.IsNullOrEmpty(input)) return input;
+        var english = "0123456789";
+        var arabic  = "٠١٢٣٤٥٦٧٨٩";
+        var result  = new System.Text.StringBuilder();
+        foreach (var ch in input)
+        {
+            var idx = english.IndexOf(ch);
+            result.Append(idx != -1 ? arabic[idx] : ch);
+        }
+        return result.ToString();
+    }
+}
+
+@section Styles {
+    @if (isArabic)
+    {
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+        <style>
+            /* Flatpickr — match premium admin style */
+            .flatpickr-calendar {
+                border-radius: 12px;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+                border: 1px solid var(--border-color);
+                font-family: 'Inter', 'Segoe UI', sans-serif;
+                direction: rtl;
+            }
+            .flatpickr-months, .flatpickr-weekdays {
+                direction: rtl;
+            }
+            .flatpickr-day.selected,
+            .flatpickr-day.selected:hover,
+            .flatpickr-day.selected:focus {
+                background: var(--accent-primary);
+                border-color: var(--accent-primary);
+                color: #fff;
+            }
+            .flatpickr-day:hover {
+                background: #e9ecef;
+            }
+            .flatpickr-current-month .numInputWrapper input,
+            .flatpickr-current-month select {
+                font-family: inherit;
+            }
+        </style>
+    }
+}
+
+@section Scripts {
+    @if (isArabic)
+    {
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
+        <script>
+            // Convert Western digits 0-9 → Arabic-Indic ٠-٩
+            function toAr(str) {
+                return String(str).replace(/[0-9]/g, function (d) {
+                    return '٠١٢٣٤٥٦٧٨٩'[+d];
+                });
+            }
+
+            // Overlay Arabic year over the native number input
+            function applyArabicYear(fp) {
+                var yearInput = fp.calendarContainer.querySelector('.numInput.cur-year');
+                if (!yearInput) return;
+
+                var wrapper = yearInput.closest('.numInputWrapper');
+                if (!wrapper) return;
+
+                var overlay = wrapper.querySelector('.ar-yr-overlay');
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.className = 'ar-yr-overlay';
+                    overlay.style.cssText =
+                        'position:absolute;inset:0;display:flex;align-items:center;' +
+                        'justify-content:center;font-size:14px;font-weight:600;' +
+                        'pointer-events:none;background:inherit;z-index:1;';
+                    wrapper.style.position = 'relative';
+                    wrapper.appendChild(overlay);
+                    yearInput.style.color = 'transparent';
+                    yearInput.addEventListener('input', function () {
+                        overlay.textContent = toAr(this.value);
+                    });
+                }
+                overlay.textContent = toAr(yearInput.value);
+            }
+
+            var arConfig = {
+                locale: "ar",
+                dateFormat: "Y-m-d",     // hidden value → sent to server as yyyy-MM-dd
+                altInput: true,          // show a visible display input to the user
+                altFormat: "j F Y",      // display format: "١٥ يناير ٢٠٢٤"
+                allowInput: false,
+                disableMobile: true,
+
+                // Convert each day cell number to Arabic digits
+                onDayCreate: function (dObj, dStr, fp, dayElem) {
+                    dayElem.textContent = toAr(dayElem.textContent);
+                },
+
+                // After calendar opens: fix year display
+                onReady: function (dObj, dStr, fp) {
+                    applyArabicYear(fp);
+                },
+
+                // After month/year navigation: reconvert days + year
+                onMonthChange: function (dObj, dStr, fp) {
+                    applyArabicYear(fp);
+                    fp.calendarContainer.querySelectorAll('.flatpickr-day').forEach(function (el) {
+                        el.textContent = toAr(el.textContent);
+                    });
+                },
+                onYearChange: function (dObj, dStr, fp) {
+                    applyArabicYear(fp);
+                },
+
+                // After a date is selected: convert altInput value to Arabic digits
+                onChange: function (selectedDates, dateStr, fp) {
+                    if (fp.altInput) {
+                        fp.altInput.value = toAr(fp.altInput.value);
+                    }
+                }
+            };
+
+            flatpickr("#fromDatePicker", arConfig);
+            flatpickr("#toDatePicker",   arConfig);
+        </script>
+    }
+}
