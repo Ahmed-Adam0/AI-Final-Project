@@ -1,16 +1,18 @@
 @model ReportedProductsViewModel
+@using Graduation_Application.IServices.Admin
+@inject ILocalizationService L
 @{
-    ViewData["Title"] = "Reported Products";
+    ViewData["Title"] = L.Get("admin.products.reported.title");
 }
 
 <div class="row align-items-center mb-4">
     <div class="col-md-6">
-        <h1 class="display-font text-light mb-1">Product Reports Moderation</h1>
-        <p class="text-muted mb-0">Review complaints and reports submitted by users against products.</p>
+        <h1 class="display-font text-light mb-1">@L.Get("admin.products.reported.heading")</h1>
+        <p class="text-muted mb-0">@L.Get("admin.products.reported.subheading")</p>
     </div>
     <div class="col-md-6 text-md-end mt-3 mt-md-0">
         <div class="glass-card px-3 py-2 d-inline-flex align-items-center gap-3">
-            <span class="text-muted small">Total Reports:</span>
+            <span class="text-muted small">@L.Get("admin.products.reported.total")</span>
             <span class="badge bg-indigo fs-6 font-monospace" style="background-color: var(--accent-primary);">@Model.Reports.Count</span>
         </div>
     </div>
@@ -22,8 +24,8 @@
     {
         <div class="text-center py-5">
             <div class="text-muted mb-3"><i class="fa-solid fa-flag-checkered fa-3x"></i></div>
-            <h5 class="text-light">No reports found</h5>
-            <p class="text-muted small">All clear! There are no product reports requiring attention.</p>
+            <h5 class="text-light">@L.Get("admin.products.reported.empty.title")</h5>
+            <p class="text-muted small">@L.Get("admin.products.reported.empty.subtitle")</p>
         </div>
     }
     else
@@ -32,12 +34,12 @@
             <table class="table table-premium">
                 <thead>
                     <tr>
-                        <th>Product</th>
-                        <th>Reporter</th>
-                        <th>Reason for Report</th>
-                        <th>Date Reported</th>
-                        <th>Status</th>
-                        <th class="text-end">Actions</th>
+                        <th>@L.Get("admin.products.reported.table.product")</th>
+                        <th>@L.Get("admin.products.reported.table.reporter")</th>
+                        <th>@L.Get("admin.products.reported.table.reason")</th>
+                        <th>@L.Get("admin.products.reported.table.date")</th>
+                        <th>@L.Get("admin.products.reported.table.status")</th>
+                        <th class="text-end">@L.Get("admin.products.reported.table.actions")</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -51,7 +53,7 @@
                                         @report.ProductNameEn <i class="fa-solid fa-arrow-up-right-from-square ms-1" style="font-size: 0.75rem; color: var(--accent-secondary);"></i>
                                     </a>
                                     <div class="text-muted small">@report.ProductNameAr</div>
-                                    <span class="text-muted small d-block" style="font-size: 0.75rem;">Product ID: #@report.ProductId</span>
+                                    <span class="text-muted small d-block" style="font-size: 0.75rem;">@L.Get("admin.products.details.productId") #@report.ProductId</span>
                                 </div>
                             </td>
                             
@@ -76,13 +78,13 @@
                                 @if (report.IsResolved)
                                 {
                                     <span class="badge-status badge-status-resolved">
-                                        <i class="fa-solid fa-check-double"></i> Resolved
+                                        <i class="fa-solid fa-check-double"></i> @L.Get("admin.products.reported.status.resolved")
                                     </span>
                                 }
                                 else
                                 {
                                     <span class="badge-status badge-status-inactive">
-                                        <i class="fa-solid fa-hourglass-half"></i> Pending
+                                        <i class="fa-solid fa-hourglass-half"></i> @L.Get("admin.products.reported.status.pending")
                                     </span>
                                 }
                             </td>
@@ -94,14 +96,14 @@
                                     {
                                         <form asp-area="Admin" asp-controller="Products" asp-action="ResolveReport" asp-route-id="@report.ReportId" method="post" class="d-inline">
                                             <button type="submit" class="btn btn-sm btn-success btn-premium" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
-                                                <i class="fa-solid fa-check"></i> Resolve
+                                                <i class="fa-solid fa-check"></i> @L.Get("admin.products.reported.action.resolve")
                                             </button>
                                         </form>
                                     }
                                     else
                                     {
                                         <button class="btn btn-sm btn-premium btn-premium-secondary disabled" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; pointer-events: none;" disabled="disabled">
-                                            <i class="fa-solid fa-check-double"></i> Resolved
+                                            <i class="fa-solid fa-check-double"></i> @L.Get("admin.products.reported.status.resolved")
                                         </button>
                                     }
                                 </div>

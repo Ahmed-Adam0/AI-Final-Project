@@ -1,27 +1,29 @@
 @model AdminBannersPageViewModel
+@using Graduation_Application.IServices.Admin
+@inject Graduation_Application.IServices.Admin.ILocalizationService L
 @{
-    ViewData["Title"] = "Manage Banners";
+    ViewData["Title"] = L.Get("admin.banners.index.title");
 }
 
 <div class="row align-items-center mb-4">
     <div class="col-md-6">
-        <h1 class="display-font text-light mb-1">Banners Management</h1>
-        <p class="text-muted mb-0">Browse, search, and manage promotion and slider banners.</p>
+        <h1 class="display-font text-light mb-1">@L.Get("admin.banners.index.heading")</h1>
+        <p class="text-muted mb-0">@L.Get("admin.banners.index.subheading")</p>
     </div>
     <div class="col-md-6 text-md-end mt-3 mt-md-0 d-flex justify-content-md-end align-items-center gap-3">
         <div class="glass-card px-3 py-2 d-inline-flex align-items-center gap-3">
-            <span class="text-muted small">Total Banners:</span>
+            <span class="text-muted small">@L.Get("admin.banners.index.total"):</span>
             <span class="badge fs-6 font-monospace" style="background-color: var(--accent-primary);">@Model.Banners.Count</span>
         </div>
         <a asp-area="Admin" asp-controller="Banners" asp-action="Create" class="btn btn-premium btn-premium-primary">
-            <i class="fa-solid fa-plus me-1"></i> Add Banner
+            <i class="fa-solid fa-plus me-1"></i> @L.Get("admin.banners.index.addButton")
         </a>
     </div>
 </div>
 
 <!-- Search Panel -->
 <div class="glass-card p-4 mb-4">
-    <h5 class="text-light mb-3"><i class="fa-solid fa-filter me-2" style="color: var(--accent-primary);"></i>Filter Banners</h5>
+    <h5 class="text-light mb-3"><i class="fa-solid fa-filter me-2" style="color: var(--accent-primary);"></i>@L.Get("admin.banners.index.filterTitle")</h5>
     <form method="get" asp-area="Admin" asp-controller="Banners" asp-action="Index">
         <div class="row g-3">
             <div class="col-md-8">
@@ -29,15 +31,15 @@
                     <span class="input-group-text bg-transparent border-end-0" style="border-color: var(--border-color); color: var(--text-muted);">
                         <i class="fa-solid fa-magnifying-glass"></i>
                     </span>
-                    <input type="text" name="Search" class="form-control form-control-premium border-start-0 ps-0" placeholder="Search by title or description..." value="@Model.Search" />
+                    <input type="text" name="Search" class="form-control form-control-premium border-start-0 ps-0" placeholder="@L.Get("admin.banners.index.searchPlaceholder")" value="@Model.Search" />
                 </div>
             </div>
             <div class="col-md-4 d-flex gap-2">
                 <button type="submit" class="btn btn-premium btn-premium-primary flex-grow-1">
-                    <i class="fa-solid fa-check"></i> Search
+                    <i class="fa-solid fa-check"></i> @L.Get("admin.banners.index.searchButton")
                 </button>
                 <a asp-area="Admin" asp-controller="Banners" asp-action="Index" class="btn btn-premium btn-premium-secondary">
-                    <i class="fa-solid fa-arrow-rotate-left"></i> Reset
+                    <i class="fa-solid fa-arrow-rotate-left"></i> @L.Get("admin.banners.index.resetButton")
                 </a>
             </div>
         </div>
@@ -50,8 +52,8 @@
     {
         <div class="text-center py-5">
             <div class="text-muted mb-3"><i class="fa-solid fa-images fa-3x"></i></div>
-            <h5 class="text-light">No banners found</h5>
-            <p class="text-muted small">Create a new promotional banner to display on the main slider.</p>
+            <h5 class="text-light">@L.Get("admin.banners.index.emptyTitle")</h5>
+            <p class="text-muted small">@L.Get("admin.banners.index.emptySubtitle")</p>
         </div>
     }
     else
@@ -60,13 +62,13 @@
             <table class="table table-premium">
                 <thead>
                     <tr>
-                        <th style="width: 150px;">Banner Image</th>
-                        <th>English Details</th>
-                        <th>Arabic Details</th>
-                        <th>Redirect Link</th>
-                        <th class="text-center" style="width: 80px;">Order</th>
-                        <th class="text-center" style="width: 130px;">Status</th>
-                        <th class="text-end" style="width: 130px;">Actions</th>
+                        <th style="width: 150px;">@L.Get("admin.banners.table.image")</th>
+                        <th>@L.Get("admin.banners.table.detailsEn")</th>
+                        <th>@L.Get("admin.banners.table.detailsAr")</th>
+                        <th>@L.Get("admin.banners.table.redirectUrl")</th>
+                        <th class="text-center" style="width: 80px;">@L.Get("admin.banners.table.order")</th>
+                        <th class="text-center" style="width: 130px;">@L.Get("admin.banners.table.status")</th>
+                        <th class="text-end" style="width: 130px;">@L.Get("admin.banners.table.actions")</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -112,7 +114,7 @@
                                 }
                                 else
                                 {
-                                    <span>None</span>
+                                    <span>@L.Get("admin.banners.table.none")</span>
                                 }
                             </td>
                             <!-- Display Order -->
@@ -122,17 +124,17 @@
                                 <div class="d-inline-flex align-items-center gap-2">
                                     @if (item.IsActive)
                                     {
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Active</span>
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">@L.Get("admin.banners.status.active")</span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">Inactive</span>
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">@L.Get("admin.banners.status.inactive")</span>
                                     }
                                     
                                     <form asp-area="Admin" asp-controller="Banners" asp-action="UpdateStatus" asp-route-id="@item.Id" method="post" style="display:inline;">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="isActive" value="@((!item.IsActive).ToString().ToLower())" />
-                                        <button type="submit" class="btn btn-sm btn-outline-light py-0 px-1 border-0" title="Toggle Status">
+                                        <button type="submit" class="btn btn-sm btn-outline-light py-0 px-1 border-0" title="@L.Get("admin.banners.table.toggleStatus")">
                                             @if (item.IsActive)
                                             {
                                                 <i class="fa-solid fa-toggle-on text-success fs-5"></i>
@@ -148,13 +150,13 @@
                             <!-- Actions -->
                             <td class="text-end align-middle">
                                 <div class="d-flex justify-content-end gap-2">
-                                    <a asp-area="Admin" asp-controller="Banners" asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-premium btn-premium-secondary py-1 px-2" title="Edit">
+                                    <a asp-area="Admin" asp-controller="Banners" asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-premium btn-premium-secondary py-1 px-2" title="@L.Get("admin.banners.table.editTitle")">
                                         <i class="fa-solid fa-pen-to-square"></i>
                                     </a>
                                     
-                                    <form asp-area="Admin" asp-controller="Banners" asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Are you sure you want to delete this banner? This action cannot be undone.');" style="display:inline;">
+                                    <form asp-area="Admin" asp-controller="Banners" asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('@L.Get("admin.banners.table.deleteConfirm")');" style="display:inline;">
                                         @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-sm btn-premium btn-premium-danger py-1 px-2" title="Delete">
+                                        <button type="submit" class="btn btn-sm btn-premium btn-premium-danger py-1 px-2" title="@L.Get("admin.banners.table.deleteTitle")">
                                             <i class="fa-solid fa-trash"></i>
                                         </button>
                                     </form>

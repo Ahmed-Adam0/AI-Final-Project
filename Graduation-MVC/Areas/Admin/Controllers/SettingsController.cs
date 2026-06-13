@@ -11,10 +11,15 @@ namespace Graduation_MVC.Areas.Admin.Controllers
     public class SettingsController : Controller
     {
         private readonly IAdminDashboardService _adminDashboardService;
+        private readonly ILocalizationService _localizationService;
 
-        public SettingsController(IAdminDashboardService adminDashboardService)
+        public SettingsController(
+            IAdminDashboardService adminDashboardService,
+            ILocalizationService localizationService
+        )
         {
             _adminDashboardService = adminDashboardService;
+            _localizationService = localizationService;
         }
 
         [HttpGet]
@@ -66,7 +71,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 return View("Index", model);
             }
 
-            TempData["SuccessMessage"] = "Settings saved successfully.";
+            TempData["SuccessMessage"] = _localizationService.Get("admin.settings.success");
             return RedirectToAction(nameof(Index));
         }
     }

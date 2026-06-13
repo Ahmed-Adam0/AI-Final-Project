@@ -19,14 +19,17 @@ namespace Graduation_MVC.Areas.Admin.Controllers
     {
         private readonly IAdminUsersService _adminUsersService;
         private readonly IAdminAuditLogsService _adminAuditLogsService;
+        private readonly ILocalizationService _localizationService;
 
         public UsersController(
             IAdminUsersService adminUsersService,
-            IAdminAuditLogsService adminAuditLogsService
+            IAdminAuditLogsService adminAuditLogsService,
+            ILocalizationService localizationService
         )
         {
             _adminUsersService = adminUsersService;
             _adminAuditLogsService = adminAuditLogsService;
+            _localizationService = localizationService;
         }
 
         [HttpGet]
@@ -99,7 +102,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 id,
                 $"Activated user '{targetUser.FullName}' ({targetUser.Email})."
             );
-            TempData["SuccessMessage"] = "User activated successfully";
+            TempData["SuccessMessage"] = _localizationService.Get("admin.users.activate.success");
             return RedirectToAction(nameof(Index));
         }
 
@@ -118,7 +121,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 id,
                 $"Suspended user '{targetUser.FullName}' ({targetUser.Email})."
             );
-            TempData["SuccessMessage"] = "User suspended successfully";
+            TempData["SuccessMessage"] = _localizationService.Get("admin.users.suspend.success");
             return RedirectToAction(nameof(Index));
         }
 
@@ -137,7 +140,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 id,
                 $"Deleted user '{targetUser.FullName}' ({targetUser.Email})."
             );
-            TempData["SuccessMessage"] = "User deleted successfully";
+            TempData["SuccessMessage"] = _localizationService.Get("admin.users.delete.success");
             return RedirectToAction(nameof(Index));
         }
 

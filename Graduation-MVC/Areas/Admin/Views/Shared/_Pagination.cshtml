@@ -1,4 +1,23 @@
 @model Graduation_MVC.Areas.Admin.ViewModels.Shared.AdminPaginationViewModel
+@using Graduation_Application.IServices.Admin
+@inject ILocalizationService LocalizationService
+
+@{
+    var isArabic = LocalizationService.GetCurrentCulture() == "ar";
+    string LocalizeNumber(string input)
+    {
+        if (!isArabic || string.IsNullOrEmpty(input)) return input;
+        var english = "0123456789";
+        var arabic  = "٠١٢٣٤٥٦٧٨٩";
+        var result  = new System.Text.StringBuilder();
+        foreach (var ch in input)
+        {
+            var idx = english.IndexOf(ch);
+            result.Append(idx != -1 ? arabic[idx] : ch);
+        }
+        return result.ToString();
+    }
+}
 
 @if (Model != null && Model.TotalPages > 1)
 {
@@ -29,20 +48,20 @@
         <ul class="pagination pagination-premium justify-content-center mb-0">
             <li class="page-item @(Model.PageNumber <= 1 ? "disabled" : "")">
                 <a class="page-link" href="@PageUrl(Model.PageNumber - 1)">
-                    <i class="fa-solid fa-chevron-left"></i>
+                    <i class="fa-solid @(isArabic ? "fa-chevron-right" : "fa-chevron-left")"></i>
                 </a>
             </li>
 
             @for (var i = 1; i <= Model.TotalPages; i++)
             {
                 <li class="page-item @(i == Model.PageNumber ? "active" : "")">
-                    <a class="page-link" href="@PageUrl(i)">@i</a>
+                    <a class="page-link" href="@PageUrl(i)">@LocalizeNumber(i.ToString())</a>
                 </li>
             }
 
             <li class="page-item @(Model.PageNumber >= Model.TotalPages ? "disabled" : "")">
                 <a class="page-link" href="@PageUrl(Model.PageNumber + 1)">
-                    <i class="fa-solid fa-chevron-right"></i>
+                    <i class="fa-solid @(isArabic ? "fa-chevron-left" : "fa-chevron-right")"></i>
                 </a>
             </li>
         </ul>

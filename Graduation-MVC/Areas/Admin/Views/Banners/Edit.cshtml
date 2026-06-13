@@ -1,16 +1,18 @@
 @model AdminBannerFormViewModel
+@using Graduation_Application.IServices.Admin
+@inject Graduation_Application.IServices.Admin.ILocalizationService L
 @{
-    ViewData["Title"] = "Edit Banner";
+    ViewData["Title"] = L.Get("admin.banners.edit.title");
 }
 
 <div class="row align-items-center mb-4">
     <div class="col-md-8">
-        <h1 class="display-font text-light mb-1">Edit Banner</h1>
-        <p class="text-muted mb-0">Modify promotion or slider banner details.</p>
+        <h1 class="display-font text-light mb-1">@L.Get("admin.banners.edit.title")</h1>
+        <p class="text-muted mb-0">@L.Get("admin.banners.edit.heading")</p>
     </div>
     <div class="col-md-4 text-md-end mt-3 mt-md-0">
         <a asp-area="Admin" asp-controller="Banners" asp-action="Index" class="btn btn-premium btn-premium-secondary">
-            <i class="fa-solid fa-arrow-left me-1"></i> Back to List
+            <i class="fa-solid fa-arrow-left me-1"></i> @L.Get("admin.banners.backToList")
         </a>
     </div>
 </div>
@@ -29,28 +31,28 @@
                 <!-- English Title -->
                 <div class="mb-4">
                     <label asp-for="TitleEn" class="form-label text-light font-weight-bold"></label>
-                    <input asp-for="TitleEn" class="form-control form-control-premium" placeholder="e.g. Summer Sale 2026" />
+                    <input asp-for="TitleEn" class="form-control form-control-premium" placeholder="@L.Get("admin.banners.create.titleEnPlaceholder")" />
                     <span asp-validation-for="TitleEn" class="text-danger small mt-1 d-block"></span>
                 </div>
 
                 <!-- Arabic Title -->
                 <div class="mb-4">
                     <label asp-for="TitleAr" class="form-label text-light font-weight-bold"></label>
-                    <input asp-for="TitleAr" class="form-control form-control-premium text-end" placeholder="مثال: عروض الصيف 2026" dir="rtl" />
+                    <input asp-for="TitleAr" class="form-control form-control-premium text-end" placeholder="@L.Get("admin.banners.create.titleArPlaceholder")" dir="rtl" />
                     <span asp-validation-for="TitleAr" class="text-danger small mt-1 d-block"></span>
                 </div>
 
                 <!-- English Description -->
                 <div class="mb-4">
                     <label asp-for="DescriptionEn" class="form-label text-light font-weight-bold"></label>
-                    <textarea asp-for="DescriptionEn" class="form-control form-control-premium" rows="3" placeholder="Enter English description/subtitle..."></textarea>
+                    <textarea asp-for="DescriptionEn" class="form-control form-control-premium" rows="3" placeholder="@L.Get("admin.banners.create.descEnPlaceholder")"></textarea>
                     <span asp-validation-for="DescriptionEn" class="text-danger small mt-1 d-block"></span>
                 </div>
 
                 <!-- Arabic Description -->
                 <div class="mb-4">
                     <label asp-for="DescriptionAr" class="form-label text-light font-weight-bold"></label>
-                    <textarea asp-for="DescriptionAr" class="form-control form-control-premium text-end" rows="3" placeholder="أدخل الوصف باللغة العربية هنا..." dir="rtl"></textarea>
+                    <textarea asp-for="DescriptionAr" class="form-control form-control-premium text-end" rows="3" placeholder="@L.Get("admin.banners.create.descArPlaceholder")" dir="rtl"></textarea>
                     <span asp-validation-for="DescriptionAr" class="text-danger small mt-1 d-block"></span>
                 </div>
 
@@ -59,13 +61,13 @@
                     <label asp-for="ImageFile" class="form-label text-light font-weight-bold"></label>
                     <input asp-for="ImageFile" type="file" class="form-control form-control-premium" accept=".jpg,.jpeg,.png" />
                     <span asp-validation-for="ImageFile" class="text-danger small mt-1 d-block"></span>
-                    <div class="form-text text-muted small mt-1">Allowed formats: JPG, JPEG, PNG. Leave empty to keep the current image.</div>
+                    <div class="form-text text-muted small mt-1">@L.Get("admin.banners.edit.imageHint")</div>
                 </div>
 
                 <!-- Redirect URL -->
                 <div class="mb-4">
                     <label asp-for="RedirectUrl" class="form-label text-light font-weight-bold"></label>
-                    <input asp-for="RedirectUrl" class="form-control form-control-premium" placeholder="e.g. http://example.com/products" />
+                    <input asp-for="RedirectUrl" class="form-control form-control-premium" placeholder="@L.Get("admin.banners.create.redirectPlaceholder")" />
                     <span asp-validation-for="RedirectUrl" class="text-danger small mt-1 d-block"></span>
                 </div>
 
@@ -81,7 +83,7 @@
                     <div class="col-md-6 d-flex align-items-end">
                         <div class="form-check form-switch mb-2">
                             <input asp-for="IsActive" class="form-check-input" type="checkbox" id="IsActiveSwitch" />
-                            <label class="form-check-label text-light ms-2" for="IsActiveSwitch">Show Banner (Active)</label>
+                            <label class="form-check-label text-light ms-2" for="IsActiveSwitch">@L.Get("admin.banners.create.isActiveLabel")</label>
                         </div>
                     </div>
                 </div>
@@ -89,10 +91,10 @@
                 <!-- Actions -->
                 <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top" style="border-color: rgba(255,255,255,0.05) !important;">
                     <a asp-area="Admin" asp-controller="Banners" asp-action="Index" class="btn btn-premium btn-premium-secondary">
-                        Cancel
+                        @L.Get("admin.banners.edit.cancel")
                     </a>
                     <button type="submit" class="btn btn-premium btn-premium-primary">
-                        <i class="fa-solid fa-check me-1"></i> Save Changes
+                        <i class="fa-solid fa-check me-1"></i> @L.Get("admin.banners.edit.submit")
                     </button>
                 </div>
             </form>
@@ -102,7 +104,7 @@
     <!-- Image Preview Column -->
     <div class="col-lg-4">
         <div class="glass-card p-4 text-center">
-            <h5 class="text-light mb-3">Current Image</h5>
+            <h5 class="text-light mb-3">@L.Get("admin.banners.edit.currentImage")</h5>
             <div class="rounded overflow-hidden bg-secondary border mx-auto mb-3" style="width: 100%; height: 150px; border-color: var(--border-color) !important;">
                 @if (!string.IsNullOrEmpty(Model.ImageUrl))
                 {
@@ -121,7 +123,7 @@
             }
             else
             {
-                <span class="text-muted small">No image uploaded</span>
+                <span class="text-muted small">@L.Get("admin.banners.edit.noImage")</span>
             }
         </div>
     </div>

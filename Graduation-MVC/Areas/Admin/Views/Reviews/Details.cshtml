@@ -1,22 +1,24 @@
 @model Graduation_Application.DTOs.Admin.Reviews.AdminReviewDetailsDto
+@using Graduation_Application.IServices.Admin
+@inject ILocalizationService L
 @{
-    ViewData["Title"] = $"Review Details: #{Model.Id}";
+    ViewData["Title"] = $"{L.Get("admin.reviews.details.title")}: #{Model.Id}";
 }
 
 <div class="row align-items-center mb-4">
     <div class="col-md-6">
         <a asp-area="Admin" asp-controller="Reviews" asp-action="Index" class="btn btn-premium btn-premium-secondary mb-3">
-            <i class="fa-solid fa-arrow-left"></i> Back to Reviews
+            <i class="fa-solid fa-arrow-left"></i> @L.Get("admin.reviews.details.back")
         </a>
-        <h1 class="display-font mb-1">Review #@Model.Id</h1>
-        <p class="text-muted mb-0">Created: <strong>@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</strong></p>
+        <h1 class="display-font mb-1">@L.Get("admin.reviews.details.reviewId") #@Model.Id</h1>
+        <p class="text-muted mb-0">@L.Get("admin.reviews.details.created") <strong>@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</strong></p>
     </div>
     <div class="col-md-6 text-md-end mt-3 mt-md-0">
         <form asp-area="Admin" asp-controller="Reviews" asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-inline">
             @Html.AntiForgeryToken()
             <input type="hidden" name="returnUrl" value="@Url.Action("Details", "Reviews", new { area = "Admin", id = Model.Id })" />
             <button type="submit" class="btn btn-premium btn-premium-secondary">
-                <i class="fa-solid fa-trash"></i> Delete (Deactivate)
+                <i class="fa-solid fa-trash"></i> @L.Get("admin.reviews.details.action.delete")
             </button>
         </form>
     </div>
@@ -25,7 +27,7 @@
 <div class="row g-4">
     <div class="col-lg-8">
         <div class="glass-card p-4 mb-4">
-            <h5 class="mb-3"><i class="fa-solid fa-comment me-2" style="color: var(--accent-primary);"></i>Review</h5>
+            <h5 class="mb-3"><i class="fa-solid fa-comment me-2" style="color: var(--accent-primary);"></i>@L.Get("admin.reviews.details.cardReview")</h5>
 
             <div class="d-flex align-items-center gap-3 mb-3">
                 <span class="badge-status badge-status-active">
@@ -33,15 +35,15 @@
                 </span>
                 @if (Model.IsReported)
                 {
-                    <span class="badge-status badge-status-pending"><i class="fa-solid fa-flag"></i> Reported</span>
+                    <span class="badge-status badge-status-pending"><i class="fa-solid fa-flag"></i> @L.Get("admin.reviews.details.reported.status.yes")</span>
                 }
                 else
                 {
-                    <span class="badge-status badge-status-resolved"><i class="fa-solid fa-check"></i> Not Reported</span>
+                    <span class="badge-status badge-status-resolved"><i class="fa-solid fa-check"></i> @L.Get("admin.reviews.details.reported.status.no")</span>
                 }
                 @if (!Model.IsActive)
                 {
-                    <span class="badge-status badge-status-hidden"><i class="fa-solid fa-ban"></i> Deactivated</span>
+                    <span class="badge-status badge-status-hidden"><i class="fa-solid fa-ban"></i> @L.Get("admin.reviews.details.status.deactivated")</span>
                 }
             </div>
 
@@ -59,7 +61,7 @@
                         }
                     }
                 </div>
-                <span class="text-muted small">(@Model.Rating out of 5)</span>
+                <span class="text-muted small">@string.Format(L.Get("admin.reviews.details.ratingFormat"), Model.Rating)</span>
             </div>
 
             <div class="p-3 bg-secondary rounded" style="white-space: pre-line;">
@@ -68,28 +70,28 @@
         </div>
 
         <div class="glass-card p-4 mb-4">
-            <h5 class="mb-3"><i class="fa-solid fa-flag me-2" style="color: var(--accent-primary);"></i>Report Info</h5>
+            <h5 class="mb-3"><i class="fa-solid fa-flag me-2" style="color: var(--accent-primary);"></i>@L.Get("admin.reviews.details.reportInfo")</h5>
 
             @if (!Model.IsReported)
             {
-                <div class="text-muted">No active report.</div>
+                <div class="text-muted">@L.Get("admin.reviews.details.noReport")</div>
             }
             else
             {
-                <div class="mb-2"><strong>Reason:</strong> @Model.ReportReason</div>
-                <div class="text-muted small"><strong>Reported At:</strong> @(Model.ReportedAt?.ToString("yyyy-MM-dd HH:mm") ?? "N/A")</div>
+                <div class="mb-2"><strong>@L.Get("admin.reviews.details.reason")</strong> @Model.ReportReason</div>
+                <div class="text-muted small"><strong>@L.Get("admin.reviews.details.reportedAt")</strong> @(Model.ReportedAt?.ToString("yyyy-MM-dd HH:mm") ?? "N/A")</div>
 
                 <div class="d-flex gap-2 mt-3">
                     <form asp-area="Admin" asp-controller="Reviews" asp-action="ResolveReport" asp-route-id="@Model.Id" method="post">
                         @Html.AntiForgeryToken()
                         <button type="submit" class="btn btn-premium btn-premium-primary">
-                            <i class="fa-solid fa-check"></i> Resolve
+                            <i class="fa-solid fa-check"></i> @L.Get("admin.reviews.details.action.resolve")
                         </button>
                     </form>
                     <form asp-area="Admin" asp-controller="Reviews" asp-action="IgnoreReport" asp-route-id="@Model.Id" method="post">
                         @Html.AntiForgeryToken()
                         <button type="submit" class="btn btn-premium btn-premium-secondary">
-                            <i class="fa-solid fa-eye-slash"></i> Ignore
+                            <i class="fa-solid fa-eye-slash"></i> @L.Get("admin.reviews.details.action.ignore")
                         </button>
                     </form>
                 </div>
@@ -97,11 +99,11 @@
         </div>
 
         <div class="glass-card p-4">
-            <h5 class="mb-3"><i class="fa-solid fa-clock-rotate-left me-2" style="color: var(--accent-primary);"></i>Moderation History</h5>
+            <h5 class="mb-3"><i class="fa-solid fa-clock-rotate-left me-2" style="color: var(--accent-primary);"></i>@L.Get("admin.reviews.details.history")</h5>
 
             @if (Model.ModerationHistory == null || !Model.ModerationHistory.Any())
             {
-                <div class="text-muted">No moderation actions recorded.</div>
+                <div class="text-muted">@L.Get("admin.reviews.details.noHistory")</div>
             }
             else
             {
@@ -109,10 +111,10 @@
                     <table class="table table-premium">
                         <thead>
                             <tr>
-                                <th>Date</th>
-                                <th>Action</th>
-                                <th>Notes</th>
-                                <th>Admin</th>
+                                <th>@L.Get("admin.reviews.details.history.date")</th>
+                                <th>@L.Get("admin.reviews.details.history.action")</th>
+                                <th>@L.Get("admin.reviews.details.history.notes")</th>
+                                <th>@L.Get("admin.reviews.details.history.admin")</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -134,19 +136,19 @@
 
     <div class="col-lg-4">
         <div class="glass-card p-4 mb-4">
-            <h5 class="mb-3"><i class="fa-solid fa-box me-2" style="color: var(--accent-primary);"></i>Product</h5>
+            <h5 class="mb-3"><i class="fa-solid fa-box me-2" style="color: var(--accent-primary);"></i>@L.Get("admin.reviews.details.product")</h5>
             <div class="fw-semibold">@Model.ProductName</div>
-            <div class="text-muted small">Product ID: #@Model.ProductId</div>
+            <div class="text-muted small">@string.Format(L.Get("admin.reviews.details.productId"), Model.ProductId)</div>
         </div>
 
         <div class="glass-card p-4 mb-4">
-            <h5 class="mb-3"><i class="fa-solid fa-user-tag me-2" style="color: var(--accent-primary);"></i>Vendor</h5>
+            <h5 class="mb-3"><i class="fa-solid fa-user-tag me-2" style="color: var(--accent-primary);"></i>@L.Get("admin.reviews.details.vendor")</h5>
             <div class="fw-semibold">@Model.VendorName</div>
             <div class="text-muted small">@Model.VendorEmail</div>
         </div>
 
         <div class="glass-card p-4">
-            <h5 class="mb-3"><i class="fa-solid fa-user me-2" style="color: var(--accent-primary);"></i>Customer</h5>
+            <h5 class="mb-3"><i class="fa-solid fa-user me-2" style="color: var(--accent-primary);"></i>@L.Get("admin.reviews.details.customer")</h5>
             <div class="fw-semibold">@Model.UserName</div>
             <div class="text-muted small">@Model.UserEmail</div>
         </div>

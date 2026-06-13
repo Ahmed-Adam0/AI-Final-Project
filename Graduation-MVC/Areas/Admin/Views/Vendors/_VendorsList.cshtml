@@ -1,40 +1,42 @@
 @model Graduation_MVC.Areas.Admin.ViewModels.Vendors.AdminVendorsPageViewModel
 @using Graduation_MVC.Areas.Admin.ViewModels.Shared
+@using Graduation_Application.IServices.Admin
+@inject ILocalizationService L
 
 <div class="row g-3 mb-4">
     <div class="col-6 col-lg-2">
         <div class="glass-card p-3">
-            <div class="text-muted small">Total</div>
+            <div class="text-muted small">@L.Get("auth.vendors.statTotal")</div>
             <div class="fs-4 fw-semibold">@Model.Statistics.TotalVendors</div>
         </div>
     </div>
     <div class="col-6 col-lg-2">
         <div class="glass-card p-3">
-            <div class="text-muted small">Pending</div>
+            <div class="text-muted small">@L.Get("auth.vendors.statPending")</div>
             <div class="fs-4 fw-semibold">@Model.Statistics.PendingVendors</div>
         </div>
     </div>
     <div class="col-6 col-lg-2">
         <div class="glass-card p-3">
-            <div class="text-muted small">Approved</div>
+            <div class="text-muted small">@L.Get("auth.vendors.statApproved")</div>
             <div class="fs-4 fw-semibold">@Model.Statistics.ApprovedVendors</div>
         </div>
     </div>
     <div class="col-6 col-lg-2">
         <div class="glass-card p-3">
-            <div class="text-muted small">Rejected</div>
+            <div class="text-muted small">@L.Get("auth.vendors.statRejected")</div>
             <div class="fs-4 fw-semibold">@Model.Statistics.RejectedVendors</div>
         </div>
     </div>
     <div class="col-6 col-lg-2">
         <div class="glass-card p-3">
-            <div class="text-muted small">Active</div>
+            <div class="text-muted small">@L.Get("auth.vendors.statActive")</div>
             <div class="fs-4 fw-semibold">@Model.Statistics.ActiveVendors</div>
         </div>
     </div>
     <div class="col-6 col-lg-2">
         <div class="glass-card p-3">
-            <div class="text-muted small">In Active</div>
+            <div class="text-muted small">@L.Get("auth.vendors.statInactive")</div>
             <div class="fs-4 fw-semibold">@Model.Statistics.SuspendedVendors</div>
         </div>
     </div>
@@ -47,11 +49,11 @@
           asp-action="@(Model.PendingOnly ? "Pending" : "Index")"
           class="row g-3">
         <div class="col-md-5">
-            <label class="form-label text-muted small">Search</label>
-            <input class="form-control form-control-premium" name="Search" value="@Model.Filter.Search" placeholder="Name, email, phone, company/workshop..." />
+            <label class="form-label text-muted small">@L.Get("auth.vendors.search")</label>
+            <input class="form-control form-control-premium" name="Search" value="@Model.Filter.Search" placeholder="@L.Get("auth.vendors.searchPlace")" />
         </div>
         <div class="col-md-2">
-            <label class="form-label text-muted small">Verification</label>
+            <label class="form-label text-muted small">@L.Get("auth.vendors.verification")</label>
             <select class="form-select form-select-premium" name="VerificationStatus">
                 @foreach (var opt in Model.VerificationStatusOptions)
                 {
@@ -60,7 +62,7 @@
             </select>
         </div>
         <div class="col-md-2">
-            <label class="form-label text-muted small">Account</label>
+            <label class="form-label text-muted small">@L.Get("auth.vendors.account")</label>
             <select class="form-select form-select-premium" name="AccountStatus">
                 @foreach (var opt in Model.AccountStatusOptions)
                 {
@@ -69,12 +71,12 @@
             </select>
         </div>
         <div class="col-md-2">
-            <label class="form-label text-muted small">Sort</label>
+            <label class="form-label text-muted small">@L.Get("auth.vendors.sort")</label>
             <select class="form-select form-select-premium" name="SortBy">
-                <option value="" selected="@(string.IsNullOrWhiteSpace(Model.Filter.SortBy) ? "selected" : null)">Newest</option>
-                <option value="date_asc" selected="@(Model.Filter.SortBy == "date_asc" ? "selected" : null)">Oldest</option>
-                <option value="name_asc" selected="@(Model.Filter.SortBy == "name_asc" ? "selected" : null)">Name A→Z</option>
-                <option value="name_desc" selected="@(Model.Filter.SortBy == "name_desc" ? "selected" : null)">Name Z→A</option>
+                <option value="" selected="@(string.IsNullOrWhiteSpace(Model.Filter.SortBy) ? "selected" : null)">@L.Get("auth.vendors.sortNewest")</option>
+                <option value="date_asc" selected="@(Model.Filter.SortBy == "date_asc" ? "selected" : null)">@L.Get("auth.vendors.sortOldest")</option>
+                <option value="name_asc" selected="@(Model.Filter.SortBy == "name_asc" ? "selected" : null)">@L.Get("auth.vendors.sortNameAZ")</option>
+                <option value="name_desc" selected="@(Model.Filter.SortBy == "name_desc" ? "selected" : null)">@L.Get("auth.vendors.sortNameZA")</option>
             </select>
         </div>
         <div class="col-md-1 d-flex align-items-end gap-2">
@@ -92,13 +94,13 @@
         <table id="vendorsTable" class="table table-premium align-middle mb-0">
             <thead>
                 <tr>
-                    <th>Vendor Name</th>
-                    <th>Workshop</th>
-                    <th>Contact</th>
-                    <th>Registered</th>
-                    <th>Activation</th>
-                    <th>Account</th>
-                    <th class="text-end">Actions</th>
+                    <th>@L.Get("auth.vendors.colVendorName")</th>
+                    <th>@L.Get("auth.vendors.colWorkshop")</th>
+                    <th>@L.Get("auth.vendors.colContact")</th>
+                    <th>@L.Get("auth.vendors.colRegistered")</th>
+                    <th>@L.Get("auth.vendors.colActivation")</th>
+                    <th>@L.Get("auth.vendors.colAccount")</th>
+                    <th class="text-end">@L.Get("auth.vendors.colActions")</th>
                 </tr>
             </thead>
             <tbody>
@@ -107,7 +109,6 @@
                     <tr>
                         <td>
                             <div class="fw-semibold">@v.VendorName</div>
-                            @* <div class="text-muted small">#@v.WorkshopId</div> *@
                         </td>
                         <td>@v.WorkshopName</td>
                         <td>
@@ -125,7 +126,7 @@
                         </td>
                         <td class="text-end">
                             <a asp-area="Admin" asp-controller="Vendors" asp-action="Details" asp-route-id="@v.WorkshopId"
-                               class="btn btn-sm btn-outline-primary">
+                               class="btn btn-sm btn-outline-primary" title="@L.Get("auth.vendors.viewDetails")">
                                 <i class="fa-solid fa-eye"></i>
                             </a>
                         </td>
@@ -178,4 +179,3 @@
         })();
     </script>
 }
-

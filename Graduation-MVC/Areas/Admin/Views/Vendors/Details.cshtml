@@ -1,21 +1,23 @@
-    @model Graduation_MVC.Areas.Admin.ViewModels.Vendors.AdminVendorDetailsViewModel
+@model Graduation_MVC.Areas.Admin.ViewModels.Vendors.AdminVendorDetailsViewModel
 @using Graduation_MVC.Areas.Admin.ViewModels.Shared
+@using Graduation_Application.IServices.Admin
+@inject ILocalizationService L
 
 @{
-    ViewData["Title"] = "Vendor Details";
+    ViewData["Title"] = L.Get("auth.vendors.detailsTitle");
 }
 
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
     <div>
-        <h2 class="mb-1">Vendor Details</h2>
-        <p class="text-muted mb-0">Review profile, verification, account status, and activity.</p>
+        <h2 class="mb-1">@L.Get("auth.vendors.detailsTitle")</h2>
+        <p class="text-muted mb-0">@L.Get("auth.vendors.detailsSubtitle")</p>
     </div>
     <div class="d-flex gap-2">
         <a asp-area="Admin" asp-controller="Vendors" asp-action="Index" class="btn btn-premium btn-premium-secondary">
-            <i class="fa-solid fa-arrow-left"></i> Back
+            <i class="fa-solid fa-arrow-left"></i> @L.Get("auth.vendors.back")
         </a>
         <a asp-area="Admin" asp-controller="Vendors" asp-action="History" class="btn btn-premium btn-premium-secondary">
-            <i class="fa-solid fa-timeline"></i> History
+            <i class="fa-solid fa-timeline"></i> @L.Get("auth.vendors.history")
         </a>
     </div>
 </div>
@@ -34,15 +36,15 @@
                 </div>
             </div>
             <div class="mt-3">
-                <div class="text-muted small">Email</div>
+                <div class="text-muted small">@L.Get("auth.vendors.email")</div>
                 <div>@(Model.Profile.Email ?? "-")</div>
             </div>
             <div class="mt-3">
-                <div class="text-muted small">Phone</div>
+                <div class="text-muted small">@L.Get("auth.vendors.phone")</div>
                 <div>@(Model.Profile.Phone ?? "-")</div>
             </div>
             <div class="mt-3">
-                <div class="text-muted small">Registered</div>
+                <div class="text-muted small">@L.Get("auth.vendors.registered")</div>
                 <div>@Model.Profile.RegisteredAt.ToString("yyyy-MM-dd HH:mm")</div>
             </div>
         </div>
@@ -52,14 +54,14 @@
         <div class="glass-card p-4 h-100">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <div class="text-muted small">Verification</div>
+                    <div class="text-muted small">@L.Get("auth.vendors.verification")</div>
                     <div class="mt-1">
                         <partial name="~/Areas/Admin/Views/Shared/_StatusBadge.cshtml"
                                  model="new AdminStatusBadgeViewModel { Status = Model.Verification.Status.ToString() }" />
                     </div>
                 </div>
                 <div class="text-end">
-                    <div class="text-muted small">Account</div>
+                    <div class="text-muted small">@L.Get("auth.vendors.account")</div>
                     <div class="mt-1">
                         <partial name="~/Areas/Admin/Views/Shared/_StatusBadge.cshtml"
                                  model="new AdminStatusBadgeViewModel { Status = Model.Account.Status.ToString() }" />
@@ -68,17 +70,17 @@
             </div>
 
             <div class="mt-3">
-                <div class="text-muted small">Verified / Updated By</div>
+                <div class="text-muted small">@L.Get("auth.vendors.verifiedBy")</div>
                 <div>@(Model.Verification.VerifiedByAdminName ?? Model.Account.StatusChangedByAdminName ?? "-")</div>
             </div>
             <div class="mt-3">
-                <div class="text-muted small">Verification Date</div>
+                <div class="text-muted small">@L.Get("auth.vendors.verificationDate")</div>
                 <div>@(Model.Verification.VerificationDate?.ToString("yyyy-MM-dd HH:mm") ?? "-")</div>
             </div>
             @if (!string.IsNullOrWhiteSpace(Model.Verification.RejectionReason))
             {
                 <div class="mt-3">
-                    <div class="text-muted small">Rejection Reason</div>
+                    <div class="text-muted small">@L.Get("auth.vendors.rejectionReason")</div>
                     <div class="text-danger fw-semibold">@Model.Verification.RejectionReason</div>
                 </div>
             }
@@ -87,49 +89,49 @@
 
     <div class="col-lg-4">
         <div class="glass-card p-4 h-100">
-            <div class="text-muted small">Orders</div>
+            <div class="text-muted small">@L.Get("auth.vendors.orders")</div>
             <div class="fs-4 fw-semibold">@Model.OrdersStats.TotalOrders</div>
             <div class="d-flex flex-wrap gap-2 mt-2">
-                <span class="badge bg-success">Delivered: @Model.OrdersStats.DeliveredOrders</span>
-                <span class="badge bg-warning text-dark">Pending: @Model.OrdersStats.PendingOrders</span>
-                <span class="badge bg-danger">Cancelled: @Model.OrdersStats.CancelledOrders</span>
-                <span class="badge bg-info">In Progress: @Model.OrdersStats.InProgressOrders</span>
-                <span class="badge bg-primary">Confirmed: @Model.OrdersStats.ConfirmedOrders</span>
-                <span class="badge bg-black">Ready for Pickup: @Model.OrdersStats.ReadyforPickupOrders</span>
+                <span class="badge bg-success">@L.Get("auth.vendors.delivered"): @Model.OrdersStats.DeliveredOrders</span>
+                <span class="badge bg-warning text-dark">@L.Get("auth.vendors.pending"): @Model.OrdersStats.PendingOrders</span>
+                <span class="badge bg-danger">@L.Get("auth.vendors.cancelled"): @Model.OrdersStats.CancelledOrders</span>
+                <span class="badge bg-info">@L.Get("auth.vendors.inProgress"): @Model.OrdersStats.InProgressOrders</span>
+                <span class="badge bg-primary">@L.Get("auth.vendors.confirmed"): @Model.OrdersStats.ConfirmedOrders</span>
+                <span class="badge bg-black">@L.Get("auth.vendors.readyForPickup"): @Model.OrdersStats.ReadyforPickupOrders</span>
             </div>
             <hr />
-            <div class="text-muted small">Revenue</div>
-            <div class="fs-4 fw-semibold">EGP @Model.RevenueStats.TotalRevenue.ToString("N0")</div>
-            <div class="text-muted small">Delivered revenue: EGP @Model.RevenueStats.DeliveredRevenue.ToString("N0")</div>
+            <div class="text-muted small">@L.Get("auth.vendors.revenue")</div>
+            <div class="fs-4 fw-semibold">@string.Format(L.Get("auth.vendors.currencyFormat"), Model.RevenueStats.TotalRevenue.ToString("N0"))</div>
+            <div class="text-muted small">@L.Get("auth.vendors.deliveredRevenue"): @string.Format(L.Get("auth.vendors.currencyFormat"), Model.RevenueStats.DeliveredRevenue.ToString("N0"))</div>
         </div>
     </div>
 </div>
 
 <div class="glass-card p-4 mb-4">
-    <h5 class="mb-3"><i class="fa-solid fa-briefcase me-2" style="color: var(--accent-primary);"></i>Business</h5>
+    <h5 class="mb-3"><i class="fa-solid fa-briefcase me-2" style="color: var(--accent-primary);"></i>@L.Get("auth.vendors.business")</h5>
     <div class="row g-3">
         <div class="col-md-6">
-            <div class="text-muted small">Workshop Name (EN)</div>
+            <div class="text-muted small">@L.Get("auth.vendors.workshopNameEn")</div>
             <div class="fw-semibold">@Model.Business.WorkshopNameEn</div>
         </div>
         <div class="col-md-6">
-            <div class="text-muted small">Workshop Name (AR)</div>
+            <div class="text-muted small">@L.Get("auth.vendors.workshopNameAr")</div>
             <div class="fw-semibold">@Model.Business.WorkshopNameAr</div>
         </div>
         <div class="col-md-6">
-            <div class="text-muted small">Address</div>
+            <div class="text-muted small">@L.Get("auth.vendors.address")</div>
             <div>@(Model.Business.AddressSummary ?? "-")</div>
         </div>
         <div class="col-md-6">
-            <div class="text-muted small">Rating</div>
+            <div class="text-muted small">@L.Get("auth.vendors.rating")</div>
             <div>@(Model.Business.Rating?.ToString("0.0") ?? "-")</div>
         </div>
         <div class="col-12">
-            <div class="text-muted small">Description (EN)</div>
+            <div class="text-muted small">@L.Get("auth.vendors.descriptionEn")</div>
             <div>@Model.Business.DescriptionEn</div>
         </div>
         <div class="col-12">
-            <div class="text-muted small">Description (AR)</div>
+            <div class="text-muted small">@L.Get("auth.vendors.descriptionAr")</div>
             <div>@Model.Business.DescriptionAr</div>
         </div>
     </div>
@@ -137,62 +139,62 @@
 
 <div class="glass-card p-4 mb-4">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 mb-3">
-        <h5 class="mb-0"><i class="fa-solid fa-shield-halved me-2" style="color: var(--accent-primary);"></i>Actions</h5>
+        <h5 class="mb-0"><i class="fa-solid fa-shield-halved me-2" style="color: var(--accent-primary);"></i>@L.Get("auth.vendors.actions")</h5>
         <div class="d-flex gap-2 flex-wrap">
             @if (Model.Actions.CanApprove)
             {
-                <form method="post" asp-area="Admin" asp-controller="Vendors" asp-action="Approve" class="d-inline js-confirm" data-title="Approve vendor?" data-text="This will approve vendor verification.">
+                <form method="post" asp-area="Admin" asp-controller="Vendors" asp-action="Approve" class="d-inline js-confirm" data-title="@L.Get("auth.vendors.confirmApprove")" data-text="@L.Get("auth.vendors.confirmApproveText")">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="workshopId" value="@Model.Profile.WorkshopId" />
                     <button type="submit" class="btn btn-premium btn-premium-primary">
-                        <i class="fa-solid fa-circle-check"></i> Approve
+                        <i class="fa-solid fa-circle-check"></i> @L.Get("auth.vendors.approve")
                     </button>
                 </form>
             }
             @if (Model.Actions.CanReject)
             {
                 <button type="button" class="btn btn-premium btn-premium-secondary" data-bs-toggle="modal" data-bs-target="#rejectModal">
-                    <i class="fa-solid fa-circle-xmark"></i> Reject
+                    <i class="fa-solid fa-circle-xmark"></i> @L.Get("auth.vendors.reject")
                 </button>
             }
             @if (Model.Actions.CanSuspend)
             {
                 <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#suspendModal">
-                    <i class="fa-solid fa-ban"></i> Suspend
+                    <i class="fa-solid fa-ban"></i> @L.Get("auth.vendors.suspend")
                 </button>
             }
             @if (Model.Actions.CanActivate)
             {
-                <form method="post" asp-area="Admin" asp-controller="Vendors" asp-action="Activate" class="d-inline js-confirm" data-title="Activate vendor?" data-text="This will reactivate the vendor account.">
+                <form method="post" asp-area="Admin" asp-controller="Vendors" asp-action="Activate" class="d-inline js-confirm" data-title="@L.Get("auth.vendors.confirmActivate")" data-text="@L.Get("auth.vendors.confirmActivateText")">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="workshopId" value="@Model.Profile.WorkshopId" />
                     <button type="submit" class="btn btn-outline-success">
-                        <i class="fa-solid fa-play"></i> Activate
+                        <i class="fa-solid fa-play"></i> @L.Get("auth.vendors.activate")
                     </button>
                 </form>
             }
         </div>
     </div>
-    <div class="text-muted small">All actions are audited in vendor history.</div>
+    <div class="text-muted small">@L.Get("auth.vendors.actionsAudit")</div>
 </div>
 
 <div class="row g-3">
     <div class="col-lg-6">
         <div class="glass-card p-4 h-100">
-            <h5 class="mb-3"><i class="fa-solid fa-list-check me-2" style="color: var(--accent-primary);"></i>Verification History</h5>
+            <h5 class="mb-3"><i class="fa-solid fa-list-check me-2" style="color: var(--accent-primary);"></i>@L.Get("auth.vendors.verificationHistory")</h5>
             <div class="table-responsive">
                 <table class="table table-premium mb-0">
                     <thead>
                         <tr>
-                            <th>Date</th>
-                            <th>Change</th>
-                            <th>Admin</th>
+                            <th>@L.Get("auth.vendors.colDate")</th>
+                            <th>@L.Get("auth.vendors.colChange")</th>
+                            <th>@L.Get("auth.vendors.colAdmin")</th>
                         </tr>
                     </thead>
                     <tbody>
                         @if (Model.VerificationHistory.Count == 0)
                         {
-                            <tr><td colspan="3" class="text-muted">No history yet.</td></tr>
+                            <tr><td colspan="3" class="text-muted">@L.Get("auth.vendors.noHistory")</td></tr>
                         }
                         else
                         {
@@ -206,7 +208,7 @@
                                 @if (!string.IsNullOrWhiteSpace(h.RejectionReason))
                                 {
                                     <tr>
-                                        <td colspan="3" class="text-danger small">Reason: @h.RejectionReason</td>
+                                        <td colspan="3" class="text-danger small">@L.Get("auth.vendors.reason"): @h.RejectionReason</td>
                                     </tr>
                                 }
                             }
@@ -219,20 +221,20 @@
 
     <div class="col-lg-6">
         <div class="glass-card p-4 h-100">
-            <h5 class="mb-3"><i class="fa-solid fa-user-shield me-2" style="color: var(--accent-primary);"></i>Status History</h5>
+            <h5 class="mb-3"><i class="fa-solid fa-user-shield me-2" style="color: var(--accent-primary);"></i>@L.Get("auth.vendors.statusHistory")</h5>
             <div class="table-responsive">
                 <table class="table table-premium mb-0">
                     <thead>
                         <tr>
-                            <th>Date</th>
-                            <th>Change</th>
-                            <th>Admin</th>
+                            <th>@L.Get("auth.vendors.colDate")</th>
+                            <th>@L.Get("auth.vendors.colChange")</th>
+                            <th>@L.Get("auth.vendors.colAdmin")</th>
                         </tr>
                     </thead>
                     <tbody>
                         @if (Model.AccountStatusHistory.Count == 0)
                         {
-                            <tr><td colspan="3" class="text-muted">No history yet.</td></tr>
+                            <tr><td colspan="3" class="text-muted">@L.Get("auth.vendors.noHistory")</td></tr>
                         }
                         else
                         {
@@ -246,7 +248,7 @@
                                 @if (!string.IsNullOrWhiteSpace(h.Reason))
                                 {
                                     <tr>
-                                        <td colspan="3" class="text-muted small">Reason: @h.Reason</td>
+                                        <td colspan="3" class="text-muted small">@L.Get("auth.vendors.reason"): @h.Reason</td>
                                     </tr>
                                 }
                             }
@@ -263,26 +265,26 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Reject Vendor</h5>
+                <h5 class="modal-title">@L.Get("auth.vendors.rejectVendor")</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form method="post" asp-area="Admin" asp-controller="Vendors" asp-action="Reject" class="js-confirm" data-title="Reject vendor?" data-text="This will reject vendor verification.">
+            <form method="post" asp-area="Admin" asp-controller="Vendors" asp-action="Reject" class="js-confirm" data-title="@L.Get("auth.vendors.confirmReject")" data-text="@L.Get("auth.vendors.confirmRejectText")">
                 @Html.AntiForgeryToken()
                 <div class="modal-body">
                     <input type="hidden" name="WorkshopId" value="@Model.Profile.WorkshopId" />
                     <div class="mb-3">
-                        <label class="form-label">Rejection reason</label>
+                        <label class="form-label">@L.Get("auth.vendors.rejectionReason")</label>
                         <input class="form-control" name="RejectionReason" required maxlength="500" />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Notes (optional)</label>
+                        <label class="form-label">@L.Get("auth.vendors.notes")</label>
                         <textarea class="form-control" name="Notes" rows="3" maxlength="1000"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-premium btn-premium-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-premium btn-premium-secondary" data-bs-dismiss="modal">@L.Get("auth.vendors.cancel")</button>
                     <button type="submit" class="btn btn-danger">
-                        <i class="fa-solid fa-circle-xmark"></i> Reject
+                        <i class="fa-solid fa-circle-xmark"></i> @L.Get("auth.vendors.reject")
                     </button>
                 </div>
             </form>
@@ -295,26 +297,26 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Suspend Vendor</h5>
+                <h5 class="modal-title">@L.Get("auth.vendors.suspendVendor")</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form method="post" asp-area="Admin" asp-controller="Vendors" asp-action="Suspend" class="js-confirm" data-title="Suspend vendor?" data-text="This will suspend the vendor account.">
+            <form method="post" asp-area="Admin" asp-controller="Vendors" asp-action="Suspend" class="js-confirm" data-title="@L.Get("auth.vendors.confirmSuspend")" data-text="@L.Get("auth.vendors.confirmSuspendText")">
                 @Html.AntiForgeryToken()
                 <div class="modal-body">
                     <input type="hidden" name="WorkshopId" value="@Model.Profile.WorkshopId" />
                     <div class="mb-3">
-                        <label class="form-label">Suspension reason</label>
+                        <label class="form-label">@L.Get("auth.vendors.suspensionReason")</label>
                         <input class="form-control" name="Reason" required maxlength="500" />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Notes (optional)</label>
+                        <label class="form-label">@L.Get("auth.vendors.notes")</label>
                         <textarea class="form-control" name="Notes" rows="3" maxlength="1000"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-premium btn-premium-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-premium btn-premium-secondary" data-bs-dismiss="modal">@L.Get("auth.vendors.cancel")</button>
                     <button type="submit" class="btn btn-outline-danger">
-                        <i class="fa-solid fa-ban"></i> Suspend
+                        <i class="fa-solid fa-ban"></i> @L.Get("auth.vendors.suspend")
                     </button>
                 </div>
             </form>
@@ -325,6 +327,9 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        var _swalYes = '@L.Get("auth.vendors.confirmYes")';
+        var _swalCancel = '@L.Get("auth.vendors.confirmCancel")';
+
         (function () {
             document.querySelectorAll('form.js-confirm').forEach(function (form) {
                 form.addEventListener('submit', function (e) {
@@ -336,8 +341,8 @@
                         text: text,
                         icon: 'warning',
                         showCancelButton: true,
-                        confirmButtonText: 'Yes',
-                        cancelButtonText: 'Cancel'
+                        confirmButtonText: _swalYes,
+                        cancelButtonText: _swalCancel
                     }).then(function (result) {
                         if (result.isConfirmed) form.submit();
                     });
@@ -346,4 +351,3 @@
         })();
     </script>
 }
-

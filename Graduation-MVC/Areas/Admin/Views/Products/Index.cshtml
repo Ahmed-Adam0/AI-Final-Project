@@ -1,18 +1,20 @@
 @model AdminProductsPageViewModel
+@using Graduation_Application.IServices.Admin
+@inject ILocalizationService L
 @{
-    ViewData["Title"] = "Manage Products";
+    ViewData["Title"] = L.Get("admin.products.title");
 
     string ResolveImage(string? path) => ProductImageUrlResolver.Resolve(path);
 }
 
 <div class="row align-items-center mb-4">
     <div class="col-md-6">
-        <h1 class="display-font text-light mb-1">Products Management</h1>
-        <p class="text-muted mb-0">Browse, filter, and moderate products on the marketplace.</p>
+        <h1 class="display-font text-light mb-1">@L.Get("admin.products.heading")</h1>
+        <p class="text-muted mb-0">@L.Get("admin.products.subheading")</p>
     </div>
     <div class="col-md-6 text-md-end mt-3 mt-md-0">
         <div class="glass-card px-3 py-2 d-inline-flex align-items-center gap-3">
-            <span class="text-muted small">Total Products:</span>
+            <span class="text-muted small">@L.Get("admin.products.total")</span>
             <span class="badge bg-indigo fs-6 font-monospace" style="background-color: var(--accent-primary);">@Model.Products.TotalCount</span>
         </div>
     </div>
@@ -20,26 +22,26 @@
 
 <!-- Filters Panel -->
 <div class="glass-card p-4 mb-4">
-    <h5 class="text-light mb-3"><i class="fa-solid fa-filter me-2 text-indigo" style="color: var(--accent-primary);"></i>Filter Products</h5>
+    <h5 class="text-light mb-3"><i class="fa-solid fa-filter me-2 text-indigo" style="color: var(--accent-primary);"></i>@L.Get("admin.products.filter.title")</h5>
     <form method="get" asp-area="Admin" asp-controller="Products" asp-action="Index">
         <input type="hidden" name="PageNumber" value="1" />
         <div class="row g-3">
             <!-- Search -->
             <div class="col-md-3">
-                <label class="form-label text-muted small">Search Name</label>
+                <label class="form-label text-muted small">@L.Get("admin.products.filter.search")</label>
                 <div class="input-group">
                     <span class="input-group-text bg-transparent border-end-0" style="border-color: var(--border-color); color: var(--text-muted);">
                         <i class="fa-solid fa-magnifying-glass"></i>
                     </span>
-                    <input type="text" name="Search" class="form-control form-control-premium border-start-0 ps-0" placeholder="Search product name..." value="@Model.Search" />
+                    <input type="text" name="Search" class="form-control form-control-premium border-start-0 ps-0" placeholder="@L.Get("admin.products.filter.searchPlaceholder")" value="@Model.Search" />
                 </div>
             </div>
             
             <!-- Category -->
             <div class="col-md-3">
-                <label class="form-label text-muted small">Category</label>
+                <label class="form-label text-muted small">@L.Get("admin.products.filter.category")</label>
                 <select name="CategoryId" class="form-select form-select-premium">
-                    <option value="">All Categories</option>
+                    <option value="">@L.Get("admin.products.filter.categoryAll")</option>
                     @foreach (var cat in Model.Categories)
                     {
                         if (Model.CategoryId == cat.Id)
@@ -56,9 +58,9 @@
             
             <!-- Vendor -->
             <div class="col-md-3">
-                <label class="form-label text-muted small">Vendor</label>
+                <label class="form-label text-muted small">@L.Get("admin.products.filter.vendor")</label>
                 <select name="VendorId" class="form-select form-select-premium">
-                    <option value="">All Vendors</option>
+                    <option value="">@L.Get("admin.products.filter.vendorAll")</option>
                     @foreach (var vendor in Model.Vendors)
                     {
                         if (Model.VendorId == vendor.UserId)
@@ -75,18 +77,18 @@
             
             <!-- Status -->
             <div class="col-md-3">
-                <label class="form-label text-muted small">Status</label>
+                <label class="form-label text-muted small">@L.Get("admin.products.filter.status")</label>
                 <select name="Status" class="form-select form-select-premium">
-                    <option value="">All Statuses</option>
+                    <option value="">@L.Get("admin.products.filter.statusAll")</option>
                     @foreach (var status in System.Enum.GetValues<ProductStatus>())
                     {
                         if (Model.Status == status)
                         {
-                            <option value="@status" selected="selected">@status.ToString()</option>
+                            <option value="@status" selected="selected">@L.Get("shared.status." + status.ToString().ToLower())</option>
                         }
                         else
                         {
-                            <option value="@status">@status.ToString()</option>
+                            <option value="@status">@L.Get("shared.status." + status.ToString().ToLower())</option>
                         }
                     }
                 </select>
@@ -95,10 +97,10 @@
         
         <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top" style="border-color: rgba(255,255,255,0.05) !important;">
             <a asp-area="Admin" asp-controller="Products" asp-action="Index" class="btn btn-premium btn-premium-secondary">
-                <i class="fa-solid fa-arrow-rotate-left"></i> Reset
+                <i class="fa-solid fa-arrow-rotate-left"></i> @L.Get("admin.products.filter.reset")
             </a>
             <button type="submit" class="btn btn-premium btn-premium-primary">
-                <i class="fa-solid fa-check"></i> Apply Filters
+                <i class="fa-solid fa-check"></i> @L.Get("admin.products.filter.apply")
             </button>
         </div>
     </form>
@@ -110,8 +112,8 @@
     {
         <div class="text-center py-5">
             <div class="text-muted mb-3"><i class="fa-solid fa-box-open fa-3x"></i></div>
-            <h5 class="text-light">No products found</h5>
-            <p class="text-muted small">Try adjusting your filters or search terms.</p>
+            <h5 class="text-light">@L.Get("admin.products.empty.title")</h5>
+            <p class="text-muted small">@L.Get("admin.products.empty.subtitle")</p>
         </div>
     }
     else
@@ -120,13 +122,13 @@
             <table class="table table-premium">
                 <thead>
                     <tr>
-                        <th>Product Info</th>
-                        <th>Category</th>
-                        <th>Vendor</th>
-                        <th>Price</th>
-                        <th>Status</th>
-                        <th>Created At</th>
-                        <th class="text-end">Actions</th>
+                        <th>@L.Get("admin.products.table.info")</th>
+                        <th>@L.Get("admin.products.table.category")</th>
+                        <th>@L.Get("admin.products.table.vendor")</th>
+                        <th>@L.Get("admin.products.table.price")</th>
+                        <th>@L.Get("admin.products.table.status")</th>
+                        <th>@L.Get("admin.products.table.created")</th>
+                        <th class="text-end">@L.Get("admin.products.table.actions")</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -158,7 +160,7 @@
                             
                             <!-- Price -->
                             <td>
-                                <span class="text-indigo font-weight-bold" style="color: var(--accent-secondary);">EGP @item.Price.ToString("N0")</span>
+                                <span class="text-indigo font-weight-bold" style="color: var(--accent-secondary);">@string.Format(L.Get("admin.products.currencyFormat"), item.Price.ToString("N0"))</span>
                             </td>
                             
                             <!-- Status -->
@@ -166,19 +168,19 @@
                                 @if (item.Status == ProductStatus.Active)
                                 {
                                     <span class="badge-status badge-status-active">
-                                        <i class="fa-solid fa-circle-check"></i> Active
+                                        <i class="fa-solid fa-circle-check"></i> @L.Get("shared.status.active")
                                     </span>
                                 }
                                 else if (item.Status == ProductStatus.Inactive)
                                 {
                                     <span class="badge-status badge-status-inactive">
-                                        <i class="fa-solid fa-circle-minus"></i> Inactive
+                                        <i class="fa-solid fa-circle-minus"></i> @L.Get("shared.status.inactive")
                                     </span>
                                 }
                                 else if (item.Status == ProductStatus.Hidden)
                                 {
                                     <span class="badge-status badge-status-hidden">
-                                        <i class="fa-solid fa-eye-slash"></i> Hidden
+                                        <i class="fa-solid fa-eye-slash"></i> @L.Get("shared.status.hidden")
                                     </span>
                                 }
                             </td>
@@ -191,19 +193,19 @@
                             <!-- Actions -->
                             <td>
                                 <div class="d-flex justify-content-end gap-2 align-items-center">
-                                    <a asp-area="Admin" asp-controller="Products" asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-premium btn-premium-secondary" title="View Details">
+                                    <a asp-area="Admin" asp-controller="Products" asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-premium btn-premium-secondary" title="@L.Get("admin.products.action.details")">
                                         <i class="fa-solid fa-info-circle"></i>
                                     </a>
                                     
                                     @if (item.Status == ProductStatus.Active)
                                     {
                                         <form asp-area="Admin" asp-controller="Products" asp-action="Deactivate" asp-route-id="@item.Id" method="post" class="d-inline">
-                                            <button type="submit" class="btn btn-sm btn-outline-warning" style="border-radius: 8px;" title="Deactivate Product">
+                                            <button type="submit" class="btn btn-sm btn-outline-warning" style="border-radius: 8px;" title="@L.Get("admin.products.action.deactivate")">
                                                 <i class="fa-solid fa-pause"></i>
                                             </button>
                                         </form>
                                         <form asp-area="Admin" asp-controller="Products" asp-action="Hide" asp-route-id="@item.Id" method="post" class="d-inline">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 8px;" title="Hide Product">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 8px;" title="@L.Get("admin.products.action.hide")">
                                                 <i class="fa-solid fa-eye-slash"></i>
                                             </button>
                                         </form>
@@ -211,7 +213,7 @@
                                     else if (item.Status == ProductStatus.Inactive)
                                     {
                                         <form asp-area="Admin" asp-controller="Products" asp-action="Activate" asp-route-id="@item.Id" method="post" class="d-inline">
-                                            <button type="submit" class="btn btn-sm btn-outline-success" style="border-radius: 8px;" title="Activate Product">
+                                            <button type="submit" class="btn btn-sm btn-outline-success" style="border-radius: 8px;" title="@L.Get("admin.products.action.activate")">
                                                 <i class="fa-solid fa-play"></i>
                                             </button>
                                         </form>
@@ -219,7 +221,7 @@
                                     else if (item.Status == ProductStatus.Hidden)
                                     {
                                         <form asp-area="Admin" asp-controller="Products" asp-action="Restore" asp-route-id="@item.Id" method="post" class="d-inline">
-                                            <button type="submit" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;" title="Restore (Unhide)">
+                                            <button type="submit" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;" title="@L.Get("admin.products.action.restore")">
                                                 <i class="fa-solid fa-eye"></i>
                                             </button>
                                         </form>
@@ -235,7 +237,7 @@
         <!-- Pagination Controls -->
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mt-4 pt-3 border-top" style="border-color: rgba(255,255,255,0.05) !important;">
             <div class="text-muted small mb-3 mb-sm-0">
-                Showing page <strong class="text-light">@Model.Products.PageNumber</strong> of <strong class="text-light">@Model.Products.TotalPages</strong> (Total <strong class="text-light">@Model.Products.TotalCount</strong> items)
+                @string.Format(L.Get("admin.products.pagination.info"), Model.Products.PageNumber, Model.Products.TotalPages, Model.Products.TotalCount)
             </div>
             
             <nav aria-label="Products navigation">

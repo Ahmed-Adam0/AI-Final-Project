@@ -1,4 +1,6 @@
 @model Graduation_MVC.Areas.Admin.ViewModels.Shared.AdminFilterPanelViewModel
+@using Graduation_Application.IServices.Admin
+@inject ILocalizationService LocalizationService
 
 <div class="glass-card p-4 mb-4">
     <h5 class="text-light mb-3">
@@ -53,11 +55,11 @@
             @if (Model.ShowReset)
             {
                 <a asp-area="@Model.Area" asp-controller="@Model.Controller" asp-action="@Model.ResetAction" class="btn btn-premium btn-premium-secondary">
-                    <i class="fa-solid fa-arrow-rotate-left"></i> Reset
+                    <i class="fa-solid fa-arrow-rotate-left"></i> @LocalizationService.Get("shared.filters.reset")
                 </a>
             }
             <button type="submit" class="btn btn-premium btn-premium-primary">
-                <i class="fa-solid fa-check"></i> Apply Filters
+                <i class="fa-solid fa-check"></i> @LocalizationService.Get("shared.filters.apply")
             </button>
         </div>
     </form>
