@@ -1,16 +1,18 @@
 @model AdminCategoryFormViewModel
+@using Graduation_Application.IServices.Admin
+@inject Graduation_Application.IServices.Admin.ILocalizationService L
 @{
-    ViewData["Title"] = "Edit Category";
+    ViewData["Title"] = L.Get("admin.categories.edit.title");
 }
 
 <div class="row align-items-center mb-4">
     <div class="col-md-8">
-        <h1 class="display-font text-light mb-1">Edit Category</h1>
-        <p class="text-muted mb-0">Modify category details and update its image.</p>
+        <h1 class="display-font text-light mb-1">@L.Get("admin.categories.edit.title")</h1>
+        <p class="text-muted mb-0">@L.Get("admin.categories.edit.heading")</p>
     </div>
     <div class="col-md-4 text-md-end mt-3 mt-md-0">
         <a asp-area="Admin" asp-controller="Categories" asp-action="Index" class="btn btn-premium btn-premium-secondary">
-            <i class="fa-solid fa-arrow-left me-1"></i> Back to List
+            <i class="fa-solid fa-arrow-left me-1"></i> @L.Get("admin.categories.backToList")
         </a>
     </div>
 </div>
@@ -29,14 +31,14 @@
                 <!-- English Name -->
                 <div class="mb-4">
                     <label asp-for="NameEn" class="form-label text-light font-weight-bold"></label>
-                    <input asp-for="NameEn" class="form-control form-control-premium" placeholder="e.g. Electronics" />
+                    <input asp-for="NameEn" class="form-control form-control-premium" placeholder="@L.Get("admin.categories.create.nameEnPlaceholder")" />
                     <span asp-validation-for="NameEn" class="text-danger small mt-1 d-block"></span>
                 </div>
 
                 <!-- Arabic Name -->
                 <div class="mb-4">
                     <label asp-for="NameAr" class="form-label text-light font-weight-bold"></label>
-                    <input asp-for="NameAr" class="form-control form-control-premium text-end" placeholder="مثال: إلكترونيات" dir="rtl" />
+                    <input asp-for="NameAr" class="form-control form-control-premium text-end" placeholder="@L.Get("admin.categories.create.nameArPlaceholder")" dir="rtl" />
                     <span asp-validation-for="NameAr" class="text-danger small mt-1 d-block"></span>
                 </div>
 
@@ -45,16 +47,16 @@
                     <label asp-for="ImageFile" class="form-label text-light font-weight-bold"></label>
                     <input asp-for="ImageFile" type="file" class="form-control form-control-premium" accept=".jpg,.jpeg,.png" />
                     <span asp-validation-for="ImageFile" class="text-danger small mt-1 d-block"></span>
-                    <div class="form-text text-muted small mt-1">Allowed formats: JPG, JPEG, PNG. Leave empty to keep current image.</div>
+                    <div class="form-text text-muted small mt-1">@L.Get("admin.categories.edit.imageHint")</div>
                 </div>
 
                 <!-- Actions -->
                 <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top" style="border-color: rgba(255,255,255,0.05) !important;">
                     <a asp-area="Admin" asp-controller="Categories" asp-action="Index" class="btn btn-premium btn-premium-secondary">
-                        Cancel
+                        @L.Get("admin.categories.edit.cancel")
                     </a>
                     <button type="submit" class="btn btn-premium btn-premium-primary">
-                        <i class="fa-solid fa-check me-1"></i> Save Changes
+                        <i class="fa-solid fa-check me-1"></i> @L.Get("admin.categories.edit.submit")
                     </button>
                 </div>
             </form>
@@ -64,7 +66,7 @@
     <!-- Image Preview Column -->
     <div class="col-lg-4">
         <div class="glass-card p-4 text-center">
-            <h5 class="text-light mb-3">Current Image</h5>
+            <h5 class="text-light mb-3">@L.Get("admin.categories.edit.currentImage")</h5>
             <div class="rounded overflow-hidden bg-secondary border mx-auto mb-3" style="width: 200px; height: 200px; border-color: var(--border-color) !important;">
                 @if (!string.IsNullOrEmpty(Model.ImageUrl))
                 {
@@ -83,7 +85,7 @@
             }
             else
             {
-                <span class="text-muted small">No image uploaded</span>
+                <span class="text-muted small">@L.Get("admin.categories.edit.noImage")</span>
             }
         </div>
     </div>

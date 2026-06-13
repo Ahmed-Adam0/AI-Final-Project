@@ -11,10 +11,15 @@ namespace Graduation_MVC.Areas.Admin.Controllers
     public class AnalyticsController : Controller
     {
         private readonly IAdminDashboardService _adminDashboardService;
+        private readonly ILocalizationService _localizationService;
 
-        public AnalyticsController(IAdminDashboardService adminDashboardService)
+        public AnalyticsController(
+            IAdminDashboardService adminDashboardService,
+            ILocalizationService localizationService
+        )
         {
             _adminDashboardService = adminDashboardService;
+            _localizationService = localizationService;
         }
 
         [HttpGet]
@@ -48,7 +53,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         [HttpGet]
         public IActionResult Export(DateTime? fromDate, DateTime? toDate)
         {
-            TempData["SuccessMessage"] = "Analytics export requested successfully.";
+            TempData["SuccessMessage"] = _localizationService.Get("admin.analytics.export.success");
             return RedirectToAction(nameof(Index), new { fromDate, toDate });
         }
 

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Graduation_Application.DTOs.FaqDTO;
 using Graduation_Application.IServices;
+using Graduation_Application.IServices.Admin;
 using Graduation_MVC.Areas.Admin.ViewModels.FAQ;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,10 +13,12 @@ namespace Graduation_MVC.Areas.Admin.Controllers
     public class FaqController : Controller
     {
         private readonly IFaqService _faqService;
+        private readonly ILocalizationService _localizationService;
 
-        public FaqController(IFaqService faqService)
+        public FaqController(IFaqService faqService, ILocalizationService localizationService)
         {
             _faqService = faqService;
+            _localizationService = localizationService;
         }
 
         // GET: /Admin/Faq
@@ -72,7 +75,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
 
                     await _faqService.CreateFaqAsync(dto);
 
-                    TempData["SuccessMessage"] = "FAQ created successfully.";
+                    TempData["SuccessMessage"] = _localizationService.Get("admin.faq.create.success");
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
@@ -91,7 +94,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
             var faq = await _faqService.GetFaqByIdAsync(id);
             if (faq == null)
             {
-                TempData["ErrorMessage"] = "FAQ not found.";
+                TempData["ErrorMessage"] = _localizationService.Get("admin.faq.notfound");
                 return RedirectToAction(nameof(Index));
             }
 
@@ -135,7 +138,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
 
                     await _faqService.UpdateFaqAsync(id, dto);
 
-                    TempData["SuccessMessage"] = "FAQ updated successfully.";
+                    TempData["SuccessMessage"] = _localizationService.Get("admin.faq.edit.success");
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
@@ -157,11 +160,11 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 var success = await _faqService.DeleteFaqAsync(id);
                 if (success)
                 {
-                    TempData["SuccessMessage"] = "FAQ deleted successfully.";
+                    TempData["SuccessMessage"] = _localizationService.Get("admin.faq.delete.success");
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = "FAQ not found or could not be deleted.";
+                    TempData["ErrorMessage"] = _localizationService.Get("admin.faq.delete.error");
                 }
             }
             catch (Exception ex)
@@ -182,11 +185,15 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 var success = await _faqService.UpdateFaqStatusAsync(id, isActive);
                 if (success)
                 {
-                    TempData["SuccessMessage"] = $"FAQ status updated to {(isActive ? "Active" : "Inactive")}.";
+                    var statusKey = isActive ? "admin.faq.status.active" : "admin.faq.status.inactive";
+                    TempData["SuccessMessage"] = string.Format(
+                        _localizationService.Get("admin.faq.status.updated"),
+                        _localizationService.Get(statusKey)
+                    );
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = "FAQ not found or could not be updated.";
+                    TempData["ErrorMessage"] = _localizationService.Get("admin.faq.notfound");
                 }
             }
             catch (Exception ex)

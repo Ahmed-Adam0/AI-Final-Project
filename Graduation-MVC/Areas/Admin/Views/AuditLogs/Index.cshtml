@@ -1,17 +1,19 @@
 @model Graduation_MVC.Areas.Admin.ViewModels.AuditLogs.AuditLogsPageViewModel
+@using Graduation_Application.IServices.Admin
+@inject ILocalizationService L
 @{
-    ViewData["Title"] = "Audit Logs";
+    ViewData["Title"] = L.Get("admin.audit.title");
 }
 
 <div class="row align-items-center mb-4">
     <div class="col-md-7">
-        <h1 class="display-font text-light mb-1">Audit Logs</h1>
-        <p class="text-muted mb-0">Track admin and user activities across the platform.</p>
+        <h1 class="display-font text-light mb-1">@L.Get("admin.audit.heading")</h1>
+        <p class="text-muted mb-0">@L.Get("admin.audit.subheading")</p>
     </div>
 
     <div class="col-md-5 text-md-end mt-3 mt-md-0">
         <div class="glass-card px-3 py-2 d-inline-flex align-items-center gap-3">
-            <span class="text-muted small">Total Logs:</span>
+            <span class="text-muted small">@L.Get("admin.audit.total")</span>
             <span class="badge fs-6 font-monospace" style="background-color: var(--accent-primary);">
                 @Model.TotalCount
             </span>
@@ -23,14 +25,14 @@
     <form method="get" asp-area="Admin" asp-controller="AuditLogs" asp-action="Index">
         <div class="row g-3 align-items-end">
             <div class="col-lg-4 col-md-6">
-                <label class="form-label text-muted small">Search</label>
-                <input name="Search" value="@Model.Filter.Search" class="form-control form-control-premium" placeholder="User, action, entity, description" />
+                <label class="form-label text-muted small">@L.Get("admin.audit.filter.searchLabel")</label>
+                <input name="Search" value="@Model.Filter.Search" class="form-control form-control-premium" placeholder="@L.Get("admin.audit.filter.searchPlaceholder")" />
             </div>
 
             <div class="col-lg-2 col-md-3">
-                <label class="form-label text-muted small">Role</label>
+                <label class="form-label text-muted small">@L.Get("admin.audit.filter.roleLabel")</label>
                 <select name="UserRole" class="form-select form-select-premium">
-                    <option value="">All</option>
+                    <option value="">@L.Get("admin.audit.filter.all")</option>
                     @foreach (var role in Model.RoleOptions)
                     {
                         <option value="@role" selected="@(Model.Filter.UserRole == role)">@role</option>
@@ -39,9 +41,9 @@
             </div>
 
             <div class="col-lg-2 col-md-3">
-                <label class="form-label text-muted small">Action</label>
+                <label class="form-label text-muted small">@L.Get("admin.audit.filter.actionLabel")</label>
                 <select name="ActionFilter" class="form-select form-select-premium">
-                    <option value="">All</option>
+                    <option value="">@L.Get("admin.audit.filter.all")</option>
                     @foreach (var action in Model.ActionOptions)
                     {
                         <option value="@action" selected="@(Model.Filter.Action == action)">@action</option>
@@ -50,43 +52,42 @@
             </div>
 
             <div class="col-lg-2 col-md-6">
-                <label class="form-label text-muted small">From Date</label>
+                <label class="form-label text-muted small">@L.Get("admin.audit.filter.fromDate")</label>
                 <input type="date" name="FromDate" value="@(Model.Filter.FromDate?.ToString("yyyy-MM-dd"))" class="form-control form-control-premium" />
             </div>
 
             <div class="col-lg-2 col-md-6">
-                <label class="form-label text-muted small">To Date</label>
+                <label class="form-label text-muted small">@L.Get("admin.audit.filter.toDate")</label>
                 <input type="date" name="ToDate" value="@(Model.Filter.ToDate?.ToString("yyyy-MM-dd"))" class="form-control form-control-premium" />
             </div>
         </div>
 
         <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
-            <a asp-area="Admin" asp-controller="AuditLogs" asp-action="Index" class="btn btn-premium btn-premium-secondary">Reset</a>
-            <button type="submit" class="btn btn-premium btn-premium-primary">Apply Filters</button>
+            <a asp-area="Admin" asp-controller="AuditLogs" asp-action="Index" class="btn btn-premium btn-premium-secondary">@L.Get("admin.audit.filter.reset")</a>
+            <button type="submit" class="btn btn-premium btn-premium-primary">@L.Get("admin.audit.filter.apply")</button>
         </div>
     </form>
-
-  
+</div>
 
 <div class="glass-card p-4">
     <div class="table-responsive">
         <table class="table table-premium mb-0">
             <thead>
                 <tr>
-                    <th>User</th>
-                    <th>Role</th>
-                    <th>Action</th>
-                    <th>Entity Type</th>
-                    <th>Description</th>
-                    <th>Date</th>
-                    <th class="text-center">Details</th>
+                    <th>@L.Get("admin.audit.table.user")</th>
+                    <th>@L.Get("admin.audit.table.role")</th>
+                    <th>@L.Get("admin.audit.table.action")</th>
+                    <th>@L.Get("admin.audit.table.entity")</th>
+                    <th>@L.Get("admin.audit.table.description")</th>
+                    <th>@L.Get("admin.audit.table.date")</th>
+                    <th class="text-center">@L.Get("admin.audit.table.details")</th>
                 </tr>
             </thead>
             <tbody>
                 @if (Model.Logs == null || !Model.Logs.Any())
                 {
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-4">No activity logs found.</td>
+                        <td colspan="7" class="text-center text-muted py-4">@L.Get("admin.audit.empty")</td>
                     </tr>
                 }
                 else
@@ -114,7 +115,7 @@
 
     <div class="d-flex justify-content-between align-items-center mt-4">
         <div class="text-muted small">
-            Page @Model.Page of @Model.TotalPages
+            @string.Format(L.Get("admin.audit.pagination"), Model.Page, Model.TotalPages)
         </div>
 
         <div class="btn-group">
@@ -127,7 +128,7 @@
                    asp-route-actionFilter="@Model.Filter.Action"
                    asp-route-fromDate="@(Model.Filter.FromDate?.ToString("yyyy-MM-dd"))"
                    asp-route-toDate="@(Model.Filter.ToDate?.ToString("yyyy-MM-dd"))">
-                    Previous
+                    @L.Get("admin.audit.previous")
                 </a>
             }
 
@@ -140,7 +141,7 @@
                    asp-route-actionFilter="@Model.Filter.Action"
                    asp-route-fromDate="@(Model.Filter.FromDate?.ToString("yyyy-MM-dd"))"
                    asp-route-toDate="@(Model.Filter.ToDate?.ToString("yyyy-MM-dd"))">
-                    Next
+                    @L.Get("admin.audit.next")
                 </a>
             }
         </div>
@@ -175,7 +176,7 @@
 
                 const allOption = document.createElement('option');
                 allOption.value = '';
-                allOption.textContent = 'All';
+                allOption.textContent = '@L.Get("admin.audit.filter.all")';
                 actionSelect.appendChild(allOption);
 
                 allowed.forEach(function (action) {

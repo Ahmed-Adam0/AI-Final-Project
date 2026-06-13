@@ -1,17 +1,19 @@
 @model Graduation_MVC.Areas.Admin.ViewModels.Users.AdminUsersPageViewModel
+@using Graduation_Application.IServices.Admin
+@inject ILocalizationService L
 @{
-    ViewData["Title"] = "Customers Management";
+    ViewData["Title"] = L.Get("admin.users.title");
 }
 
 <div class="row align-items-center mb-4">
     <div class="col-md-7">
-        <h1 class="display-font text-light mb-1">Customers Management</h1>
-        <p class="text-muted mb-0">Search, filter, and manage customer accounts.</p>
+        <h1 class="display-font text-light mb-1">@L.Get("admin.users.heading")</h1>
+        <p class="text-muted mb-0">@L.Get("admin.users.subheading")</p>
     </div>
 
     <div class="col-md-5 text-md-end mt-3 mt-md-0">
         <div class="glass-card px-3 py-2 d-inline-flex align-items-center gap-3">
-            <span class="text-muted small">Total Customers:</span>
+            <span class="text-muted small">@L.Get("admin.users.total")</span>
             <span class="badge fs-6 font-monospace"
                   style="background-color: var(--accent-primary);">
                 @Model.TotalCount
@@ -27,28 +29,28 @@
         <div class="row g-3 align-items-end">
 
             <div class="col-md-6">
-                <label class="form-label text-muted small">Search</label>
+                <label class="form-label text-muted small">@L.Get("admin.users.filter.search")</label>
                 <input name="Search"
                        value="@Model.Filter?.Search"
                        class="form-control form-control-premium"
-                       placeholder="Name or email" />
+                       placeholder="@L.Get("admin.users.filter.searchPlace")" />
             </div>
 
             <div class="col-md-3">
-                <label class="form-label text-muted small">Status</label>
+                <label class="form-label text-muted small">@L.Get("admin.users.filter.status")</label>
                 <select name="Status" class="form-select form-select-premium">
-                    <option value="">All</option>
-                    <option value="Active" selected="@(Model.Filter?.Status == "Active")">Active</option>
-                    <option value="Suspended" selected="@(Model.Filter?.Status == "Suspended")">Suspended</option>
+                    <option value="">@L.Get("admin.users.filter.statusAll")</option>
+                    <option value="Active" selected="@(Model.Filter?.Status == "Active")">@L.Get("admin.users.filter.statusActive")</option>
+                    <option value="Suspended" selected="@(Model.Filter?.Status == "Suspended")">@L.Get("admin.users.filter.statusSuspended")</option>
                 </select>
             </div>
 
             <div class="col-md-3">
-                <label class="form-label text-muted small">Email Confirmed</label>
+                <label class="form-label text-muted small">@L.Get("admin.users.filter.emailConfirmed")</label>
                 <select name="EmailConfirmed" class="form-select form-select-premium">
-                    <option value="">All</option>
-                    <option value="Confirmed" selected="@(Model.Filter?.EmailConfirmed == "Confirmed")">Confirmed</option>
-                    <option value="NotConfirmed" selected="@(Model.Filter?.EmailConfirmed == "NotConfirmed")">Not Confirmed</option>
+                    <option value="">@L.Get("admin.users.filter.emailAll")</option>
+                    <option value="Confirmed" selected="@(Model.Filter?.EmailConfirmed == "Confirmed")">@L.Get("admin.users.filter.emailConfirmedOnly")</option>
+                    <option value="NotConfirmed" selected="@(Model.Filter?.EmailConfirmed == "NotConfirmed")">@L.Get("admin.users.filter.emailNotConfirmed")</option>
                 </select>
             </div>
 
@@ -57,12 +59,12 @@
         <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
             <a asp-area="Admin" asp-controller="Users" asp-action="Index"
                class="btn btn-premium btn-premium-secondary">
-                Reset
+                @L.Get("admin.users.filter.reset")
             </a>
 
             <button type="submit"
                     class="btn btn-premium btn-premium-primary">
-                Apply Filters
+                @L.Get("admin.users.filter.apply")
             </button>
         </div>
 
@@ -76,12 +78,12 @@
         <table class="table table-premium mb-0">
             <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Status</th>
-                    <th>Email Confirmed</th>
-                    <th>Phone</th>
-                    <th class="text-center">Actions</th>
+                    <th>@L.Get("admin.users.table.name")</th>
+                    <th>@L.Get("admin.users.table.email")</th>
+                    <th>@L.Get("admin.users.table.status")</th>
+                    <th>@L.Get("admin.users.table.emailConfirmed")</th>
+                    <th>@L.Get("admin.users.table.phone")</th>
+                    <th class="text-center">@L.Get("admin.users.table.actions")</th>
                 </tr>
             </thead>
 
@@ -105,13 +107,13 @@
                             @if (u.IsActive)
                             {
                                 <span class="badge-status badge-status-active">
-                                    Active
+                                    @L.Get("admin.users.status.active")
                                 </span>
                             }
                             else
                             {
                                 <span class="badge-status badge-status-hidden">
-                                    Suspended
+                                    @L.Get("admin.users.status.suspended")
                                 </span>
                             }
                         </td>
@@ -121,13 +123,13 @@
                             @if (u.EmailConfirmed)
                             {
                                 <span class="badge-status badge-status-active">
-                                    Confirmed
+                                    @L.Get("admin.users.email.confirmed")
                                 </span>
                             }
                             else
                             {
                                 <span class="badge-status badge-status-pending">
-                                    Not Confirmed
+                                    @L.Get("admin.users.email.notConfirmed")
                                 </span>
                             }
                         </td>
@@ -144,7 +146,7 @@
                                 <a asp-action="Details"
                                    asp-route-id="@u.Id"
                                    class="btn btn-sm btn-premium btn-premium-secondary me-1 action-btn">
-                                    <span class="action-label d-none d-sm-inline">Details</span>
+                                    <span class="action-label d-none d-sm-inline">@L.Get("admin.users.action.details")</span>
                                     <i class="fa-solid fa-eye action-icon"></i>
                                 </a>
 
@@ -161,7 +163,7 @@
                                         <button type="submit"
                                                 class="btn btn-sm me-1 action-btn"
                                                 style="background: var(--color-warning); color:#fff; border:0;">
-                                            <span class="action-label d-none d-sm-inline">Suspend</span>
+                                            <span class="action-label d-none d-sm-inline">@L.Get("admin.users.action.suspend")</span>
                                             <i class="fa-solid fa-ban action-icon"></i>
                                         </button>
 
@@ -178,7 +180,7 @@
 
                                         <button type="submit"
                                                 class="btn btn-sm btn-premium btn-premium-primary me-1 action-btn">
-                                            <span class="action-label d-none d-sm-inline">Activate</span>
+                                            <span class="action-label d-none d-sm-inline">@L.Get("admin.users.action.activate")</span>
                                             <i class="fa-solid fa-circle-check action-icon"></i>
                                         </button>
 
@@ -196,7 +198,7 @@
                                     <button type="submit"
                                             class="btn btn-sm action-btn"
                                             style="background:var(--color-danger); color:#fff; border:0;">
-                                        <span class="action-label d-none d-sm-inline">Delete</span>
+                                        <span class="action-label d-none d-sm-inline">@L.Get("admin.users.action.delete")</span>
                                         <i class="fa-solid fa-trash action-icon"></i>
                                     </button>
 
@@ -216,7 +218,7 @@
     <!-- PAGINATION -->
     <div class="d-flex justify-content-between align-items-center mt-4">
         <div class="text-muted small">
-            Page @Model.Page of @Model.TotalPages
+            @string.Format(L.Get("admin.users.pagination.pageOf"), Model.Page, Model.TotalPages)
         </div>
 
         <div class="btn-group">
@@ -224,7 +226,7 @@
             {
                 <a class="btn btn-premium btn-premium-secondary btn-sm"
                    asp-route-page="@(Model.Page - 1)">
-                    Previous
+                    @L.Get("admin.users.pagination.previous")
                 </a>
             }
 
@@ -232,7 +234,7 @@
             {
                 <a class="btn btn-premium btn-premium-secondary btn-sm"
                    asp-route-page="@(Model.Page + 1)">
-                    Next
+                    @L.Get("admin.users.pagination.next")
                 </a>
             }
         </div>
@@ -305,15 +307,24 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
+        var _swal = {
+            suspendTitle: '@L.Get("admin.users.confirm.suspend.title")',
+            suspendText: '@L.Get("admin.users.confirm.suspend.text")',
+            suspendYes: '@L.Get("admin.users.confirm.suspend.yes")',
+            deleteTitle: '@L.Get("admin.users.confirm.delete.title")',
+            deleteText: '@L.Get("admin.users.confirm.delete.text")',
+            deleteYes: '@L.Get("admin.users.confirm.delete.yes")',
+            cancel: '@L.Get("admin.users.confirm.cancel")'
+        };
 
         function showSuspendConfirm(form) {
         Swal.fire({
-        title: 'Suspend User?',
-        text: "This user will lose access to the system.",
+        title: _swal.suspendTitle,
+        text: _swal.suspendText,
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: 'Yes, Suspend',
-        cancelButtonText: 'Cancel',
+        confirmButtonText: _swal.suspendYes,
+        cancelButtonText: _swal.cancel,
         reverseButtons: true,
         customClass: { popup: 'swal2-rounded' }
         }).then((result) => {
@@ -327,12 +338,12 @@
 
         function showDeleteConfirm(form) {
         Swal.fire({
-        title: 'Delete User?',
-        text: "This action cannot be undone.",
+        title: _swal.deleteTitle,
+        text: _swal.deleteText,
         icon: 'error',
         showCancelButton: true,
-        confirmButtonText: 'Yes, Delete',
-        cancelButtonText: 'Cancel',
+        confirmButtonText: _swal.deleteYes,
+        cancelButtonText: _swal.cancel,
         reverseButtons: true,
         confirmButtonColor: '#d33',
         customClass: { popup: 'swal2-rounded' }

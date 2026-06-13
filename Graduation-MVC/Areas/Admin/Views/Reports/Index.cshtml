@@ -1,18 +1,20 @@
 @model Graduation_MVC.Areas.Admin.ViewModels.Reports.AdminReportsPageViewModel
+@using Graduation_Application.IServices.Admin
+@inject ILocalizationService L
 @{
-    ViewData["Title"] = "Reports";
+    ViewData["Title"] = L.Get("admin.reports.title");
 }
 
 <div class="row align-items-center mb-4">
     <div class="col-md-8">
-        <h1 class="display-font text-light mb-1">Reports Management</h1>
-        <p class="text-muted mb-0">Generate, download, and export daily, weekly, and monthly reports.</p>
+        <h1 class="display-font text-light mb-1">@L.Get("admin.reports.heading")</h1>
+        <p class="text-muted mb-0">@L.Get("admin.reports.subheading")</p>
     </div>
     <div class="col-md-4 text-md-end mt-3 mt-md-0">
         <form asp-area="Admin" asp-controller="Reports" asp-action="Generate" method="post" class="d-inline">
             @Html.AntiForgeryToken()
             <button type="submit" name="reportType" value="Monthly" class="btn btn-premium btn-premium-primary">
-                <i class="fa-solid fa-file-circle-plus"></i> Generate Report
+                <i class="fa-solid fa-file-circle-plus"></i> @L.Get("admin.reports.generate")
             </button>
         </form>
     </div>
@@ -22,8 +24,8 @@
     <form method="get" asp-area="Admin" asp-controller="Reports" asp-action="Index" class="row g-3 align-items-end">
         <div class="col-md-3"><input type="date" class="form-control form-control-premium" name="fromDate" /></div>
         <div class="col-md-3"><input type="date" class="form-control form-control-premium" name="toDate" /></div>
-        <div class="col-md-3"><input type="text" class="form-control form-control-premium" name="vendorId" placeholder="Vendor" /></div>
-        <div class="col-md-3"><input type="text" class="form-control form-control-premium" name="categoryId" placeholder="Category" /></div>
+        <div class="col-md-3"><input type="text" class="form-control form-control-premium" name="vendorId" placeholder="@L.Get("admin.reports.filter.vendor")" /></div>
+        <div class="col-md-3"><input type="text" class="form-control form-control-premium" name="categoryId" placeholder="@L.Get("admin.reports.filter.category")" /></div>
     </form>
 </div>
 
@@ -32,11 +34,11 @@
         <table class="table table-premium mb-0">
             <thead>
                 <tr>
-                    <th>Report</th>
-                    <th>Type</th>
-                    <th>Vendor</th>
-                    <th>Date</th>
-                    <th class="text-end">Actions</th>
+                    <th>@L.Get("admin.reports.table.title")</th>
+                    <th>@L.Get("admin.reports.table.type")</th>
+                    <th>@L.Get("admin.reports.table.vendor")</th>
+                    <th>@L.Get("admin.reports.table.date")</th>
+                    <th class="text-end">@L.Get("admin.reports.table.actions")</th>
                 </tr>
             </thead>
             <tbody>
@@ -48,9 +50,9 @@
                         <td>@report.VendorName</td>
                         <td>@report.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
                         <td class="text-end">
-                            <a href="@report.DownloadUrl" class="btn btn-sm btn-premium btn-premium-secondary">Download</a>
-                            <a href="@report.ExportPdfUrl" class="btn btn-sm btn-premium btn-premium-secondary">PDF</a>
-                            <a href="@report.ExportExcelUrl" class="btn btn-sm btn-premium btn-premium-secondary">Excel</a>
+                            <a href="@report.DownloadUrl" class="btn btn-sm btn-premium btn-premium-secondary">@L.Get("admin.reports.action.download")</a>
+                            <a href="@report.ExportPdfUrl" class="btn btn-sm btn-premium btn-premium-secondary">@L.Get("admin.reports.action.pdf")</a>
+                            <a href="@report.ExportExcelUrl" class="btn btn-sm btn-premium btn-premium-secondary">@L.Get("admin.reports.action.excel")</a>
                         </td>
                     </tr>
                 }

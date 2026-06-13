@@ -1,7 +1,17 @@
 @model Graduation_MVC.Areas.Admin.ViewModels.Shared.AdminStatusBadgeViewModel
+@using Graduation_Application.IServices.Admin
+@inject ILocalizationService LocalizationService
 
 @{
-    var displayText = string.IsNullOrWhiteSpace(Model.DisplayText) ? Model.Status : Model.DisplayText;
+    var statusKey = "status." + Model.Status.Trim().ToLowerInvariant();
+    var localizedDisplayText = LocalizationService.Get(statusKey);
+    // Fallback if not found (LocalizationService returns key if missing)
+    if (localizedDisplayText == statusKey)
+    {
+        localizedDisplayText = string.IsNullOrWhiteSpace(Model.DisplayText) ? Model.Status : Model.DisplayText;
+    }
+    var displayText = localizedDisplayText;
+    
     var cssClass = Model.CssClass;
 
     if (string.IsNullOrWhiteSpace(cssClass))

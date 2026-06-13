@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Graduation_Application.DTOs.BannerDTO;
 using Graduation_Application.IServices;
+using Graduation_Application.IServices.Admin;
 using Graduation_MVC.Areas.Admin.ViewModels.Banners;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,11 +14,13 @@ namespace Graduation_MVC.Areas.Admin.Controllers
     {
         private readonly IBannerService _bannerService;
         private readonly IFileService _fileService;
+        private readonly ILocalizationService _localizationService;
 
-        public BannersController(IBannerService bannerService, IFileService fileService)
+        public BannersController(IBannerService bannerService, IFileService fileService, ILocalizationService localizationService)
         {
             _bannerService = bannerService;
             _fileService = fileService;
+            _localizationService = localizationService;
         }
 
         // GET: /Admin/Banners
@@ -60,14 +63,13 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         {
             if (model.ImageFile == null || model.ImageFile.Length == 0)
             {
-                ModelState.AddModelError("ImageFile", "Banner image is required.");
+                ModelState.AddModelError("ImageFile", _localizationService.Get("admin.banners.create.imageRequired"));
             }
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    // Save image to Cloudinary in a folder named "banners"
                     string imageUrl = await _fileService.SaveImageAsync(model.ImageFile!, "banners");
 
                     var dto = new CreateBannerDto
@@ -84,7 +86,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
 
                     await _bannerService.CreateBannerAsync(dto);
 
-                    TempData["SuccessMessage"] = "Banner created successfully.";
+                    TempData["SuccessMessage"] = _localizationService.Get("admin.banners.create.success");
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
@@ -103,7 +105,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
             var banner = await _bannerService.GetBannerByIdAsync(id);
             if (banner == null)
             {
-                TempData["ErrorMessage"] = "Banner not found.";
+                TempData["ErrorMessage"] = _localizationService.Get("admin.banners.notfound");
                 return RedirectToAction(nameof(Index));
             }
 
@@ -158,7 +160,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
 
                     await _bannerService.UpdateBannerAsync(id, dto);
 
-                    TempData["SuccessMessage"] = "Banner updated successfully.";
+                    TempData["SuccessMessage"] = _localizationService.Get("admin.banners.edit.success");
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
@@ -180,11 +182,11 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 var success = await _bannerService.DeleteBannerAsync(id);
                 if (success)
                 {
-                    TempData["SuccessMessage"] = "Banner deleted successfully.";
+                    TempData["SuccessMessage"] = _localizationService.Get("admin.banners.delete.success");
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = "Banner not found or could not be deleted.";
+                    TempData["ErrorMessage"] = _localizationService.Get("admin.banners.delete.error");
                 }
             }
             catch (Exception ex)
@@ -205,11 +207,15 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 var success = await _bannerService.UpdateBannerStatusAsync(id, isActive);
                 if (success)
                 {
-                    TempData["SuccessMessage"] = $"Banner status updated to {(isActive ? "Active" : "Inactive")}.";
+                    var statusKey = isActive ? "admin.banners.status.active" : "admin.banners.status.inactive";
+                    TempData["SuccessMessage"] = string.Format(
+                        _localizationService.Get("admin.banners.status.updated"),
+                        _localizationService.Get(statusKey)
+                    );
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = "Banner not found or could not be updated.";
+                    TempData["ErrorMessage"] = _localizationService.Get("admin.banners.notfound");
                 }
             }
             catch (Exception ex)

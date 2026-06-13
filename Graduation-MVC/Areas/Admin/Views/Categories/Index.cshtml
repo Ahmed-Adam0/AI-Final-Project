@@ -1,20 +1,23 @@
 @model AdminCategoriesPageViewModel
+@using Graduation_Application.IServices;
+@using Graduation_Application.IServices.Admin;
+@inject Graduation_Application.IServices.Admin.ILocalizationService L
 @{
-    ViewData["Title"] = "Manage Categories";
+    ViewData["Title"] = L.Get("admin.categories.index.title");
 }
 
 <div class="row align-items-center mb-4">
     <div class="col-md-6">
-        <h1 class="display-font text-light mb-1">Categories Management</h1>
-        <p class="text-muted mb-0">Browse, search, and manage product categories.</p>
+        <h1 class="display-font text-light mb-1">@L.Get("admin.categories.index.heading")</h1>
+        <p class="text-muted mb-0">@L.Get("admin.categories.index.subheading")</p>
     </div>
     <div class="col-md-6 text-md-end mt-3 mt-md-0 d-flex justify-content-md-end align-items-center gap-3">
         <div class="glass-card px-3 py-2 d-inline-flex align-items-center gap-3">
-            <span class="text-muted small">Total Categories:</span>
+            <span class="text-muted small">@L.Get("admin.categories.index.total"):</span>
             <span class="badge fs-6 font-monospace" style="background-color: var(--accent-primary);">@Model.Categories.Count</span>
         </div>
         <a asp-area="Admin" asp-controller="Categories" asp-action="Create" class="btn btn-premium btn-premium-primary">
-            <i class="fa-solid fa-plus me-1"></i> Add Category
+            <i class="fa-solid fa-plus me-1"></i> @L.Get("admin.categories.index.addButton")
         </a>
     </div>
 </div>
@@ -29,7 +32,7 @@
                     <span class="input-group-text bg-transparent border-end-0" style="border-color: var(--border-color); color: var(--text-muted);">
                         <i class="fa-solid fa-magnifying-glass"></i>
                     </span>
-                    <input type="text" name="Search" class="form-control form-control-premium border-start-0 ps-0" placeholder="Search by English or Arabic name..." value="@Model.Search" />
+                    <input type="text" name="Search" class="form-control form-control-premium border-start-0 ps-0" placeholder="@L.Get("admin.categories.index.searchPlaceholder")" value="@Model.Search" />
                 </div>
             </div>
             <div class="col-md-4 d-flex gap-2">
@@ -37,7 +40,7 @@
                     <i class="fa-solid fa-check"></i> Search
                 </button>
                 <a asp-area="Admin" asp-controller="Categories" asp-action="Index" class="btn btn-premium btn-premium-secondary">
-                    <i class="fa-solid fa-arrow-rotate-left"></i> Reset
+                    <i class="fa-solid fa-arrow-rotate-left"></i> @L.Get("admin.categories.index.resetButton")
                 </a>
             </div>
         </div>
@@ -60,10 +63,10 @@
             <table class="table table-premium">
                 <thead>
                     <tr>
-                        <th style="width: 80px;">Image</th>
-                        <th>English Name</th>
-                        <th>Arabic Name</th>
-                        <th class="text-end" style="width: 150px;">Actions</th>
+                        <th>@L.Get("admin.categories.table.image")</th>
+                        <th>@L.Get("admin.categories.table.nameEn")</th>
+                        <th>@L.Get("admin.categories.table.nameAr")</th>
+                        <th class="text-end" style="width: 150px;">@L.Get("admin.categories.table.actions")</th>
                     </tr>
                 </thead>
                 <tbody>

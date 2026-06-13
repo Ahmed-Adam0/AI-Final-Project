@@ -1,16 +1,18 @@
 @model Graduation_MVC.Areas.Admin.ViewModels.Analytics.AdminAnalyticsViewModel
+@using Graduation_Application.IServices.Admin
+@inject ILocalizationService L
 @{
-    ViewData["Title"] = "Analytics";
+    ViewData["Title"] = L.Get("admin.analytics.title");
 }
 
 <div class="row align-items-center mb-4">
     <div class="col-md-8">
-        <h1 class="display-font text-light mb-1">Analytics Dashboard</h1>
-        <p class="text-muted mb-0">Interactive performance charts with date filters and export support.</p>
+        <h1 class="display-font text-light mb-1">@L.Get("admin.analytics.heading")</h1>
+        <p class="text-muted mb-0">@L.Get("admin.analytics.subheading")</p>
     </div>
     <div class="col-md-4 text-md-end mt-3 mt-md-0">
         <a asp-area="Admin" asp-controller="Analytics" asp-action="Export" class="btn btn-premium btn-premium-primary">
-            <i class="fa-solid fa-file-export"></i> Export Analytics
+            <i class="fa-solid fa-file-export"></i> @L.Get("admin.analytics.export")
         </a>
     </div>
 </div>
@@ -18,16 +20,16 @@
 <div class="glass-card p-4 mb-4">
     <form method="get" asp-area="Admin" asp-controller="Analytics" asp-action="Index" class="row g-3 align-items-end">
         <div class="col-md-4">
-            <label class="form-label text-muted small">From</label>
+            <label class="form-label text-muted small">@L.Get("admin.analytics.filter.from")</label>
             <input type="date" name="fromDate" class="form-control form-control-premium" />
         </div>
         <div class="col-md-4">
-            <label class="form-label text-muted small">To</label>
+            <label class="form-label text-muted small">@L.Get("admin.analytics.filter.to")</label>
             <input type="date" name="toDate" class="form-control form-control-premium" />
         </div>
         <div class="col-md-4 d-flex gap-2">
-            <button type="submit" class="btn btn-premium btn-premium-primary">Apply Filters</button>
-            <a asp-area="Admin" asp-controller="Analytics" asp-action="Index" class="btn btn-premium btn-premium-secondary">Reset</a>
+            <button type="submit" class="btn btn-premium btn-premium-primary">@L.Get("admin.analytics.filter.apply")</button>
+            <a asp-area="Admin" asp-controller="Analytics" asp-action="Index" class="btn btn-premium btn-premium-secondary">@L.Get("admin.analytics.filter.reset")</a>
         </div>
     </form>
 </div>
@@ -38,7 +40,7 @@
         <div class="col-md-4">
             <div class="glass-card p-4 h-100">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div class="text-muted small text-uppercase fw-semibold">@metric.Title</div>
+                    <div class="text-muted small text-uppercase fw-semibold">@L.Get("auth.dashboard." + metric.Title)</div>
                     <i class="@metric.IconClass text-primary"></i>
                 </div>
                 <div class="fs-3 fw-bold text-light">@metric.Value</div>
@@ -51,7 +53,7 @@
 <div class="row g-4 mb-4">
     <div class="col-lg-6">
         <div class="glass-card p-4 h-100">
-            <h5 class="text-light mb-3">Orders Analytics</h5>
+            <h5 class="text-light mb-3">@L.Get("admin.analytics.ordersChart")</h5>
             <div class="admin-chart-shell">
                 <canvas id="@Model.OrdersPerDayChart.ChartId" class="admin-chart-canvas"></canvas>
             </div>
@@ -59,7 +61,7 @@
     </div>
     <div class="col-lg-6">
         <div class="glass-card p-4 h-100">
-            <h5 class="text-light mb-3">Revenue Growth</h5>
+            <h5 class="text-light mb-3">@L.Get("admin.analytics.revenueChart")</h5>
             <div class="admin-chart-shell">
                 <canvas id="@Model.RevenueGrowthChart.ChartId" class="admin-chart-canvas"></canvas>
             </div>
@@ -70,11 +72,16 @@
 <div class="row g-4">
     <div class="col-lg-6">
         <div class="glass-card p-4 h-100">
-            <h5 class="text-light mb-3">Top Vendors</h5>
+            <h5 class="text-light mb-3">@L.Get("admin.analytics.rank.titleVendors")</h5>
             <div class="table-responsive">
                 <table class="table table-premium mb-0">
                     <thead>
-                        <tr><th>Rank</th><th>Vendor</th><th>Orders</th><th class="text-end">Revenue</th></tr>
+                        <tr>
+                            <th>@L.Get("admin.analytics.table.rank")</th>
+                            <th>@L.Get("admin.analytics.table.vendor")</th>
+                            <th>@L.Get("admin.analytics.table.orders")</th>
+                            <th class="text-end">@L.Get("admin.analytics.table.revenue")</th>
+                        </tr>
                     </thead>
                     <tbody>
                         @foreach (var item in Model.TopVendors)
@@ -83,7 +90,7 @@
                                 <td>@item.Rank</td>
                                 <td>@item.Name</td>
                                 <td>@item.OrdersCount</td>
-                                <td class="text-end">EGP @item.Revenue.ToString("N0")</td>
+                                <td class="text-end">@string.Format(L.Get("admin.analytics.currencyFormat"), item.Revenue.ToString("N0"))</td>
                             </tr>
                         }
                     </tbody>
@@ -93,11 +100,16 @@
     </div>
     <div class="col-lg-6">
         <div class="glass-card p-4 h-100">
-            <h5 class="text-light mb-3">Top Categories</h5>
+            <h5 class="text-light mb-3">@L.Get("admin.analytics.rank.titleCategories")</h5>
             <div class="table-responsive">
                 <table class="table table-premium mb-0">
                     <thead>
-                        <tr><th>Rank</th><th>Category</th><th>Orders</th><th class="text-end">Revenue</th></tr>
+                        <tr>
+                            <th>@L.Get("admin.analytics.table.rank")</th>
+                            <th>@L.Get("admin.analytics.table.category")</th>
+                            <th>@L.Get("admin.analytics.table.orders")</th>
+                            <th class="text-end">@L.Get("admin.analytics.table.revenue")</th>
+                        </tr>
                     </thead>
                     <tbody>
                         @foreach (var item in Model.TopCategories)
@@ -106,7 +118,7 @@
                                 <td>@item.Rank</td>
                                 <td>@item.Name</td>
                                 <td>@item.OrdersCount</td>
-                                <td class="text-end">EGP @item.Revenue.ToString("N0")</td>
+                                <td class="text-end">@string.Format(L.Get("admin.analytics.currencyFormat"), item.Revenue.ToString("N0"))</td>
                             </tr>
                         }
                     </tbody>

@@ -1,12 +1,14 @@
 @model Graduation_MVC.Areas.Admin.ViewModels.Settings.AdminSettingsViewModel
+@using Graduation_Application.IServices.Admin
+@inject ILocalizationService L
 @{
-    ViewData["Title"] = "Settings";
+    ViewData["Title"] = L.Get("admin.settings.title");
 }
 
 <div class="row align-items-center mb-4">
     <div class="col-md-8">
-        <h1 class="display-font text-light mb-1">Platform Settings</h1>
-        <p class="text-muted mb-0">Manage platform, commission, support settings, and audit logs.</p>
+        <h1 class="display-font text-light mb-1">@L.Get("admin.settings.heading")</h1>
+        <p class="text-muted mb-0">@L.Get("admin.settings.subheading")</p>
     </div>
 </div>
 
@@ -15,39 +17,39 @@
     <div class="row g-4">
         <div class="col-lg-6">
             <div class="glass-card p-4 h-100">
-                <h5 class="text-light mb-3">Platform Settings</h5>
+                <h5 class="text-light mb-3">@L.Get("admin.settings.platform.title")</h5>
                 <div class="mb-3">
-                    <label class="form-label text-muted small">Platform Name</label>
+                    <label class="form-label text-muted small">@L.Get("admin.settings.platform.name")</label>
                     <input asp-for="Platform.PlatformName" class="form-control form-control-premium" />
                 </div>
                 <div class="mb-3">
-                    <label class="form-label text-muted small">Logo</label>
+                    <label class="form-label text-muted small">@L.Get("admin.settings.platform.logo")</label>
                     <input asp-for="Platform.LogoUrl" class="form-control form-control-premium" />
                 </div>
                 <div class="mb-3">
-                    <label class="form-label text-muted small">Contact Information</label>
+                    <label class="form-label text-muted small">@L.Get("admin.settings.platform.contact")</label>
                     <textarea asp-for="Platform.ContactInformation" class="form-control form-control-premium" rows="3"></textarea>
                 </div>
                 <div class="form-check form-switch">
                     <input asp-for="Platform.MaintenanceMode" class="form-check-input" />
-                    <label class="form-check-label text-light" asp-for="Platform.MaintenanceMode">Maintenance Mode</label>
+                    <label class="form-check-label text-light" asp-for="Platform.MaintenanceMode">@L.Get("admin.settings.platform.maintenance")</label>
                 </div>
             </div>
         </div>
 
         <div class="col-lg-6">
             <div class="glass-card p-4 h-100">
-                <h5 class="text-light mb-3">Commission Settings</h5>
+                <h5 class="text-light mb-3">@L.Get("admin.settings.commission.title")</h5>
                 <div class="mb-3">
-                    <label class="form-label text-muted small">Commission Percentage</label>
+                    <label class="form-label text-muted small">@L.Get("admin.settings.commission.percentage")</label>
                     <input asp-for="Commission.CommissionPercentage" class="form-control form-control-premium" />
                 </div>
                 <div class="mb-3">
-                    <label class="form-label text-muted small">Vendor Fees</label>
+                    <label class="form-label text-muted small">@L.Get("admin.settings.commission.vendorFees")</label>
                     <input asp-for="Commission.VendorFees" class="form-control form-control-premium" />
                 </div>
                 <div class="mb-3">
-                    <label class="form-label text-muted small">Tax Percentage</label>
+                    <label class="form-label text-muted small">@L.Get("admin.settings.commission.tax")</label>
                     <input asp-for="Commission.TaxPercentage" class="form-control form-control-premium" />
                 </div>
             </div>
@@ -55,21 +57,21 @@
 
         <div class="col-lg-6">
             <div class="glass-card p-4 h-100">
-                <h5 class="text-light mb-3">Support Settings</h5>
-                <div class="mb-3"><input asp-for="Support.Email" class="form-control form-control-premium" placeholder="Support email" /></div>
-                <div class="mb-3"><input asp-for="Support.Phone" class="form-control form-control-premium" placeholder="Phone number" /></div>
-                <div class="mb-3"><input asp-for="Support.WhatsApp" class="form-control form-control-premium" placeholder="WhatsApp number" /></div>
-                <div class="mb-3"><input asp-for="Support.SupportHours" class="form-control form-control-premium" placeholder="Support hours" /></div>
+                <h5 class="text-light mb-3">@L.Get("admin.settings.support.title")</h5>
+                <div class="mb-3"><input asp-for="Support.Email" class="form-control form-control-premium" placeholder="@L.Get("admin.settings.support.emailPlaceholder")" /></div>
+                <div class="mb-3"><input asp-for="Support.Phone" class="form-control form-control-premium" placeholder="@L.Get("admin.settings.support.phonePlaceholder")" /></div>
+                <div class="mb-3"><input asp-for="Support.WhatsApp" class="form-control form-control-premium" placeholder="@L.Get("admin.settings.support.whatsappPlaceholder")" /></div>
+                <div class="mb-3"><input asp-for="Support.SupportHours" class="form-control form-control-premium" placeholder="@L.Get("admin.settings.support.hoursPlaceholder")" /></div>
             </div>
         </div>
 
         <div class="col-lg-6">
             <div class="glass-card p-4 h-100">
-                <h5 class="text-light mb-3">Audit Logs</h5>
+                <h5 class="text-light mb-3">@L.Get("admin.settings.audit.title")</h5>
                 <div class="table-responsive">
                     <table class="table table-premium mb-0">
                         <thead>
-                            <tr><th>Date</th><th>Action</th><th>By</th></tr>
+                            <tr><th>@L.Get("admin.settings.audit.date")</th><th>@L.Get("admin.settings.audit.action")</th><th>@L.Get("admin.settings.audit.by")</th></tr>
                         </thead>
                         <tbody>
                             @foreach (var log in Model.AuditLogs)
@@ -87,7 +89,7 @@
         </div>
 
         <div class="col-12 text-end">
-            <button type="submit" class="btn btn-premium btn-premium-primary">Save Settings</button>
+            <button type="submit" class="btn btn-premium btn-premium-primary">@L.Get("admin.settings.save")</button>
         </div>
     </div>
 </form>

@@ -1,18 +1,20 @@
 @model Graduation_MVC.Areas.Admin.ViewModels.Vendors.AdminVendorHistoryViewModel
 @using Graduation_MVC.Areas.Admin.ViewModels.Shared
+@using Graduation_Application.IServices.Admin
+@inject ILocalizationService L
 
 @{
-    ViewData["Title"] = "Vendors History";
+    ViewData["Title"] = L.Get("auth.vendors.historyTitle");
 }
 
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
     <div>
-        <h2 class="mb-1">Vendors History</h2>
-        <p class="text-muted mb-0">Audit trail for verification and account status changes.</p>
+        <h2 class="mb-1">@L.Get("auth.vendors.historyTitle")</h2>
+        <p class="text-muted mb-0">@L.Get("auth.vendors.historySubtitle")</p>
     </div>
     <div class="d-flex gap-2">
         <a asp-area="Admin" asp-controller="Vendors" asp-action="Index" class="btn btn-premium btn-premium-secondary">
-            <i class="fa-solid fa-arrow-left"></i> Vendors
+            <i class="fa-solid fa-arrow-left"></i> @L.Get("auth.vendors.backToVendors")
         </a>
     </div>
 </div>
@@ -22,18 +24,18 @@
         <table class="table table-premium align-middle mb-0">
             <thead>
                 <tr>
-                    <th>Date</th>
-                    <th>Vendor</th>
-                    <th>Action</th>
-                    <th>Admin</th>
-                    <th>Details</th>
-                    <th class="text-end">Open</th>
+                    <th>@L.Get("auth.vendors.colDate")</th>
+                    <th>@L.Get("auth.vendors.colVendor")</th>
+                    <th>@L.Get("auth.vendors.colAction")</th>
+                    <th>@L.Get("auth.vendors.colAdmin")</th>
+                    <th>@L.Get("auth.vendors.colDetails")</th>
+                    <th class="text-end">@L.Get("auth.vendors.colOpen")</th>
                 </tr>
             </thead>
             <tbody>
                 @if (Model.Items.Count == 0)
                 {
-                    <tr><td colspan="6" class="text-muted">No history yet.</td></tr>
+                    <tr><td colspan="6" class="text-muted">@L.Get("auth.vendors.noHistory")</td></tr>
                 }
                 else
                 {
@@ -74,4 +76,3 @@
     }
     <partial name="~/Areas/Admin/Views/Shared/_Pagination.cshtml" model="pagination" />
 </div>
-

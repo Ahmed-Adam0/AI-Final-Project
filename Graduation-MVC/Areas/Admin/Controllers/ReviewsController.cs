@@ -11,10 +11,15 @@ namespace Graduation_MVC.Areas.Admin.Controllers
     public class ReviewsController : Controller
     {
         private readonly IAdminReviewService _adminReviewService;
+        private readonly ILocalizationService _localizationService;
 
-        public ReviewsController(IAdminReviewService adminReviewService)
+        public ReviewsController(
+            IAdminReviewService adminReviewService,
+            ILocalizationService localizationService
+        )
         {
             _adminReviewService = adminReviewService;
+            _localizationService = localizationService;
         }
 
         [HttpGet]
@@ -48,7 +53,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         {
             var adminUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             await _adminReviewService.ResolveReportAsync(id, adminUserId);
-            TempData["SuccessMessage"] = "Report resolved.";
+            TempData["SuccessMessage"] = _localizationService.Get("admin.reviews.msg.resolve");
             return RedirectToAction(nameof(Reported));
         }
 
@@ -58,7 +63,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         {
             var adminUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             await _adminReviewService.IgnoreReportAsync(id, adminUserId);
-            TempData["SuccessMessage"] = "Report ignored.";
+            TempData["SuccessMessage"] = _localizationService.Get("admin.reviews.msg.ignore");
             return RedirectToAction(nameof(Reported));
         }
 
@@ -68,7 +73,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         {
             var adminUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             await _adminReviewService.DeleteReviewAsync(id, adminUserId);
-            TempData["SuccessMessage"] = "Review deleted (deactivated).";
+            TempData["SuccessMessage"] = _localizationService.Get("admin.reviews.msg.delete");
 
             if (!string.IsNullOrWhiteSpace(returnUrl))
                 return Redirect(returnUrl);

@@ -1,63 +1,65 @@
 @model Graduation_MVC.Areas.Admin.ViewModels.AuditLogs.AuditLogDetailsViewModel
+@using Graduation_Application.IServices.Admin
+@inject ILocalizationService L
 @{
-    ViewData["Title"] = "Audit Log Details";
+    ViewData["Title"] = L.Get("admin.audit.details.title");
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h1 class="display-font text-light mb-1">Audit Log Details</h1>
-        <p class="text-muted mb-0">Complete information for activity log #@Model.Id</p>
+        <h1 class="display-font text-light mb-1">@L.Get("admin.audit.details.heading")</h1>
+        <p class="text-muted mb-0">@string.Format(L.Get("admin.audit.details.subheading"), Model.Id)</p>
     </div>
 
     <a asp-area="Admin" asp-controller="AuditLogs" asp-action="Index" class="btn btn-premium btn-premium-secondary">
-        <i class="fa-solid fa-arrow-left"></i> Back to Audit Logs
+        <i class="fa-solid fa-arrow-left"></i> @L.Get("admin.audit.details.back")
     </a>
 </div>
 
 <div class="glass-card p-4">
     <div class="row g-4">
         <div class="col-md-6">
-            <label class="form-label text-muted small">Log Id</label>
+            <label class="form-label text-muted small">@L.Get("admin.audit.details.logId")</label>
             <div class="fw-semibold text-light">@Model.Id</div>
         </div>
 
         <div class="col-md-6">
-            <label class="form-label text-muted small">Date</label>
+            <label class="form-label text-muted small">@L.Get("admin.audit.details.date")</label>
             <div class="text-light">@Model.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div>
         </div>
 
         <div class="col-md-6">
-            <label class="form-label text-muted small">User Id</label>
+            <label class="form-label text-muted small">@L.Get("admin.audit.details.userId")</label>
             <div class="text-light">@Model.UserId</div>
         </div>
 
         <div class="col-md-6">
-            <label class="form-label text-muted small">User Name</label>
+            <label class="form-label text-muted small">@L.Get("admin.audit.details.userName")</label>
             <div class="text-light">@Model.UserName</div>
         </div>
 
         <div class="col-md-6">
-            <label class="form-label text-muted small">User Role</label>
+            <label class="form-label text-muted small">@L.Get("admin.audit.details.userRole")</label>
             <div><span class="badge-status badge-status-active">@Model.UserRole</span></div>
         </div>
 
         <div class="col-md-6">
-            <label class="form-label text-muted small">Action</label>
+            <label class="form-label text-muted small">@L.Get("admin.audit.details.action")</label>
             <div class="text-light">@Model.Action</div>
         </div>
 
         <div class="col-md-6">
-            <label class="form-label text-muted small">Entity Type</label>
+            <label class="form-label text-muted small">@L.Get("admin.audit.details.entityType")</label>
             <div class="text-light">@Model.EntityType</div>
         </div>
 
         <div class="col-md-6">
-            <label class="form-label text-muted small">Entity Id</label>
+            <label class="form-label text-muted small">@L.Get("admin.audit.details.entityId")</label>
             <div class="text-light">@(string.IsNullOrWhiteSpace(Model.EntityId) ? "-" : Model.EntityId)</div>
         </div>
 
         <div class="col-12">
-            <label class="form-label text-muted small">Description</label>
+            <label class="form-label text-muted small">@L.Get("admin.audit.details.description")</label>
             <div class="text-light">@Model.Description</div>
         </div>
     </div>

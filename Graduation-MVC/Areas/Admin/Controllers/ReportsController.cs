@@ -11,10 +11,15 @@ namespace Graduation_MVC.Areas.Admin.Controllers
     public class ReportsController : Controller
     {
         private readonly IAdminDashboardService _adminDashboardService;
+        private readonly ILocalizationService _localizationService;
 
-        public ReportsController(IAdminDashboardService adminDashboardService)
+        public ReportsController(
+            IAdminDashboardService adminDashboardService,
+            ILocalizationService localizationService
+        )
         {
             _adminDashboardService = adminDashboardService;
+            _localizationService = localizationService;
         }
 
         [HttpGet]
@@ -68,7 +73,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Generate(string reportType)
         {
-            TempData["SuccessMessage"] = $"{reportType} report generation started.";
+            TempData["SuccessMessage"] = _localizationService.Get("admin.reports.generate.started", reportType);
             return RedirectToAction(nameof(Index));
         }
 

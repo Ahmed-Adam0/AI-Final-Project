@@ -11,7 +11,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Admin Panel | HomeAi</title>
+    <title>@ViewData["Title"] - @LocalizationService.Get("auth.layout.adminPanel") | HomeAi</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -80,8 +80,8 @@
 
         <footer class="admin-footer">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
-                <span>&copy; @DateTime.UtcNow.Year HomeAi Marketplace — Admin Console</span>
-                <span class="text-muted">Built for scalable module management</span>
+                <span>&copy; @DateTime.UtcNow.Year @LocalizationService.Get("auth.layout.copyright")</span>
+                <span class="text-muted">@LocalizationService.Get("auth.layout.subtitle")</span>
             </div>
         </footer>
     </div>

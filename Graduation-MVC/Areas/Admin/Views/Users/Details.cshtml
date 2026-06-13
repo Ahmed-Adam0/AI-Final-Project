@@ -1,6 +1,8 @@
 @model Graduation_MVC.Areas.Admin.ViewModels.Users.AdminUserDetailsViewModel
+@using Graduation_Application.IServices.Admin
+@inject ILocalizationService L
 @{
-    ViewData["Title"] = "Customer Details";
+    ViewData["Title"] = L.Get("admin.users.details.title");
 
     var fullNameParts = (Model.FullName ?? string.Empty)
         .Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -20,11 +22,11 @@
            asp-action="Index"
            class="btn btn-premium btn-premium-secondary mb-3">
             <i class="fa-solid fa-arrow-left me-2"></i>
-            Back to Customers
+            @L.Get("admin.users.details.back")
         </a>
 
         <h1 class="display-font text-light mb-1">@Model.FullName</h1>
-        <p class="text-muted mb-0">Customer profile, contact information, and activity summary.</p>
+        <p class="text-muted mb-0">@L.Get("admin.users.details.subheading")</p>
     </div>
 
     <div class="col-md-4 text-md-end mt-3 mt-md-0">
@@ -32,14 +34,14 @@
         {
             <span class="badge-status badge-status-active">
                 <i class="fa-solid fa-circle-check me-1"></i>
-                Active
+                @L.Get("admin.users.details.active")
             </span>
         }
         else
         {
             <span class="badge-status badge-status-hidden">
                 <i class="fa-solid fa-ban me-1"></i>
-                Suspended
+                @L.Get("admin.users.details.suspended")
             </span>
         }
     </div>
@@ -63,17 +65,17 @@
             }
 
             <h4 class="text-light mb-1">@Model.FullName</h4>
-            <p class="text-muted mb-3">Customer Account</p>
+            <p class="text-muted mb-3">@L.Get("admin.users.details.customerAccount")</p>
 
             <div class="d-flex flex-wrap justify-content-center gap-2 mb-4">
                 <span class="badge-status @(Model.EmailConfirmed ? "badge-status-active" : "badge-status-pending")">
                     <i class="fa-solid @(Model.EmailConfirmed ? "fa-circle-check" : "fa-hourglass-half") me-1"></i>
-                    @(Model.EmailConfirmed ? "Email Confirmed" : "Email Not Confirmed")
+                    @(Model.EmailConfirmed ? L.Get("admin.users.details.emailConfirmed") : L.Get("admin.users.details.emailNotConfirmed"))
                 </span>
 
                 <span class="badge-status @(Model.IsActive ? "badge-status-active" : "badge-status-hidden")">
                     <i class="fa-solid @(Model.IsActive ? "fa-circle-check" : "fa-ban") me-1"></i>
-                    @(Model.IsActive ? "Active" : "Suspended")
+                    @(Model.IsActive ? L.Get("admin.users.details.active") : L.Get("admin.users.details.suspended"))
                 </span>
             </div>
 
@@ -81,15 +83,15 @@
 
             <div class="profile-meta text-start">
                 <div class="meta-row">
-                    <span class="meta-label">Email</span>
+                    <span class="meta-label">@L.Get("admin.users.details.email")</span>
                     <span class="meta-separator">:</span>
                     <span class="meta-value text-break">@Model.Email</span>
                 </div>
 
                 <div class="meta-row">
-                    <span class="meta-label">Phone</span>
+                    <span class="meta-label">@L.Get("admin.users.details.phone")</span>
                     <span class="meta-separator">:</span>
-                    <span class="meta-value">@(string.IsNullOrWhiteSpace(Model.PhoneNumber) ? "Not provided" : Model.PhoneNumber)</span>
+                    <span class="meta-value">@(string.IsNullOrWhiteSpace(Model.PhoneNumber) ? L.Get("admin.users.details.notProvided") : Model.PhoneNumber)</span>
                 </div>
             </div>
         </div>
@@ -100,49 +102,49 @@
             <div class="d-flex align-items-center justify-content-between mb-4">
                 <h5 class="mb-0 text-light">
                     <i class="fa-solid fa-id-card me-2"></i>
-                    Customer Details
+                    @L.Get("admin.users.details.section.info")
                 </h5>
-                <span class="text-muted small">Contact and account information</span>
+                <span class="text-muted small">@L.Get("admin.users.details.section.infoSub")</span>
             </div>
 
             <div class="row g-3">
                 <div class="col-md-6">
                     <div class="details-tile h-100">
-                        <small class="text-muted d-block mb-2">Full Name</small>
+                        <small class="text-muted d-block mb-2">@L.Get("admin.users.details.fullName")</small>
                         <div class="fw-semibold text-light">@Model.FullName</div>
                     </div>
                 </div>
 
                 <div class="col-md-6">
                     <div class="details-tile h-100">
-                        <small class="text-muted d-block mb-2">Email Address</small>
+                        <small class="text-muted d-block mb-2">@L.Get("admin.users.details.emailAddress")</small>
                         <div class="fw-semibold text-light text-break">@Model.Email</div>
                     </div>
                 </div>
 
                 <div class="col-md-6">
                     <div class="details-tile h-100">
-                        <small class="text-muted d-block mb-2">Phone Number</small>
-                        <div class="fw-semibold text-light">@(string.IsNullOrWhiteSpace(Model.PhoneNumber) ? "Not Provided" : Model.PhoneNumber)</div>
+                        <small class="text-muted d-block mb-2">@L.Get("admin.users.details.phoneNumber")</small>
+                        <div class="fw-semibold text-light">@(string.IsNullOrWhiteSpace(Model.PhoneNumber) ? L.Get("admin.users.details.notProvided") : Model.PhoneNumber)</div>
                     </div>
                 </div>
 
                 <div class="col-md-6">
                     <div class="details-tile h-100">
-                        <small class="text-muted d-block mb-2">Email Confirmation</small>
+                        <small class="text-muted d-block mb-2">@L.Get("admin.users.details.emailConfirmation")</small>
                         <div>
                             @if (Model.EmailConfirmed)
                             {
                                 <span class="badge-status badge-status-active">
                                     <i class="fa-solid fa-circle-check me-1"></i>
-                                    Confirmed
+                                    @L.Get("admin.users.email.confirmed")
                                 </span>
                             }
                             else
                             {
                                 <span class="badge-status badge-status-pending">
                                     <i class="fa-solid fa-hourglass-half me-1"></i>
-                                    Not Confirmed
+                                    @L.Get("admin.users.email.notConfirmed")
                                 </span>
                             }
                         </div>
@@ -151,20 +153,20 @@
 
                 <div class="col-md-6">
                     <div class="details-tile h-100">
-                        <small class="text-muted d-block mb-2">Account Status</small>
+                        <small class="text-muted d-block mb-2">@L.Get("admin.users.details.accountStatus")</small>
                         <div>
                             @if (Model.IsActive)
                             {
                                 <span class="badge-status badge-status-active">
                                     <i class="fa-solid fa-circle-check me-1"></i>
-                                    Active
+                                    @L.Get("admin.users.status.active")
                                 </span>
                             }
                             else
                             {
                                 <span class="badge-status badge-status-hidden">
                                     <i class="fa-solid fa-ban me-1"></i>
-                                    Suspended
+                                    @L.Get("admin.users.status.suspended")
                                 </span>
                             }
                         </div>
@@ -177,23 +179,23 @@
             <div class="d-flex align-items-center justify-content-between mb-4">
                 <h5 class="mb-0 text-light">
                     <i class="fa-solid fa-chart-line me-2"></i>
-                    Activity Summary
+                    @L.Get("admin.users.details.section.activity")
                 </h5>
-                <span class="text-muted small">Orders and spending</span>
+                <span class="text-muted small">@L.Get("admin.users.details.section.activitySub")</span>
             </div>
 
             <div class="row g-3">
                 <div class="col-md-6">
                     <div class="details-stat-card">
-                        <div class="text-muted small mb-2">Total Orders</div>
+                        <div class="text-muted small mb-2">@L.Get("admin.users.details.totalOrders")</div>
                         <div class="fs-3 fw-semibold text-light">@Model.TotalOrders</div>
                     </div>
                 </div>
 
                 <div class="col-md-6">
                     <div class="details-stat-card">
-                        <div class="text-muted small mb-2">Total Spent</div>
-                        <div class="fs-3 fw-semibold text-light">@Model.TotalSpent.ToString("N2") EGP</div>
+                        <div class="text-muted small mb-2">@L.Get("admin.users.details.totalSpent")</div>
+                        <div class="fs-3 fw-semibold text-light">@string.Format(L.Get("admin.users.details.currencyFormat"), Model.TotalSpent.ToString("N2"))</div>
                     </div>
                 </div>
             </div>
@@ -202,8 +204,8 @@
         <div class="glass-card p-4 mt-4">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                 <div>
-                    <h5 class="mb-1 text-light">Actions</h5>
-                    <p class="text-muted mb-0">Manage the customer account from here.</p>
+                    <h5 class="mb-1 text-light">@L.Get("admin.users.details.section.actions")</h5>
+                    <p class="text-muted mb-0">@L.Get("admin.users.details.section.actionsSub")</p>
                 </div>
 
                 <div class="d-flex flex-wrap gap-2 user-actions">
@@ -216,7 +218,7 @@
                             @Html.AntiForgeryToken()
                             <button type="submit" class="btn btn-premium btn-suspend-action">
                                 <i class="fa-solid fa-ban me-2"></i>
-                                Suspend
+                                @L.Get("admin.users.action.suspend")
                             </button>
                         </form>
                     }
@@ -229,7 +231,7 @@
                             @Html.AntiForgeryToken()
                             <button type="submit" class="btn btn-premium btn-activate-action">
                                 <i class="fa-solid fa-circle-check me-2"></i>
-                                Activate
+                                @L.Get("admin.users.action.activate")
                             </button>
                         </form>
                     }
@@ -241,13 +243,13 @@
                         @Html.AntiForgeryToken()
                         <button type="submit" class="btn btn-premium user-danger-btn">
                             <i class="fa-solid fa-trash me-2"></i>
-                            Delete
+                            @L.Get("admin.users.action.delete")
                         </button>
                     </form>
 
                     <a asp-action="Index" class="btn btn-premium btn-premium-secondary">
                         <i class="fa-solid fa-arrow-left me-2"></i>
-                        Back to list
+                        @L.Get("admin.users.details.backToList")
                     </a>
                 </div>
             </div>
@@ -443,14 +445,27 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        var _swal = {
+            suspendTitle: '@L.Get("admin.users.confirm.suspend.title")',
+            suspendText: '@L.Get("admin.users.confirm.suspend.text")',
+            suspendYes: '@L.Get("admin.users.confirm.suspend.yes")',
+            activateTitle: '@L.Get("admin.users.confirm.activate.title")',
+            activateText: '@L.Get("admin.users.confirm.activate.text")',
+            activateYes: '@L.Get("admin.users.confirm.activate.yes")',
+            deleteTitle: '@L.Get("admin.users.confirm.delete.title")',
+            deleteText: '@L.Get("admin.users.confirm.delete.text")',
+            deleteYes: '@L.Get("admin.users.confirm.delete.yes")',
+            cancel: '@L.Get("admin.users.confirm.cancel")'
+        };
+
         function showSuspendConfirm(form) {
             Swal.fire({
-                title: 'Suspend User?',
-                text: 'This user will lose access to the system.',
+                title: _swal.suspendTitle,
+                text: _swal.suspendText,
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Yes, Suspend',
-                cancelButtonText: 'Cancel',
+                confirmButtonText: _swal.suspendYes,
+                cancelButtonText: _swal.cancel,
                 reverseButtons: true,
                 customClass: { popup: 'swal2-rounded' }
             }).then((result) => {
@@ -464,12 +479,12 @@
 
         function showActivateConfirm(form) {
             Swal.fire({
-                title: 'Activate User?',
-                text: 'This user will regain access to the system.',
+                title: _swal.activateTitle,
+                text: _swal.activateText,
                 icon: 'question',
                 showCancelButton: true,
-                confirmButtonText: 'Yes, Activate',
-                cancelButtonText: 'Cancel',
+                confirmButtonText: _swal.activateYes,
+                cancelButtonText: _swal.cancel,
                 reverseButtons: true,
                 customClass: { popup: 'swal2-rounded' }
             }).then((result) => {
@@ -483,12 +498,12 @@
 
         function showDeleteConfirm(form) {
             Swal.fire({
-                title: 'Delete User?',
-                text: 'This action cannot be undone.',
+                title: _swal.deleteTitle,
+                text: _swal.deleteText,
                 icon: 'error',
                 showCancelButton: true,
-                confirmButtonText: 'Yes, Delete',
-                cancelButtonText: 'Cancel',
+                confirmButtonText: _swal.deleteYes,
+                cancelButtonText: _swal.cancel,
                 reverseButtons: true,
                 confirmButtonColor: '#d33',
                 customClass: { popup: 'swal2-rounded' }

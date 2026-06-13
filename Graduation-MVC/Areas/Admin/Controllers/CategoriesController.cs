@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Graduation_Application.DTOs.CategoryDTO;
 using Graduation_Application.IServices;
+using Graduation_Application.IServices.Admin;
 using Graduation_MVC.Areas.Admin.ViewModels.Categories;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,11 +14,17 @@ namespace Graduation_MVC.Areas.Admin.Controllers
     {
         private readonly ICategoryService _categoryService;
         private readonly IFileService _fileService;
+        private readonly ILocalizationService _localizationService;
 
-        public CategoriesController(ICategoryService categoryService, IFileService fileService)
+        public CategoriesController(
+            ICategoryService categoryService,
+            IFileService fileService,
+            ILocalizationService localizationService
+        )
         {
             _categoryService = categoryService;
             _fileService = fileService;
+            _localizationService = localizationService;
         }
 
         // GET: /Admin/Categories
@@ -29,15 +36,17 @@ namespace Graduation_MVC.Areas.Admin.Controllers
             if (!string.IsNullOrWhiteSpace(search))
             {
                 categories = categories
-                    .Where(c => c.NameEn.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                                c.NameAr.Contains(search, StringComparison.OrdinalIgnoreCase))
+                    .Where(c =>
+                        c.NameEn.Contains(search, StringComparison.OrdinalIgnoreCase)
+                        || c.NameAr.Contains(search, StringComparison.OrdinalIgnoreCase)
+                    )
                     .ToList();
             }
 
             var viewModel = new AdminCategoriesPageViewModel
             {
                 Categories = categories,
-                Search = search
+                Search = search,
             };
 
             return View(viewModel);
@@ -66,23 +75,31 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 try
                 {
                     // Save image to Cloudinary in a folder named "categories"
-                    string imageUrl = await _fileService.SaveImageAsync(model.ImageFile!, "categories");
+                    string imageUrl = await _fileService.SaveImageAsync(
+                        model.ImageFile!,
+                        "categories"
+                    );
 
                     var dto = new CreateCategoryDto
                     {
                         NameAr = model.NameAr,
                         NameEn = model.NameEn,
-                        ImageUrl = imageUrl
+                        ImageUrl = imageUrl,
                     };
 
                     await _categoryService.CreateCategoryAsync(dto);
 
-                    TempData["SuccessMessage"] = "Category created successfully.";
+                    TempData["SuccessMessage"] = _localizationService.Get(
+                        "admin.categories.create.success"
+                    );
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", $"An error occurred while creating the category: {ex.Message}");
+                    ModelState.AddModelError(
+                        "",
+                        $"An error occurred while creating the category: {ex.Message}"
+                    );
                 }
             }
 
@@ -98,7 +115,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
 
             if (category == null)
             {
-                TempData["ErrorMessage"] = "Category not found.";
+                TempData["ErrorMessage"] = _localizationService.Get("admin.categories.notfound");
                 return RedirectToAction(nameof(Index));
             }
 
@@ -107,7 +124,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 Id = category.Id,
                 NameAr = category.NameAr,
                 NameEn = category.NameEn,
-                ImageUrl = category.ImageUrl
+                ImageUrl = category.ImageUrl,
             };
 
             return View(model);
@@ -132,24 +149,33 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                     if (model.ImageFile != null && model.ImageFile.Length > 0)
                     {
                         // Save the new image and pass the old image URL for potential deletion/overwrite
-                        imageUrl = await _fileService.SaveImageAsync(model.ImageFile, "categories", model.ImageUrl);
+                        imageUrl = await _fileService.SaveImageAsync(
+                            model.ImageFile,
+                            "categories",
+                            model.ImageUrl
+                        );
                     }
 
                     var dto = new UpdateCategoryDto
                     {
                         NameAr = model.NameAr,
                         NameEn = model.NameEn,
-                        ImageUrl = imageUrl
+                        ImageUrl = imageUrl,
                     };
 
                     await _categoryService.UpdateCategoryAsync(id, dto);
 
-                    TempData["SuccessMessage"] = "Category updated successfully.";
+                    TempData["SuccessMessage"] = _localizationService.Get(
+                        "admin.categories.edit.success"
+                    );
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", $"An error occurred while updating the category: {ex.Message}");
+                    ModelState.AddModelError(
+                        "",
+                        $"An error occurred while updating the category: {ex.Message}"
+                    );
                 }
             }
 
@@ -166,16 +192,21 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 var success = await _categoryService.DeleteCategoryAsync(id);
                 if (success)
                 {
-                    TempData["SuccessMessage"] = "Category deleted successfully.";
+                    TempData["SuccessMessage"] = _localizationService.Get(
+                        "admin.categories.delete.success"
+                    );
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = "Category not found or could not be deleted.";
+                    TempData["ErrorMessage"] = _localizationService.Get(
+                        "admin.categories.delete.error"
+                    );
                 }
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"An error occurred while deleting the category: {ex.Message}";
+                TempData["ErrorMessage"] =
+                    $"An error occurred while deleting the category: {ex.Message}";
             }
 
             return RedirectToAction(nameof(Index));

@@ -14,14 +14,17 @@ namespace Graduation_MVC.Areas.Admin.Controllers
     {
         private readonly IAdminProductService _adminProductService;
         private readonly IAdminAuditLogsService _adminAuditLogsService;
+        private readonly ILocalizationService _localizationService;
 
         public ProductsController(
             IAdminProductService adminProductService,
-            IAdminAuditLogsService adminAuditLogsService
+            IAdminAuditLogsService adminAuditLogsService,
+            ILocalizationService localizationService
         )
         {
             _adminProductService = adminProductService;
             _adminAuditLogsService = adminAuditLogsService;
+            _localizationService = localizationService;
         }
 
         // GET: /Admin/Products
@@ -65,7 +68,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         public async Task<IActionResult> Activate(int id)
         {
             await _adminProductService.ActivateProductAsync(id);
-            TempData["SuccessMessage"] = "Product has been activated successfully.";
+            TempData["SuccessMessage"] = _localizationService.Get("admin.products.activate.success");
             return RedirectToAction(nameof(Index));
         }
 
@@ -75,7 +78,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         public async Task<IActionResult> Deactivate(int id)
         {
             await _adminProductService.DeactivateProductAsync(id);
-            TempData["SuccessMessage"] = "Product has been deactivated successfully.";
+            TempData["SuccessMessage"] = _localizationService.Get("admin.products.deactivate.success");
             return RedirectToAction(nameof(Index));
         }
 
@@ -95,7 +98,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 id.ToString(),
                 $"Deleted product '{product?.NameEn ?? "Unknown"}' (Id: {id}) by hiding it from marketplace."
             );
-            TempData["SuccessMessage"] = "Product has been hidden successfully.";
+            TempData["SuccessMessage"] = _localizationService.Get("admin.products.hide.success");
             return RedirectToAction(nameof(Index));
         }
 
@@ -105,7 +108,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         public async Task<IActionResult> Restore(int id)
         {
             await _adminProductService.RestoreProductAsync(id);
-            TempData["SuccessMessage"] = "Product has been restored successfully.";
+            TempData["SuccessMessage"] = _localizationService.Get("admin.products.restore.success");
             return RedirectToAction(nameof(Index));
         }
 
@@ -148,7 +151,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         public async Task<IActionResult> ResolveReport(int id)
         {
             await _adminProductService.ResolveReportAsync(id);
-            TempData["SuccessMessage"] = "Report has been resolved successfully.";
+            TempData["SuccessMessage"] = _localizationService.Get("admin.products.resolve.success");
             return RedirectToAction(nameof(Reported));
         }
 
