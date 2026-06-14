@@ -1,6 +1,7 @@
 using Graduation_domain.Entities;
 using Graduation_infrastructure.AppDbContext;
 using Graduation_infrastructure.ProgramService.ServicesAPI;
+using Graduation_infrastructure.SignalR;
 using Microsoft.AspNetCore.Identity;
 using Scalar.AspNetCore;
 
@@ -51,6 +52,8 @@ namespace Graduation_API
 
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.MapHub<InternalNotificationHub>("/hubs/notifications");
 
             app.MapControllers();
 

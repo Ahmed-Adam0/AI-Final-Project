@@ -20,6 +20,7 @@ using Graduation_infrastructure.AppDbContext;
 using Graduation_Infrastructure.Identity;
 using Graduation_infrastructure.Repositories;
 using Graduation_infrastructure.Services;
+using Graduation_infrastructure.SignalR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -113,6 +114,8 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IInternalNotificationService, InternalNotificationService>();
             services.AddScoped<IInternalNotificationRepository, InternalNotificationRepository>();
+            services.AddSignalR();
+            services.AddScoped<INotificationHub, NotificationHubService>();
             services.AddScoped<IFileService, FileService>();
             services.AddScoped<IOrderRepository, OrderRepository>();
             services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepository>();
@@ -131,7 +134,10 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             {
                 options.AddPolicy(
                     "AllowAll",
-                    builder => builder.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin()
+                    builder => builder.AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .SetIsOriginAllowed(_ => true)
+            .AllowCredentials()
                 );
             });
 
@@ -160,6 +166,20 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
                         IssuerSigningKey = new SymmetricSecurityKey(
                             System.Text.Encoding.UTF8.GetBytes(jwtSecret)
                         ),
+                    };
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            var accessToken = context.Request.Query["access_token"];
+                            var path = context.Request.Path;
+                            if (!string.IsNullOrEmpty(accessToken) &&
+                                path.StartsWithSegments("/hubs/notifications"))
+                            {
+                                context.Token = accessToken;
+                            }
+                            return System.Threading.Tasks.Task.CompletedTask;
+                        }
                     };
                 });
 
