@@ -542,4 +542,55 @@
         .admin-layout-wrapper { margin-left: 0; }
         .admin-nav-toggle { display: block; }
     }
+
+    /* RTL Overrides for Admin Theme */
+    [dir="rtl"] .form-control-premium,
+    [dir="rtl"] .form-select-premium {
+        text-align: right;
+    }
+    
+    [dir="rtl"] .form-select-premium {
+        background-position: left 0.9rem center;
+        padding-right: 0.9rem;
+        padding-left: 2.25rem;
+    }
+
+    [dir="rtl"] .input-group > :not(:first-child):not(.dropdown-menu):not(.valid-tooltip):not(.valid-feedback):not(.invalid-tooltip):not(.invalid-feedback) {
+        margin-left: 0;
+        margin-right: -1px;
+        border-top-left-radius: 8px;
+        border-bottom-left-radius: 8px;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+    [dir="rtl"] .input-group > :not(:last-child):not(.dropdown-toggle):not(.dropdown-menu):not(.valid-tooltip):not(.valid-feedback):not(.invalid-tooltip):not(.invalid-feedback) {
+        border-top-right-radius: 8px;
+        border-bottom-right-radius: 8px;
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+
+    [dir="rtl"] .table-premium th,
+    [dir="rtl"] .table-premium td {
+        text-align: right;
+    }
+
+    [dir="rtl"] .table-premium td:first-child {
+        border-right: 1px solid var(--border-color);
+        border-left: none;
+        border-top-right-radius: 8px;
+        border-bottom-right-radius: 8px;
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+
+    [dir="rtl"] .table-premium td:last-child {
+        border-left: 1px solid var(--border-color);
+        border-right: none;
+        border-top-left-radius: 8px;
+        border-bottom-left-radius: 8px;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
 </style>
