@@ -1,29 +1,30 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Graduation_Application.DTOs.PaymentDTO;
 using Graduation_Application.ExternalServices.EmailServices;
 using Graduation_Application.IRepositories;
 using Graduation_Application.IRepositories.Admin;
 using Graduation_Application.IServices;
 using Graduation_Application.IServices.Admin;
+using Graduation_Application.Mapper.Admin;
 using Graduation_Application.Mapper.ProductMapping;
 using Graduation_Application.Options;
 using Graduation_Application.Services;
 using Graduation_Application.Services.Admin;
 using Graduation_domain.Entities;
 using Graduation_infrastructure.AppDbContext;
+using Graduation_infrastructure.Identity;
+using Graduation_infrastructure.Localization;
 using Graduation_infrastructure.Repositories;
 using Graduation_infrastructure.Repositories.Admin;
+using Graduation_infrastructure.Services;
+using Graduation_infrastructure.SignalR;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Graduation_infrastructure.Identity;
-using Graduation_Application.Mapper.Admin;
-using Graduation_infrastructure.Services;
-using Graduation_infrastructure.Localization;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace Graduation_infrastructure.ProgramService.ServicesMVC
 {
@@ -92,6 +93,8 @@ namespace Graduation_infrastructure.ProgramService.ServicesMVC
             services.Configure<WhatsAppNotificationSettings>(
                 configuration.GetSection("WhatsAppNotification")
             );
+            services.AddSignalR();
+            services.AddScoped<INotificationHub, NotificationHubService>();
             services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IInternalNotificationService, InternalNotificationService>();
             services.AddScoped<IInternalNotificationRepository, InternalNotificationRepository>();
