@@ -80,7 +80,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", $"An error occurred while creating the FAQ: {ex.Message}");
+                    ModelState.AddModelError("", _localizationService.Get("admin.faq.create.error") + ": " + ex.Message);
                 }
             }
 
@@ -143,7 +143,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", $"An error occurred while updating the FAQ: {ex.Message}");
+                    ModelState.AddModelError("", _localizationService.Get("admin.faq.edit.error") + ": " + ex.Message);
                 }
             }
 
@@ -169,7 +169,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"An error occurred while deleting the FAQ: {ex.Message}";
+                TempData["ErrorMessage"] = _localizationService.Get("admin.faq.delete.errorException") + ": " + ex.Message;
             }
 
             return RedirectToAction(nameof(Index));
@@ -198,7 +198,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"An error occurred: {ex.Message}";
+                TempData["ErrorMessage"] = _localizationService.Get("admin.faq.status.errorException") + ": " + ex.Message;
             }
 
             return RedirectToAction(nameof(Index));

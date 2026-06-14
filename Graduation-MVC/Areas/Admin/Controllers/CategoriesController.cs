@@ -98,7 +98,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 {
                     ModelState.AddModelError(
                         "",
-                        $"An error occurred while creating the category: {ex.Message}"
+                        _localizationService.Get("admin.categories.create.error") + ": " + ex.Message
                     );
                 }
             }
@@ -174,7 +174,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 {
                     ModelState.AddModelError(
                         "",
-                        $"An error occurred while updating the category: {ex.Message}"
+                        _localizationService.Get("admin.categories.edit.error") + ": " + ex.Message
                     );
                 }
             }
@@ -205,8 +205,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] =
-                    $"An error occurred while deleting the category: {ex.Message}";
+                TempData["ErrorMessage"] = _localizationService.Get("admin.categories.delete.errorException") + ": " + ex.Message;
             }
 
             return RedirectToAction(nameof(Index));

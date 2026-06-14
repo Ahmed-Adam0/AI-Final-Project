@@ -27,21 +27,21 @@
 
                 <!-- English Name -->
                 <div class="mb-4">
-                    <label asp-for="NameEn" class="form-label text-light font-weight-bold"></label>
+                    <label asp-for="NameEn" class="form-label text-light font-weight-bold">@L.Get("admin.categories.create.nameEnLabel")</label>
                     <input asp-for="NameEn" class="form-control form-control-premium" placeholder="@L.Get("admin.categories.create.nameEnPlaceholder")" />
                     <span asp-validation-for="NameEn" class="text-danger small mt-1 d-block"></span>
                 </div>
 
                 <!-- Arabic Name -->
                 <div class="mb-4">
-                    <label asp-for="NameAr" class="form-label text-light font-weight-bold"></label>
+                    <label asp-for="NameAr" class="form-label text-light font-weight-bold">@L.Get("admin.categories.create.nameArLabel")</label>
                     <input asp-for="NameAr" class="form-control form-control-premium text-end" placeholder="@L.Get("admin.categories.create.nameArPlaceholder")" dir="rtl" />
                     <span asp-validation-for="NameAr" class="text-danger small mt-1 d-block"></span>
                 </div>
 
                 <!-- Image File -->
                 <div class="mb-4">
-                    <label asp-for="ImageFile" class="form-label text-light font-weight-bold"></label>
+                    <label asp-for="ImageFile" class="form-label text-light font-weight-bold">@L.Get("admin.categories.create.imageLabel")</label>
                     <input asp-for="ImageFile" type="file" class="form-control form-control-premium" accept=".jpg,.jpeg,.png" />
                     <span asp-validation-for="ImageFile" class="text-danger small mt-1 d-block"></span>
                     <div class="form-text text-muted small mt-1">@L.Get("admin.categories.create.imageHint")</div>
