@@ -15,10 +15,12 @@ namespace Graduation_Application.Services
     public class InternalNotificationService : IInternalNotificationService
     {
         private readonly IInternalNotificationRepository _repository;
+        private readonly INotificationHub _notificationHub;
 
-        public InternalNotificationService(IInternalNotificationRepository repository)
+        public InternalNotificationService(IInternalNotificationRepository repository, INotificationHub notificationHub)
         {
             _repository = repository;
+            _notificationHub = notificationHub;
         }
 
         private static readonly Dictionary<NotificationType, (string TitleAr, string TitleEn, string MessageAr, string MessageEn)> NotificationTemplates 
@@ -181,6 +183,11 @@ namespace Graduation_Application.Services
 
             await _repository.AddAsync(notification);
             await _repository.SaveChangesAsync();
+
+            var lang = "ar"; // default
+            var title = lang == "ar" ? titleAr : titleEn;
+            var message = lang == "ar" ? messageAr : messageEn;
+            await _notificationHub.SendAsync(userId, title, message);
         }
 
         public async Task<PaginatedResult<InternalNotificationDto>> GetNotificationsAsync(string userId, string lang, int page, int pageSize)
