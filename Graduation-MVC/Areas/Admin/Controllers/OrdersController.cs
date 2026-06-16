@@ -1,15 +1,16 @@
+using System.Security.Claims;
+using Graduation_Application.Constants;
 using Graduation_Application.DTOs.Admin.AdminDashboardDTO;
 using Graduation_Application.IServices;
 using Graduation_Application.IServices.Admin;
 using Graduation_MVC.Areas.Admin.ViewModels.Orders;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Graduation_MVC.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = Roles.SuperAdmin)]
     public class OrdersController : Controller
     {
         private readonly IAdminDashboardService _adminDashboardService;
@@ -188,11 +189,8 @@ namespace Graduation_MVC.Areas.Admin.Controllers
             User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "system";
 
         private string GetCurrentUserName() =>
-            User.FindFirstValue(ClaimTypes.Name)
-            ?? User.Identity?.Name
-            ?? "SuperAdmin";
+            User.FindFirstValue(ClaimTypes.Name) ?? User.Identity?.Name ?? "SuperAdmin";
 
-        private string GetCurrentUserRole() =>
-            User.FindFirstValue(ClaimTypes.Role) ?? "SuperAdmin";
+        private string GetCurrentUserRole() => User.FindFirstValue(ClaimTypes.Role) ?? "SuperAdmin";
     }
 }

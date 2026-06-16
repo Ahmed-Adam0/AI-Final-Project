@@ -1,15 +1,18 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Graduation_Application.Constants;
 using Graduation_Application.DTOs.CategoryDTO;
 using Graduation_Application.IServices;
 using Graduation_Application.IServices.Admin;
 using Graduation_MVC.Areas.Admin.ViewModels.Categories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Graduation_MVC.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = Roles.SuperAdmin)]
     public class CategoriesController : Controller
     {
         private readonly ICategoryService _categoryService;
@@ -104,7 +107,9 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 {
                     ModelState.AddModelError(
                         "",
-                        _localizationService.Get("admin.categories.create.error") + ": " + ex.Message
+                        _localizationService.Get("admin.categories.create.error")
+                            + ": "
+                            + ex.Message
                     );
                 }
             }
@@ -211,7 +216,10 @@ namespace Graduation_MVC.Areas.Admin.Controllers
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = _localizationService.Get("admin.categories.delete.errorException") + ": " + ex.Message;
+                TempData["ErrorMessage"] =
+                    _localizationService.Get("admin.categories.delete.errorException")
+                    + ": "
+                    + ex.Message;
             }
 
             return RedirectToAction(nameof(Index));
@@ -233,7 +241,9 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var subCategories = await _subCategoryService.GetSubCategoriesByCategoryIdAsync(categoryId);
+            var subCategories = await _subCategoryService.GetSubCategoriesByCategoryIdAsync(
+                categoryId
+            );
 
             ViewBag.Category = category;
             return View(subCategories);
@@ -254,7 +264,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
             var model = new AdminSubCategoryFormViewModel
             {
                 CategoryId = categoryId,
-                CategoryNameEn = category.NameEn
+                CategoryNameEn = category.NameEn,
             };
 
             return View(model);
@@ -273,12 +283,15 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                     {
                         NameAr = model.NameAr,
                         NameEn = model.NameEn,
-                        CategoryId = model.CategoryId
+                        CategoryId = model.CategoryId,
                     };
 
                     await _subCategoryService.CreateSubCategoryAsync(dto);
                     TempData["SuccessMessage"] = "Subcategory created successfully.";
-                    return RedirectToAction(nameof(SubCategories), new { categoryId = model.CategoryId });
+                    return RedirectToAction(
+                        nameof(SubCategories),
+                        new { categoryId = model.CategoryId }
+                    );
                 }
                 catch (Exception ex)
                 {
@@ -306,7 +319,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 NameAr = subCategory.NameAr,
                 NameEn = subCategory.NameEn,
                 CategoryId = subCategory.CategoryId,
-                CategoryNameEn = subCategory.CategoryNameEn
+                CategoryNameEn = subCategory.CategoryNameEn,
             };
 
             return View(model);
@@ -315,9 +328,13 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         // POST: /Admin/Categories/SubCategories/Edit/{id}
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditSubCategory(int id, AdminSubCategoryFormViewModel model)
+        public async Task<IActionResult> EditSubCategory(
+            int id,
+            AdminSubCategoryFormViewModel model
+        )
         {
-            if (id != model.Id) return BadRequest();
+            if (id != model.Id)
+                return BadRequest();
 
             if (ModelState.IsValid)
             {
@@ -327,12 +344,15 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                     {
                         NameAr = model.NameAr,
                         NameEn = model.NameEn,
-                        CategoryId = model.CategoryId
+                        CategoryId = model.CategoryId,
                     };
 
                     await _subCategoryService.UpdateSubCategoryAsync(id, dto);
                     TempData["SuccessMessage"] = "Subcategory updated successfully.";
-                    return RedirectToAction(nameof(SubCategories), new { categoryId = model.CategoryId });
+                    return RedirectToAction(
+                        nameof(SubCategories),
+                        new { categoryId = model.CategoryId }
+                    );
                 }
                 catch (Exception ex)
                 {
@@ -376,7 +396,9 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var productTypes = await _productTypeService.GetProductTypesBySubCategoryIdAsync(subCategoryId);
+            var productTypes = await _productTypeService.GetProductTypesBySubCategoryIdAsync(
+                subCategoryId
+            );
 
             ViewBag.SubCategory = subCategory;
             return View(productTypes);
@@ -396,7 +418,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
             var model = new AdminProductTypeFormViewModel
             {
                 SubCategoryId = subCategoryId,
-                SubCategoryNameEn = subCategory.NameEn
+                SubCategoryNameEn = subCategory.NameEn,
             };
 
             return View(model);
@@ -415,12 +437,15 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                     {
                         NameAr = model.NameAr,
                         NameEn = model.NameEn,
-                        SubCategoryId = model.SubCategoryId
+                        SubCategoryId = model.SubCategoryId,
                     };
 
                     await _productTypeService.CreateProductTypeAsync(dto);
                     TempData["SuccessMessage"] = "Product Type created successfully.";
-                    return RedirectToAction(nameof(ProductTypes), new { subCategoryId = model.SubCategoryId });
+                    return RedirectToAction(
+                        nameof(ProductTypes),
+                        new { subCategoryId = model.SubCategoryId }
+                    );
                 }
                 catch (Exception ex)
                 {
@@ -448,7 +473,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 NameAr = productType.NameAr,
                 NameEn = productType.NameEn,
                 SubCategoryId = productType.SubCategoryId,
-                SubCategoryNameEn = productType.SubCategoryNameEn
+                SubCategoryNameEn = productType.SubCategoryNameEn,
             };
 
             return View(model);
@@ -457,9 +482,13 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         // POST: /Admin/Categories/ProductTypes/Edit/{id}
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditProductType(int id, AdminProductTypeFormViewModel model)
+        public async Task<IActionResult> EditProductType(
+            int id,
+            AdminProductTypeFormViewModel model
+        )
         {
-            if (id != model.Id) return BadRequest();
+            if (id != model.Id)
+                return BadRequest();
 
             if (ModelState.IsValid)
             {
@@ -469,12 +498,15 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                     {
                         NameAr = model.NameAr,
                         NameEn = model.NameEn,
-                        SubCategoryId = model.SubCategoryId
+                        SubCategoryId = model.SubCategoryId,
                     };
 
                     await _productTypeService.UpdateProductTypeAsync(id, dto);
                     TempData["SuccessMessage"] = "Product Type updated successfully.";
-                    return RedirectToAction(nameof(ProductTypes), new { subCategoryId = model.SubCategoryId });
+                    return RedirectToAction(
+                        nameof(ProductTypes),
+                        new { subCategoryId = model.SubCategoryId }
+                    );
                 }
                 catch (Exception ex)
                 {

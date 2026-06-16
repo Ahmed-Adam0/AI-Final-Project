@@ -1,5 +1,6 @@
-using System.Threading.Tasks;
 using System.Security.Claims;
+using System.Threading.Tasks;
+using Graduation_Application.Constants;
 using Graduation_Application.DTOs.Admin.AdminProductDTO;
 using Graduation_Application.IServices.Admin;
 using Graduation_MVC.Areas.Admin.ViewModels.Products;
@@ -9,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Graduation_MVC.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = Roles.SuperAdmin)]
     public class ProductsController : Controller
     {
         private readonly IAdminProductService _adminProductService;
@@ -61,7 +62,6 @@ namespace Graduation_MVC.Areas.Admin.Controllers
 
             return View(viewModel);
         }
-
 
         // POST: /Admin/Products/{id}/Hide
         [HttpPost]
@@ -140,11 +140,8 @@ namespace Graduation_MVC.Areas.Admin.Controllers
             User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "system";
 
         private string GetCurrentUserName() =>
-            User.FindFirstValue(ClaimTypes.Name)
-            ?? User.Identity?.Name
-            ?? "SuperAdmin";
+            User.FindFirstValue(ClaimTypes.Name) ?? User.Identity?.Name ?? "SuperAdmin";
 
-        private string GetCurrentUserRole() =>
-            User.FindFirstValue(ClaimTypes.Role) ?? "SuperAdmin";
+        private string GetCurrentUserRole() => User.FindFirstValue(ClaimTypes.Role) ?? "SuperAdmin";
     }
 }

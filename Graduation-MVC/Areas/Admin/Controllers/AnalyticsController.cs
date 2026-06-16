@@ -1,3 +1,4 @@
+using Graduation_Application.Constants;
 using Graduation_Application.DTOs.Admin.AdminDashboardDTO;
 using Graduation_Application.IServices.Admin;
 using Graduation_MVC.Areas.Admin.ViewModels.Analytics;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Graduation_MVC.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = Roles.SuperAdmin)]
     public class AnalyticsController : Controller
     {
         private readonly IAdminDashboardService _adminDashboardService;

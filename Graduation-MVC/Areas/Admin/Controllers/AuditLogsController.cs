@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Graduation_Application.Constants;
 using Graduation_Application.DTOs.Admin.AuditLogsDTO;
 using Graduation_Application.IServices.Admin;
 using Graduation_MVC.Areas.Admin.ViewModels.AuditLogs;
@@ -11,11 +12,16 @@ using Microsoft.AspNetCore.Mvc;
 namespace Graduation_MVC.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = Roles.SuperAdmin)]
     [Route("Admin/AuditLogs/[action]")]
     public class AuditLogsController : Controller
     {
-        private static readonly string[] DefaultRoles = new[] { "SuperAdmin", "Customer", "Vendor" };
+        private static readonly string[] DefaultRoles = new[]
+        {
+            "SuperAdmin",
+            "Customer",
+            "Vendor",
+        };
         private static readonly string[] DefaultActions = new[]
         {
             "CreateOrder",
@@ -42,16 +48,8 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 "DeleteProduct",
                 "UpdateOrderStatus",
             },
-            ["Customer"] = new List<string>
-            {
-                "CreateOrder",
-                "CancelOrder",
-                "CreateReview",
-            },
-            ["Vendor"] = new List<string>
-            {
-                "UpdateOrderStatus",
-            },
+            ["Customer"] = new List<string> { "CreateOrder", "CancelOrder", "CreateReview" },
+            ["Vendor"] = new List<string> { "UpdateOrderStatus" },
         };
 
         private readonly IAdminAuditLogsService _adminAuditLogsService;

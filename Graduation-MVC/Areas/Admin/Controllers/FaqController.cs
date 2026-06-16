@@ -1,15 +1,18 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Graduation_Application.Constants;
 using Graduation_Application.DTOs.FaqDTO;
 using Graduation_Application.IServices;
 using Graduation_Application.IServices.Admin;
 using Graduation_MVC.Areas.Admin.ViewModels.FAQ;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Graduation_MVC.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = Roles.SuperAdmin)]
     public class FaqController : Controller
     {
         private readonly IFaqService _faqService;
@@ -29,19 +32,16 @@ namespace Graduation_MVC.Areas.Admin.Controllers
 
             if (!string.IsNullOrWhiteSpace(search))
             {
-                faqs = faqs
-                    .Where(f => f.QuestionEn.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                                f.QuestionAr.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                                f.AnswerEn.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                                f.AnswerAr.Contains(search, StringComparison.OrdinalIgnoreCase))
+                faqs = faqs.Where(f =>
+                        f.QuestionEn.Contains(search, StringComparison.OrdinalIgnoreCase)
+                        || f.QuestionAr.Contains(search, StringComparison.OrdinalIgnoreCase)
+                        || f.AnswerEn.Contains(search, StringComparison.OrdinalIgnoreCase)
+                        || f.AnswerAr.Contains(search, StringComparison.OrdinalIgnoreCase)
+                    )
                     .ToList();
             }
 
-            var viewModel = new AdminFaqPageViewModel
-            {
-                Faqs = faqs,
-                Search = search
-            };
+            var viewModel = new AdminFaqPageViewModel { Faqs = faqs, Search = search };
 
             return View(viewModel);
         }
@@ -70,17 +70,22 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                         AnswerAr = model.AnswerAr,
                         AnswerEn = model.AnswerEn,
                         DisplayOrder = model.DisplayOrder,
-                        IsActive = model.IsActive
+                        IsActive = model.IsActive,
                     };
 
                     await _faqService.CreateFaqAsync(dto);
 
-                    TempData["SuccessMessage"] = _localizationService.Get("admin.faq.create.success");
+                    TempData["SuccessMessage"] = _localizationService.Get(
+                        "admin.faq.create.success"
+                    );
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", _localizationService.Get("admin.faq.create.error") + ": " + ex.Message);
+                    ModelState.AddModelError(
+                        "",
+                        _localizationService.Get("admin.faq.create.error") + ": " + ex.Message
+                    );
                 }
             }
 
@@ -106,7 +111,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 AnswerAr = faq.AnswerAr,
                 AnswerEn = faq.AnswerEn,
                 DisplayOrder = faq.DisplayOrder,
-                IsActive = faq.IsActive
+                IsActive = faq.IsActive,
             };
 
             return View(model);
@@ -133,7 +138,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                         AnswerAr = model.AnswerAr,
                         AnswerEn = model.AnswerEn,
                         DisplayOrder = model.DisplayOrder,
-                        IsActive = model.IsActive
+                        IsActive = model.IsActive,
                     };
 
                     await _faqService.UpdateFaqAsync(id, dto);
@@ -143,7 +148,10 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", _localizationService.Get("admin.faq.edit.error") + ": " + ex.Message);
+                    ModelState.AddModelError(
+                        "",
+                        _localizationService.Get("admin.faq.edit.error") + ": " + ex.Message
+                    );
                 }
             }
 
@@ -160,7 +168,9 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 var success = await _faqService.DeleteFaqAsync(id);
                 if (success)
                 {
-                    TempData["SuccessMessage"] = _localizationService.Get("admin.faq.delete.success");
+                    TempData["SuccessMessage"] = _localizationService.Get(
+                        "admin.faq.delete.success"
+                    );
                 }
                 else
                 {
@@ -169,7 +179,8 @@ namespace Graduation_MVC.Areas.Admin.Controllers
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = _localizationService.Get("admin.faq.delete.errorException") + ": " + ex.Message;
+                TempData["ErrorMessage"] =
+                    _localizationService.Get("admin.faq.delete.errorException") + ": " + ex.Message;
             }
 
             return RedirectToAction(nameof(Index));
@@ -185,7 +196,9 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 var success = await _faqService.UpdateFaqStatusAsync(id, isActive);
                 if (success)
                 {
-                    var statusKey = isActive ? "admin.faq.status.active" : "admin.faq.status.inactive";
+                    var statusKey = isActive
+                        ? "admin.faq.status.active"
+                        : "admin.faq.status.inactive";
                     TempData["SuccessMessage"] = string.Format(
                         _localizationService.Get("admin.faq.status.updated"),
                         _localizationService.Get(statusKey)
@@ -198,7 +211,8 @@ namespace Graduation_MVC.Areas.Admin.Controllers
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = _localizationService.Get("admin.faq.status.errorException") + ": " + ex.Message;
+                TempData["ErrorMessage"] =
+                    _localizationService.Get("admin.faq.status.errorException") + ": " + ex.Message;
             }
 
             return RedirectToAction(nameof(Index));
