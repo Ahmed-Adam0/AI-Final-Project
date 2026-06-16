@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Graduation_Application.DTOs.CartDTO;
+using Graduation_Application.DTOs.ProductDTO;
 using Graduation_Application.IRepositories;
 using Graduation_Application.IServices;
 using Graduation_domain.Entities;
@@ -15,17 +16,17 @@ namespace Graduation_Application.Services
         private const string ProductImagesBaseUrl = "http://home-ai.runasp.net";
         private readonly IGenaricRepositories<Cart> _cartRepository;
         private readonly IGenaricRepositories<CartItem> _cartItemRepository;
-        private readonly IGenaricRepositories<Product> _productRepository;
+        private readonly IGenaricRepositories<ProductVariant> _variantRepository;
 
         public CartService(
             IGenaricRepositories<Cart> cartRepository,
             IGenaricRepositories<CartItem> cartItemRepository,
-            IGenaricRepositories<Product> productRepository
+            IGenaricRepositories<ProductVariant> variantRepository
         )
         {
             _cartRepository = cartRepository;
             _cartItemRepository = cartItemRepository;
-            _productRepository = productRepository;
+            _variantRepository = variantRepository;
         }
 
         public async Task<CartResponseDto> GetCartAsync(string userId)
@@ -33,8 +34,19 @@ namespace Graduation_Application.Services
             var cart = await _cartRepository
                 .Where(c => c.UserId == userId)
                 .Include(c => c.Items)
-                    .ThenInclude(ci => ci.Product)
-                        .ThenInclude(p => p.Images)
+                    .ThenInclude(ci => ci.ProductVariant)
+                        .ThenInclude(v => v.Listing)
+                            .ThenInclude(l => l.Product)
+                                .ThenInclude(p => p.Images)
+                .Include(c => c.Items)
+                    .ThenInclude(ci => ci.ProductVariant)
+                        .ThenInclude(v => v.Listing)
+                            .ThenInclude(l => l.Workshop)
+                .Include(c => c.Items)
+                    .ThenInclude(ci => ci.ProductVariant)
+                        .ThenInclude(v => v.VariantAttributeValues)
+                            .ThenInclude(vav => vav.AttributeValue)
+                                .ThenInclude(av => av.Attribute)
                 .FirstOrDefaultAsync();
 
             if (cart == null)
@@ -52,19 +64,26 @@ namespace Graduation_Application.Services
                     .Items.Select(ci => new CartItemResponseDto
                     {
                         Id = ci.Id,
-                        ProductId = ci.ProductId,
-                        ProductName = ci.Product.NameEn,
+                        ProductVariantId = ci.ProductVariantId,
+                        ProductId = ci.ProductVariant?.Listing?.ProductId ?? 0,
+                        ProductNameEn = ci.ProductVariant?.Listing?.Product?.NameEn ?? string.Empty,
+                        ProductNameAr = ci.ProductVariant?.Listing?.Product?.NameAr ?? string.Empty,
+                        VendorNameEn = ci.ProductVariant?.Listing?.Workshop?.WorkshopNameEn ?? string.Empty,
+                        VendorNameAr = ci.ProductVariant?.Listing?.Workshop?.WorkshopNameAr ?? string.Empty,
                         Quantity = ci.Quantity,
-                        Price = ci.Price,
-                        TotalPrice = ci.Price * ci.Quantity,
-                        Images =
-                            ci.Product.Images != null
-                                ? ci
-                                    .Product.Images.Select(i =>
-                                        NormalizeProductImageUrl(i.ImageUrl)
-                                    )
-                                    .ToList()
-                                : new List<string>(),
+                        CachedPrice = ci.CachedPrice,
+                        LivePrice = ci.ProductVariant?.CurrentPrice ?? 0m,
+                        VariantImageUrl = ci.ProductVariant?.VariantImageUrl,
+                        SelectedAttributes = ci.ProductVariant?.VariantAttributeValues?.Select(vav => new SelectedAttributeDto
+                        {
+                            AttributeNameEn = vav.AttributeValue?.Attribute?.NameEn ?? string.Empty,
+                            AttributeNameAr = vav.AttributeValue?.Attribute?.NameAr ?? string.Empty,
+                            ValueEn = vav.AttributeValue?.ValueEn ?? string.Empty,
+                            ValueAr = vav.AttributeValue?.ValueAr ?? string.Empty
+                        }).ToList() ?? new List<SelectedAttributeDto>(),
+                        ProductImages = ci.ProductVariant?.Listing?.Product?.Images != null
+                            ? ci.ProductVariant.Listing.Product.Images.Select(i => NormalizeProductImageUrl(i.ImageUrl)).ToList()
+                            : new List<string>()
                     })
                     .ToList(),
             };
@@ -75,13 +94,21 @@ namespace Graduation_Application.Services
 
         public async Task<CartItemResponseDto> AddToCartAsync(string userId, AddToCartDto dto)
         {
-            var product = await _productRepository
-                .Where(p => p.Id == dto.ProductId)
-                .Include(p => p.Images)
+            var variant = await _variantRepository
+                .Where(v => v.Id == dto.ProductVariantId)
+                .Include(v => v.Listing)
+                    .ThenInclude(l => l.Product)
+                        .ThenInclude(p => p.Images)
+                .Include(v => v.Listing)
+                    .ThenInclude(l => l.Workshop)
+                .Include(v => v.VariantAttributeValues)
+                    .ThenInclude(vav => vav.AttributeValue)
+                        .ThenInclude(av => av.Attribute)
                 .FirstOrDefaultAsync();
-            if (product == null)
+
+            if (variant == null)
             {
-                throw new Exception("Product not found");
+                throw new Exception("Product Variant not found");
             }
 
             var cart = await _cartRepository
@@ -96,7 +123,7 @@ namespace Graduation_Application.Services
                 await _cartRepository.SaveChangesAsync();
             }
 
-            var existingItem = cart.Items.FirstOrDefault(ci => ci.ProductId == dto.ProductId);
+            var existingItem = cart.Items.FirstOrDefault(ci => ci.ProductVariantId == dto.ProductVariantId);
             if (existingItem != null)
             {
                 existingItem.Quantity += dto.Quantity;
@@ -107,35 +134,42 @@ namespace Graduation_Application.Services
                 var cartItem = new CartItem
                 {
                     CartId = cart.Id,
-                    ProductId = dto.ProductId,
+                    ProductVariantId = dto.ProductVariantId,
                     Quantity = dto.Quantity,
-                    Price = product.Price,
+                    CachedPrice = variant.CurrentPrice,
                 };
                 await _cartItemRepository.AddAsync(cartItem);
             }
 
             await _cartItemRepository.SaveChangesAsync();
 
-            var addedItem =
-                existingItem
-                ?? (
-                    await _cartItemRepository
-                        .Where(ci => ci.CartId == cart.Id && ci.ProductId == dto.ProductId)
-                        .FirstOrDefaultAsync()
-                );
+            var addedItem = existingItem ?? await _cartItemRepository
+                .Where(ci => ci.CartId == cart.Id && ci.ProductVariantId == dto.ProductVariantId)
+                .FirstOrDefaultAsync();
 
             var cartItemResponseDto = new CartItemResponseDto
             {
                 Id = addedItem.Id,
-                ProductId = dto.ProductId,
-                ProductName = product.NameEn,
+                ProductVariantId = addedItem.ProductVariantId,
+                ProductId = variant.Listing?.ProductId ?? 0,
+                ProductNameEn = variant.Listing?.Product?.NameEn ?? string.Empty,
+                ProductNameAr = variant.Listing?.Product?.NameAr ?? string.Empty,
+                VendorNameEn = variant.Listing?.Workshop?.WorkshopNameEn ?? string.Empty,
+                VendorNameAr = variant.Listing?.Workshop?.WorkshopNameAr ?? string.Empty,
                 Quantity = addedItem.Quantity,
-                Price = product.Price,
-                TotalPrice = product.Price * addedItem.Quantity,
-                Images =
-                    product.Images != null
-                        ? product.Images.Select(i => NormalizeProductImageUrl(i.ImageUrl)).ToList()
-                        : new List<string>(),
+                CachedPrice = addedItem.CachedPrice,
+                LivePrice = variant.CurrentPrice,
+                VariantImageUrl = variant.VariantImageUrl,
+                SelectedAttributes = variant.VariantAttributeValues?.Select(vav => new SelectedAttributeDto
+                {
+                    AttributeNameEn = vav.AttributeValue?.Attribute?.NameEn ?? string.Empty,
+                    AttributeNameAr = vav.AttributeValue?.Attribute?.NameAr ?? string.Empty,
+                    ValueEn = vav.AttributeValue?.ValueEn ?? string.Empty,
+                    ValueAr = vav.AttributeValue?.ValueAr ?? string.Empty
+                }).ToList() ?? new List<SelectedAttributeDto>(),
+                ProductImages = variant.Listing?.Product?.Images != null
+                    ? variant.Listing.Product.Images.Select(i => NormalizeProductImageUrl(i.ImageUrl)).ToList()
+                    : new List<string>()
             };
 
             return cartItemResponseDto;

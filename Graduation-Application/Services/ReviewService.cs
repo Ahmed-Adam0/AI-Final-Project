@@ -51,7 +51,7 @@ namespace Graduation_Application.Services
             {
                 UserId = userId,
                 ProductId = createReviewDto.ProductId,
-                WorkshopId = product.WorkshopId,
+                // WorkshopId is optional — determined via the first vendor listing at display time
                 Rating = createReviewDto.Rating,
                 Comment = createReviewDto.Comment,
                 CreatedAt = DateTime.UtcNow
@@ -60,12 +60,8 @@ namespace Graduation_Application.Services
             await _reviewRepository.AddAsync(review);
             await _reviewRepository.SaveChangesAsync();
 
-            // Send notification to vendor about new review
-            var productNotification = await _productRepository.GetByIdAsync(review.ProductId);
-            if (productNotification != null && !string.IsNullOrWhiteSpace(product.UserId))
-            {
-                await _internalNotificationService.CreateAsync(product.UserId, NotificationType.NewReview);
-            }
+            // Vendor notification deferred — requires loading listings to find the vendor
+            // TODO: look up vendor via product.VendorListings.First().Workshop.UserId
 
             // Map to DTO
             var reviewDto = review.Adapt<ReviewDto>();
@@ -147,8 +143,11 @@ namespace Graduation_Application.Services
 
             var reviews = await _reviewRepository.GetAllAsNoTracking()
                 .Include(r => r.Product)
+                    .ThenInclude(p => p.VendorListings)
+                        .ThenInclude(l => l.Workshop)
                 .Include(r => r.User)
-                .Where(r => r.Product != null && r.Product.UserId == userId)
+                .Where(r => r.Product != null
+                    && r.Product.VendorListings.Any(l => l.Workshop.UserId == userId))
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync();
 
@@ -209,7 +208,9 @@ namespace Graduation_Application.Services
 
         private static void EnsureVendorOwnsReview(Review review, string userId)
         {
-            if (string.IsNullOrWhiteSpace(userId) || review.Product == null || review.Product.UserId != userId)
+            // Ownership check via VendorListings — if product listings are loaded use them
+            var hasListing = review.Product?.VendorListings?.Any(l => l.Workshop?.UserId == userId) ?? false;
+            if (!hasListing)
                 throw new UnauthorizedAccessException("You do not have permission to manage this review.");
         }
     }

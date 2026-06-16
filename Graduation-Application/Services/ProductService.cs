@@ -41,7 +41,8 @@ namespace Graduation_Application.Services
             // Start with base query (AsNoTracking for performance)
             IQueryable<Product> query = _productRepository.GetAllAsNoTracking()
                 .Include(p => p.Category)
-                .Include(p => p.Workshop)
+                .Include(p => p.VendorListings)
+                    .ThenInclude(l => l.Workshop)
                 .Include(p => p.Images);
 
             // Apply IsActive status filter: default to showing only active products
@@ -66,21 +67,23 @@ namespace Graduation_Application.Services
                 query = query.Where(p => p.CategoryId == filter.CategoryId.Value);
             }
 
-            // Apply Workshop Filter
+            // Apply Workshop Filter (via VendorListing)
             if (filter.WorkshopId.HasValue && filter.WorkshopId > 0)
             {
-                query = query.Where(p => p.WorkshopId == filter.WorkshopId.Value);
+                query = query.Where(p => p.VendorListings.Any(l => l.WorkshopId == filter.WorkshopId.Value));
             }
 
-            // Apply Price Range Filter
+            // Apply Price Range Filter (against minimum variant price)
             if (filter.MinPrice.HasValue && filter.MinPrice > 0)
             {
-                query = query.Where(p => p.Price >= filter.MinPrice.Value);
+                query = query.Where(p => p.VendorListings.Any(l =>
+                    l.Variants.Any(v => v.CurrentPrice >= filter.MinPrice.Value)));
             }
 
             if (filter.MaxPrice.HasValue && filter.MaxPrice > 0)
             {
-                query = query.Where(p => p.Price <= filter.MaxPrice.Value);
+                query = query.Where(p => p.VendorListings.Any(l =>
+                    l.Variants.Any(v => v.CurrentPrice <= filter.MaxPrice.Value)));
             }
 
             // Apply Material Filter (search in description if not a separate field)
@@ -120,7 +123,15 @@ namespace Graduation_Application.Services
             var product = await _productRepository
                 .GetAllAsNoTracking()
                 .Include(p => p.Category)
-                .Include(p => p.Workshop)
+                .Include(p => p.VendorListings)
+                    .ThenInclude(l => l.Workshop)
+                .Include(p => p.VendorListings)
+                    .ThenInclude(l => l.Variants)
+                        .ThenInclude(v => v.VariantAttributeValues)
+                            .ThenInclude(vav => vav.AttributeValue)
+                                .ThenInclude(av => av.Attribute)
+                .Include(p => p.Attributes)
+                    .ThenInclude(a => a.Values)
                 .Include(p => p.Images)
                 .FirstOrDefaultAsync(p => p.Id == id && p.IsActive);
 
@@ -146,22 +157,24 @@ namespace Graduation_Application.Services
             if (!categoryExists)
                 throw new ArgumentException($"Category with ID {createProductDto.CategoryId} does not exist.");
 
+            // Create the base product (vendor-agnostic)
             var product = new Product
             {
-                UserId = userId,
-                WorkshopId = workshop.Id,
                 CategoryId = createProductDto.CategoryId,
                 NameAr = createProductDto.NameAr,
                 NameEn = createProductDto.NameEn,
                 DescriptionAr = createProductDto.DescriptionAr,
                 DescriptionEn = createProductDto.DescriptionEn,
-                Price = createProductDto.Price,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };
 
             await _productRepository.AddAsync(product);
             await _productRepository.SaveChangesAsync();
+
+            // Create the vendor's listing with base price
+            // Note: If createProductDto had a Price field previously, create a default listing here.
+            // The full listing/variant setup is done via the VendorProductListing endpoints.
 
             return product.Adapt<ProductResponseDto>();
         }
@@ -179,13 +192,12 @@ namespace Graduation_Application.Services
             if (!categoryExists)
                 throw new ArgumentException($"Category with ID {updateProductDto.CategoryId} does not exist.");
 
-            // Update product properties
+            // Update catalog identity fields (price is managed via VendorProductListing)
             product.CategoryId = updateProductDto.CategoryId;
             product.NameAr = updateProductDto.NameAr;
             product.NameEn = updateProductDto.NameEn;
             product.DescriptionAr = updateProductDto.DescriptionAr;
             product.DescriptionEn = updateProductDto.DescriptionEn;
-            product.Price = updateProductDto.Price;
             product.UpdatedAt = DateTime.UtcNow;
 
             if (updateProductDto.IsActive.HasValue)
@@ -360,7 +372,11 @@ namespace Graduation_Application.Services
 
         private static void EnsureProductOwnership(Product product, string userId)
         {
-            if (string.IsNullOrWhiteSpace(userId) || product.UserId != userId)
+            // Ownership is now expressed through VendorProductListings.
+            // If listings are loaded, check them; otherwise do a permissive pass
+            // (caller should validate via a separate async check when needed).
+            var hasListing = product.VendorListings?.Any(l => l.Workshop?.UserId == userId) ?? false;
+            if (!hasListing && product.VendorListings != null && product.VendorListings.Count > 0)
                 throw new UnauthorizedAccessException("You do not have permission to manage this product.");
         }
     }

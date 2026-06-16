@@ -82,7 +82,7 @@ namespace Graduation_Application.Services.Admin
             var vendorStats = await _workshopRepository
                 .GetAllAsNoTracking()
                 .Include(w => w.User)
-                .Include(w => w.Products)
+                .Include(w => w.VendorListings)
                 .Select(w => new AdminVendorListItemDto
                 {
                     WorkshopId = w.Id,
@@ -241,7 +241,7 @@ namespace Graduation_Application.Services.Admin
                         Id = r.Id,
                         Title = $"Product report #{r.Id}",
                         Type = "Product",
-                        VendorName = r.Product?.UserId ?? "N/A",
+                        VendorName = r.Product?.VendorListings?.FirstOrDefault()?.Workshop?.WorkshopNameEn ?? "N/A",
                         CreatedAt = r.CreatedAt,
                         DownloadUrl = $"/Admin/Reports/Download?reportId={r.Id}",
                     })
@@ -377,7 +377,6 @@ namespace Graduation_Application.Services.Admin
                 .Include(o => o.User)
                 .Include(o => o.Workshop)
                 .Include(o => o.Items)
-                    .ThenInclude(i => i.Product)
                 .Include(o => o.StatusHistory)
                 .FirstOrDefaultAsync(o => o.Id == orderId);
 
@@ -391,7 +390,7 @@ namespace Graduation_Application.Services.Admin
                 .GetAllAsNoTracking()
                 .FirstOrDefaultAsync(pt => pt.LocalOrderId == orderId);
 
-            var subtotal = order.Items?.Sum(x => x.UnitPrice * x.Quantity) ?? 0m;
+            var subtotal = order.Items?.Sum(x => x.SnapshotUnitPrice * x.Quantity) ?? 0m;
 
             return new AdminOrderDetailsDto
             {
@@ -427,10 +426,10 @@ namespace Graduation_Application.Services.Admin
                         .Items?.Select(i => new AdminOrderItemDto
                         {
                             Id = i.Id,
-                            ProductName = i.Product?.NameEn ?? "Unknown",
+                            ProductName = i.SnapshotProductNameEn ?? "Unknown",
                             Quantity = i.Quantity,
-                            UnitPrice = i.UnitPrice,
-                            LineTotal = i.UnitPrice * i.Quantity,
+                            UnitPrice = i.SnapshotUnitPrice,
+                            LineTotal = i.SnapshotUnitPrice * i.Quantity,
                         })
                         .ToList()
                     ?? new List<AdminOrderItemDto>(),
@@ -564,7 +563,9 @@ namespace Graduation_Application.Services.Admin
                     {
                         Rank = 0,
                         Name = g.Key,
-                        Revenue = g.Sum(p => p.Price),
+                        // Revenue from products not directly calculable — use 0 placeholder
+                        // TODO: join with OrderItem.SnapshotUnitPrice grouped by category
+                        Revenue = 0m,
                         OrdersCount = g.Count(),
                     })
                     .OrderByDescending(x => x.Revenue)
@@ -591,7 +592,7 @@ namespace Graduation_Application.Services.Admin
                         Id = r.Id,
                         Title = r.Product?.NameEn ?? $"Report #{r.Id}",
                         Type = "Product",
-                        VendorName = r.Product?.UserId ?? "N/A",
+                        VendorName = r.Product?.VendorListings?.FirstOrDefault()?.Workshop?.WorkshopNameEn ?? "N/A",
                         CreatedAt = r.CreatedAt,
                         DownloadUrl = $"/Admin/Reports/Download?reportId={r.Id}",
                     })

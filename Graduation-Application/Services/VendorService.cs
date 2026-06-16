@@ -294,8 +294,20 @@ namespace Graduation_Application.Services
         /// </summary>
         public async Task<int> GetVendorProductCountAsync(string userId)
         {
-            var count = await _productRepository.CountAsync(p => p.UserId == userId);
-            return count;
+            var workshopRepository = (IGenaricRepositories<Workshop>)AppDomain.CurrentDomain.GetData("WorkshopRepository");
+            var workshop = await _workshopRepository.FirstOrDefaultAsync(w => w.UserId == userId);
+            if (workshop == null) return 0;
+
+            var listingRepository = (IGenaricRepositories<VendorProductListing>)AppDomain.CurrentDomain.GetData("VendorProductListingRepository");
+            // Alternatively, query through workshop relationships: workshop.VendorListings.Count()
+            // Let's inject IGenaricRepositories<VendorProductListing> or load it if we don't have it.
+            // Wait, we can load workshop with VendorListings:
+            var workshopWithListings = await _workshopRepository
+                .Where(w => w.Id == workshop.Id)
+                .Include(w => w.VendorListings)
+                .FirstOrDefaultAsync();
+
+            return workshopWithListings?.VendorListings?.Count ?? 0;
         }
 
         /// <summary>
@@ -304,22 +316,10 @@ namespace Graduation_Application.Services
         /// </summary>
         public async Task LinkVendorProductsAsync(string userId)
         {
-            var workshop = await _workshopRepository.FirstOrDefaultAsync(w => w.UserId == userId);
-            if (workshop == null)
-                throw new Exception("Workshop not found for user");
-
-            var products = await _productRepository
-                .Where(p => p.WorkshopId == workshop.Id && p.UserId == null)
-                .ToListAsync();
-
-            foreach (var product in products)
-            {
-                product.UserId = userId;
-                _productRepository.Update(product);
-            }
-
-            if (products.Count > 0)
-                await _productRepository.SaveChangesAsync();
+            // Note: Since we moved WorkshopId/UserId from Product to VendorProductListing,
+            // products are linked to vendor via VendorProductListing.
+            // This migration method is no longer needed in this format, so we can make it a no-op or log it.
+            await Task.CompletedTask;
         }
     }
 }

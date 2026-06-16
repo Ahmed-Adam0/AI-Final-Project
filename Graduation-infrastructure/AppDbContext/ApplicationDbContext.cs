@@ -36,26 +36,18 @@ namespace Graduation_infrastructure.AppDbContext
         public DbSet<Faq> Faqs { get; set; }
         public DbSet<Banner> Banners { get; set; }
 
+        // ── Multi-Vendor Catalog ──────────────────────────────────────────────────
+        public DbSet<VendorProductListing> VendorProductListings { get; set; }
+        public DbSet<ProductAttribute> ProductAttributes { get; set; }
+        public DbSet<ProductAttributeValue> ProductAttributeValues { get; set; }
+        public DbSet<ProductVariant> ProductVariants { get; set; }
+        public DbSet<ProductVariantAttributeValue> ProductVariantAttributeValues { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
-            builder
-                .Entity<Product>()
-                .HasOne(p => p.Workshop)
-                .WithMany(w => w.Products)
-                .HasForeignKey(p => p.WorkshopId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // Add Product-User relationship for vendor ownership
-            builder
-                .Entity<Product>()
-                .HasOne(p => p.User)
-                .WithMany()
-                .HasForeignKey(p => p.UserId)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.Restrict);
-
+            // ── Product (vendor-agnostic base) ────────────────────────────────────
             builder
                 .Entity<Product>()
                 .HasOne(p => p.Category)
@@ -68,18 +60,130 @@ namespace Graduation_infrastructure.AppDbContext
                 .WithMany(p => p.Images)
                 .HasForeignKey(pi => pi.ProductId);
 
-            builder
-                .Entity<CartItem>()
-                .HasOne(ci => ci.Cart)
-                .WithMany(c => c.Items)
-                .HasForeignKey(ci => ci.CartId);
+            // ── VendorProductListing ──────────────────────────────────────────────
+            builder.Entity<VendorProductListing>(entity =>
+            {
+                entity.ToTable("VendorProductListings");
+                entity.HasKey(e => e.Id);
 
-            // FIX: use OrderId as the foreign key (not Id)
-            builder
-                .Entity<OrderItem>()
-                .HasOne(oi => oi.Order)
-                .WithMany(o => o.Items)
-                .HasForeignKey(oi => oi.OrderId);
+                // Enforce: one workshop can create only one listing per product
+                entity.HasIndex(e => new { e.ProductId, e.WorkshopId }).IsUnique();
+
+                entity.Property(e => e.BasePrice)
+                      .HasColumnType("decimal(18,2)")
+                      .IsRequired();
+
+                entity.HasOne(e => e.Product)
+                      .WithMany(p => p.VendorListings)
+                      .HasForeignKey(e => e.ProductId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Workshop)
+                      .WithMany(w => w.VendorListings)
+                      .HasForeignKey(e => e.WorkshopId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ── ProductAttribute ─────────────────────────────────────────────────
+            builder.Entity<ProductAttribute>(entity =>
+            {
+                entity.ToTable("ProductAttributes");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.NameAr).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.NameEn).HasMaxLength(100).IsRequired();
+
+                entity.HasOne(e => e.Product)
+                      .WithMany(p => p.Attributes)
+                      .HasForeignKey(e => e.ProductId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ── ProductAttributeValue ────────────────────────────────────────────
+            builder.Entity<ProductAttributeValue>(entity =>
+            {
+                entity.ToTable("ProductAttributeValues");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.ValueAr).HasMaxLength(200).IsRequired();
+                entity.Property(e => e.ValueEn).HasMaxLength(200).IsRequired();
+
+                entity.HasOne(e => e.Attribute)
+                      .WithMany(a => a.Values)
+                      .HasForeignKey(e => e.AttributeId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ── ProductVariant ───────────────────────────────────────────────────
+            builder.Entity<ProductVariant>(entity =>
+            {
+                entity.ToTable("ProductVariants");
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.PriceDelta).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.CurrentPrice).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.VariantImageUrl).HasMaxLength(1000);
+
+                entity.HasOne(e => e.Listing)
+                      .WithMany(l => l.Variants)
+                      .HasForeignKey(e => e.ListingId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ── ProductVariantAttributeValue (explicit many-to-many join) ────────
+            builder.Entity<ProductVariantAttributeValue>(entity =>
+            {
+                entity.ToTable("ProductVariantAttributeValues");
+
+                // Composite primary key — no surrogate Id needed
+                entity.HasKey(e => new { e.VariantId, e.AttributeValueId });
+
+                entity.HasOne(e => e.Variant)
+                      .WithMany(v => v.VariantAttributeValues)
+                      .HasForeignKey(e => e.VariantId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.AttributeValue)
+                      .WithMany(av => av.VariantAttributeValues)
+                      .HasForeignKey(e => e.AttributeValueId)
+                      .OnDelete(DeleteBehavior.Restrict); // Don't cascade-delete attribute values
+            });
+
+            // ── CartItem (now references ProductVariant) ─────────────────────────
+            builder.Entity<CartItem>(entity =>
+            {
+                entity.Property(e => e.CachedPrice).HasColumnType("decimal(18,2)");
+
+                entity.HasOne(e => e.Cart)
+                      .WithMany(c => c.Items)
+                      .HasForeignKey(e => e.CartId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.ProductVariant)
+                      .WithMany()
+                      .HasForeignKey(e => e.ProductVariantId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ── OrderItem (snapshot pattern) ──────────────────────────────────────
+            builder.Entity<OrderItem>(entity =>
+            {
+                entity.Property(e => e.SnapshotUnitPrice).HasColumnType("decimal(18,2)").IsRequired();
+                entity.Property(e => e.SnapshotProductNameAr).HasMaxLength(300).IsRequired();
+                entity.Property(e => e.SnapshotProductNameEn).HasMaxLength(300).IsRequired();
+                entity.Property(e => e.SnapshotVendorName).HasMaxLength(200).IsRequired();
+                entity.Property(e => e.SnapshotAttributesJson).HasColumnType("nvarchar(max)");
+
+                entity.HasOne(e => e.Order)
+                      .WithMany(o => o.Items)
+                      .HasForeignKey(e => e.OrderId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                // Soft-reference: if a variant is deleted, preserve the snapshot (set null)
+                entity.HasOne(e => e.ProductVariant)
+                      .WithMany(v => v.OrderItems)
+                      .HasForeignKey(e => e.ProductVariantId)
+                      .IsRequired(false)
+                      .OnDelete(DeleteBehavior.SetNull);
+            });
 
             builder
                 .Entity<OrderStatusHistory>()
@@ -169,15 +273,11 @@ namespace Graduation_infrastructure.AppDbContext
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Decimal precision configuration to avoid truncation
-            builder.Entity<CartItem>().Property(ci => ci.Price).HasColumnType("decimal(18,2)");
-            builder
-                .Entity<Discount>()
-                .Property(d => d.DiscountValue)
-                .HasColumnType("decimal(18,2)");
+            builder.Entity<Discount>().Property(d => d.DiscountValue).HasColumnType("decimal(18,2)");
             builder.Entity<Order>().Property(o => o.TotalPrice).HasColumnType("decimal(18,2)");
-            builder.Entity<OrderItem>().Property(oi => oi.UnitPrice).HasColumnType("decimal(18,2)");
-            builder.Entity<Product>().Property(p => p.Price).HasColumnType("decimal(18,2)");
             builder.Entity<Workshop>().Property(w => w.Rating).HasColumnType("decimal(18,2)");
+            // Note: CartItem.CachedPrice, OrderItem snapshot prices, VendorProductListing.BasePrice,
+            // and ProductVariant prices are configured in their respective entity blocks above.
 
             builder
                 .Entity<InternalNotification>()

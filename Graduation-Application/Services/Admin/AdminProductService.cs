@@ -19,13 +19,15 @@ namespace Graduation_Application.Services.Admin
         private readonly IGenaricRepositories<Review> _reviewRepository;
         private readonly IGenaricRepositories<Category> _categoryRepository;
         private readonly IGenaricRepositories<ApplicationUser> _userRepository;
+        private readonly IGenaricRepositories<Workshop> _workshopRepository;
 
         public AdminProductService(
             IGenaricRepositories<Product> productRepository,
             IGenaricRepositories<ProductReport> reportRepository,
             IGenaricRepositories<Review> reviewRepository,
             IGenaricRepositories<Category> categoryRepository,
-            IGenaricRepositories<ApplicationUser> userRepository
+            IGenaricRepositories<ApplicationUser> userRepository,
+            IGenaricRepositories<Workshop> workshopRepository
         )
         {
             _productRepository = productRepository;
@@ -33,6 +35,7 @@ namespace Graduation_Application.Services.Admin
             _reviewRepository = reviewRepository;
             _categoryRepository = categoryRepository;
             _userRepository = userRepository;
+            _workshopRepository = workshopRepository;
         }
 
         public async Task<PaginatedResult<AdminProductListDto>> GetProductsAsync(
@@ -45,7 +48,9 @@ namespace Graduation_Application.Services.Admin
             IQueryable<Product> query = _productRepository
                 .GetAllAsNoTracking()
                 .Include(p => p.Category)
-                .Include(p => p.User)
+                .Include(p => p.VendorListings)
+                    .ThenInclude(l => l.Workshop)
+                        .ThenInclude(w => w.User)
                 .Include(p => p.Images);
 
             // Filter by search term (name)
@@ -64,10 +69,11 @@ namespace Graduation_Application.Services.Admin
                 query = query.Where(p => p.CategoryId == filter.CategoryId.Value);
             }
 
-            // Filter by vendor (userId)
+            // Filter by vendor (workshopId via listing)
             if (!string.IsNullOrWhiteSpace(filter.VendorId))
             {
-                query = query.Where(p => p.UserId == filter.VendorId);
+                if (int.TryParse(filter.VendorId, out int workshopId))
+                    query = query.Where(p => p.VendorListings.Any(l => l.WorkshopId == workshopId));
             }
 
             // Filter by status
@@ -85,18 +91,26 @@ namespace Graduation_Application.Services.Admin
                 .ToListAsync();
 
             var productDtos = products
-                .Select(p => new AdminProductListDto
+                .Select(p =>
                 {
-                    Id = p.Id,
-                    NameAr = p.NameAr,
-                    NameEn = p.NameEn,
-                    CategoryName = p.Category != null ? p.Category.NameEn : string.Empty,
-                    VendorName = p.User != null ? p.User.FullName : "N/A",
-                    Price = p.Price,
-                    Status = p.Status,
-                    IsActive = p.IsActive,
-                    CreatedAt = p.CreatedAt,
-                    MainImageUrl = GetMainImageUrl(p.Images),
+                    var firstListing = p.VendorListings?.FirstOrDefault();
+                    var minPrice = p.VendorListings
+                        ?.SelectMany(l => l.Variants ?? Enumerable.Empty<ProductVariant>())
+                        .Select(v => (decimal?)v.CurrentPrice).Min() ?? 0m;
+
+                    return new AdminProductListDto
+                    {
+                        Id = p.Id,
+                        NameAr = p.NameAr,
+                        NameEn = p.NameEn,
+                        CategoryName = p.Category != null ? p.Category.NameEn : string.Empty,
+                        VendorName = firstListing?.Workshop?.User?.FullName ?? "N/A",
+                        Price = minPrice,
+                        Status = p.Status,
+                        IsActive = p.IsActive,
+                        CreatedAt = p.CreatedAt,
+                        MainImageUrl = GetMainImageUrl(p.Images),
+                    };
                 })
                 .ToList();
 
@@ -113,8 +127,9 @@ namespace Graduation_Application.Services.Admin
             var product = await _productRepository
                 .GetAllAsNoTracking()
                 .Include(p => p.Category)
-                .Include(p => p.User)
-                .Include(p => p.Workshop)
+                .Include(p => p.VendorListings)
+                    .ThenInclude(l => l.Workshop)
+                        .ThenInclude(w => w.User)
                 .Include(p => p.Images)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
@@ -128,6 +143,11 @@ namespace Graduation_Application.Services.Admin
             int reviewsCount = reviews.Count;
             double averageRating = reviewsCount > 0 ? reviews.Average(r => r.Rating) : 0;
 
+            var firstListing = product.VendorListings?.FirstOrDefault();
+            var minPrice = product.VendorListings
+                ?.SelectMany(l => l.Variants ?? Enumerable.Empty<ProductVariant>())
+                .Select(v => (decimal?)v.CurrentPrice).Min() ?? 0m;
+
             return new AdminProductDetailsDto
             {
                 Id = product.Id,
@@ -135,19 +155,19 @@ namespace Graduation_Application.Services.Admin
                 NameEn = product.NameEn,
                 DescriptionAr = product.DescriptionAr,
                 DescriptionEn = product.DescriptionEn,
-                Price = product.Price,
+                Price = minPrice,
                 Status = product.Status,
                 IsActive = product.IsActive,
                 CreatedAt = product.CreatedAt,
                 CategoryId = product.CategoryId,
                 CategoryNameAr = product.Category?.NameAr ?? string.Empty,
                 CategoryNameEn = product.Category?.NameEn ?? string.Empty,
-                VendorId = product.UserId,
-                VendorName = product.User?.FullName ?? "N/A",
-                VendorEmail = product.User?.Email ?? "N/A",
-                WorkshopId = product.WorkshopId,
-                WorkshopNameAr = product.Workshop?.WorkshopNameAr ?? string.Empty,
-                WorkshopNameEn = product.Workshop?.WorkshopNameEn ?? string.Empty,
+                VendorId = firstListing?.Workshop?.UserId ?? string.Empty,
+                VendorName = firstListing?.Workshop?.User?.FullName ?? "N/A",
+                VendorEmail = firstListing?.Workshop?.User?.Email ?? "N/A",
+                WorkshopId = firstListing?.WorkshopId ?? 0,
+                WorkshopNameAr = firstListing?.Workshop?.WorkshopNameAr ?? string.Empty,
+                WorkshopNameEn = firstListing?.Workshop?.WorkshopNameEn ?? string.Empty,
                 Images =
                     product
                         .Images?.Select(i => new AdminProductImageDto
@@ -281,29 +301,20 @@ namespace Graduation_Application.Services.Admin
 
         public async Task<List<VendorDropdownDto>> GetAllVendorsAsync()
         {
-            // Get distinct vendor user IDs from products
-            var vendorUserIds = await _productRepository
+            // Vendors are now identified by workshops that have at least one listing
+            var vendors = await _workshopRepository
                 .GetAllAsNoTracking()
-                .Where(p => p.UserId != null)
-                .Select(p => p.UserId)
-                .Distinct()
-                .ToListAsync();
-
-            if (!vendorUserIds.Any())
-                return new List<VendorDropdownDto>();
-
-            var vendors = await _userRepository
-                .GetAllAsNoTracking()
-                .Where(u => vendorUserIds.Contains(u.Id))
-                .OrderBy(u => u.FullName)
+                .Include(w => w.User)
+                .Where(w => w.VendorListings != null && w.VendorListings.Any())
+                .OrderBy(w => w.WorkshopNameEn)
                 .ToListAsync();
 
             return vendors
-                .Select(u => new VendorDropdownDto
+                .Select(w => new VendorDropdownDto
                 {
-                    UserId = u.Id,
-                    FullName = u.FullName,
-                    Email = u.Email,
+                    UserId = w.UserId,
+                    FullName = w.User?.FullName ?? w.WorkshopNameEn,
+                    Email = w.User?.Email ?? string.Empty,
                 })
                 .ToList();
         }

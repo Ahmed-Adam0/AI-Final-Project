@@ -1,4 +1,4 @@
-﻿using Graduation_domain.Entities;
+using Graduation_domain.Entities;
 using Graduation_infrastructure.AppDbContext;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -112,9 +112,7 @@ public class ApplicationDbSeeder
                         NameEn = $"Product {i}",
                         DescriptionAr = "وصف المنتج",
                         DescriptionEn = "Product description",
-                        Price = 1000 + (i * 100),
                         CategoryId = categoryId,
-                        WorkshopId = workshopId,
                         IsActive = true,
                         CreatedAt = DateTime.Now,
                     }
@@ -122,6 +120,33 @@ public class ApplicationDbSeeder
             }
 
             context.Products.AddRange(products);
+            await context.SaveChangesAsync();
+
+            // Seed listings and variants for each product
+            foreach (var product in products)
+            {
+                var listing = new VendorProductListing
+                {
+                    ProductId = product.Id,
+                    WorkshopId = workshopId,
+                    BasePrice = 1000 + (product.Id * 100),
+                    IsAvailable = true,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                };
+                context.VendorProductListings.Add(listing);
+                await context.SaveChangesAsync();
+
+                var variant = new ProductVariant
+                {
+                    ListingId = listing.Id,
+                    PriceDelta = 0m,
+                    CurrentPrice = listing.BasePrice,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                };
+                context.ProductVariants.Add(variant);
+            }
             await context.SaveChangesAsync();
         }
     }
