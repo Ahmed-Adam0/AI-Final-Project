@@ -34,4 +34,15 @@ namespace Graduation_Application.DTOs.ProductDTO
         public string ValueEn { get; set; } = string.Empty;
         public decimal? PriceDelta { get; set; }
     }
+
+    public class CreateProductAttributeWithValuesDto
+    {
+        [Required]
+        public string NameAr { get; set; } = string.Empty;
+
+        [Required]
+        public string NameEn { get; set; } = string.Empty;
+
+        public List<CreateProductAttributeValueDto> Values { get; set; } = new();
+    }
 }

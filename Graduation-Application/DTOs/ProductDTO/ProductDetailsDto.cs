@@ -40,11 +40,31 @@ namespace Graduation_Application.DTOs.ProductDTO
         /// <summary>All attribute dimensions defined for this product type (e.g., Material, Color).</summary>
         public List<ProductAttributeDto> Attributes { get; set; } = [];
 
+        public List<ProductMaterialGroupResponseDto> MaterialGroups { get; set; } = [];
+
         public ProductDetailsDto()
         {
             Images = new List<ProductImageDto>();
             Attributes = new List<ProductAttributeDto>();
+            MaterialGroups = new List<ProductMaterialGroupResponseDto>();
         }
+    }
+
+    public class ProductMaterialGroupResponseDto
+    {
+        public int Id { get; set; }
+        public string NameAr { get; set; } = string.Empty;
+        public string NameEn { get; set; } = string.Empty;
+        public List<ProductMaterialOptionDetailsDto> Options { get; set; } = [];
+    }
+
+    public class ProductMaterialOptionDetailsDto
+    {
+        public int Id { get; set; }
+        public int VendorMaterialGroupId { get; set; }
+        public string ValueAr { get; set; } = string.Empty;
+        public string ValueEn { get; set; } = string.Empty;
+        public decimal PriceOption { get; set; }
     }
 
     public class ProductImageDto

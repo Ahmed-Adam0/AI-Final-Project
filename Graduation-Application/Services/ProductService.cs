@@ -151,6 +151,9 @@ namespace Graduation_Application.Services
                 .Include(p => p.Attributes)
                     .ThenInclude(a => a.Values)
                 .Include(p => p.Images)
+                .Include(p => p.MaterialOptions)
+                    .ThenInclude(mo => mo.VendorMaterialOption)
+                        .ThenInclude(o => o.Group)
                 .FirstOrDefaultAsync(p => p.Id == id && p.IsActive && !p.IsHidden);
 
             if (product == null)
@@ -188,7 +191,11 @@ namespace Graduation_Application.Services
                 IsActive = true,
                 IsHidden = false,
                 CreatedAt = DateTime.UtcNow,
-                MaterialOptions = createProductDto.VendorMaterialOptionIds?.Select(id => new ProductMaterialOption { VendorMaterialOptionId = id }).ToList() ?? new List<ProductMaterialOption>()
+                MaterialOptions = createProductDto.MaterialOptions?.Select(mo => new ProductMaterialOption 
+                { 
+                    VendorMaterialOptionId = mo.VendorMaterialOptionId,
+                    PriceOption = mo.PriceOption
+                }).ToList() ?? new List<ProductMaterialOption>()
             };
 
             await _productRepository.AddAsync(product);
@@ -233,13 +240,38 @@ namespace Graduation_Application.Services
             }
 
 
-            if (updateProductDto.VendorMaterialOptionIds != null)
+            if (updateProductDto.MaterialOptions != null)
             {
                 var existingOptions = await _productMaterialOptionRepository.Where(pmo => pmo.ProductId == productId).ToListAsync();
                 _productMaterialOptionRepository.DeleteRange(existingOptions);
 
-                var newOptions = updateProductDto.VendorMaterialOptionIds.Select(id => new ProductMaterialOption { ProductId = productId, VendorMaterialOptionId = id });
+                var newOptions = updateProductDto.MaterialOptions.Select(mo => new ProductMaterialOption 
+                { 
+                    ProductId = productId, 
+                    VendorMaterialOptionId = mo.VendorMaterialOptionId,
+                    PriceOption = mo.PriceOption
+                });
                 await _productMaterialOptionRepository.AddRangeAsync(newOptions);
+            }
+
+            if (updateProductDto.Attributes != null)
+            {
+                var existingAttributes = await _attributeRepository.Where(a => a.ProductId == productId).ToListAsync();
+                _attributeRepository.DeleteRange(existingAttributes);
+
+                var newAttributes = updateProductDto.Attributes.Select(attr => new ProductAttribute
+                {
+                    ProductId = productId,
+                    NameAr = attr.NameAr,
+                    NameEn = attr.NameEn,
+                    Values = attr.Values?.Select(val => new ProductAttributeValue
+                    {
+                        ValueAr = val.ValueAr,
+                        ValueEn = val.ValueEn,
+                        PriceDelta = val.PriceDelta
+                    }).ToList() ?? new List<ProductAttributeValue>()
+                }).ToList();
+                await _attributeRepository.AddRangeAsync(newAttributes);
             }
 
             _productRepository.Update(product);

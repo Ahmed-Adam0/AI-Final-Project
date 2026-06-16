@@ -63,6 +63,25 @@ namespace Graduation_Application.Mapper.ProductMapping
                     src => src.Images != null
                         ? src.Images.Adapt<List<ProductImageDto>>()
                         : new List<ProductImageDto>())
+                .Map(dest => dest.MaterialGroups, src => src.MaterialOptions != null
+                    ? src.MaterialOptions
+                        .Where(mo => mo.VendorMaterialOption != null && mo.VendorMaterialOption.Group != null)
+                        .GroupBy(mo => mo.VendorMaterialOption.Group.Id)
+                        .Select(g => new ProductMaterialGroupResponseDto
+                        {
+                            Id = g.Key,
+                            NameAr = g.First().VendorMaterialOption.Group.NameAr,
+                            NameEn = g.First().VendorMaterialOption.Group.NameEn,
+                            Options = g.Select(mo => new ProductMaterialOptionDetailsDto
+                            {
+                                Id = mo.VendorMaterialOptionId,
+                                VendorMaterialGroupId = mo.VendorMaterialOption.VendorMaterialGroupId,
+                                ValueAr = mo.VendorMaterialOption.ValueAr,
+                                ValueEn = mo.VendorMaterialOption.ValueEn,
+                                PriceOption = mo.PriceOption
+                            }).ToList()
+                        }).ToList()
+                    : new List<ProductMaterialGroupResponseDto>())
                 // Attributes are mapped manually in the service layer
                 .Ignore(dest => dest.Attributes);
 
@@ -91,7 +110,34 @@ namespace Graduation_Application.Mapper.ProductMapping
                 .Map(dest => dest.NameEn, src => src.NameEn)
                 .Map(dest => dest.DescriptionAr, src => src.DescriptionAr)
                 .Map(dest => dest.DescriptionEn, src => src.DescriptionEn)
-                .Map(dest => dest.IsActive, src => src.IsActive);
+                .Map(dest => dest.IsActive, src => src.IsActive)
+                .Map(dest => dest.MaterialGroups, src => src.MaterialOptions != null
+                    ? src.MaterialOptions
+                        .Where(mo => mo.VendorMaterialOption != null && mo.VendorMaterialOption.Group != null)
+                        .GroupBy(mo => mo.VendorMaterialOption.Group.Id)
+                        .Select(g => new ProductMaterialGroupResponseDto
+                        {
+                            Id = g.Key,
+                            NameAr = g.First().VendorMaterialOption.Group.NameAr,
+                            NameEn = g.First().VendorMaterialOption.Group.NameEn,
+                            Options = g.Select(mo => new ProductMaterialOptionDetailsDto
+                            {
+                                Id = mo.VendorMaterialOptionId,
+                                VendorMaterialGroupId = mo.VendorMaterialOption.VendorMaterialGroupId,
+                                ValueAr = mo.VendorMaterialOption.ValueAr,
+                                ValueEn = mo.VendorMaterialOption.ValueEn,
+                                PriceOption = mo.PriceOption
+                            }).ToList()
+                        }).ToList()
+                    : new List<ProductMaterialGroupResponseDto>());
+
+            // ProductMaterialOption to ProductMaterialOptionResponseDto
+            TypeAdapterConfig<ProductMaterialOption, ProductMaterialOptionResponseDto>
+                .NewConfig()
+                .Map(dest => dest.VendorMaterialOptionId, src => src.VendorMaterialOptionId)
+                .Map(dest => dest.PriceOption, src => src.PriceOption)
+                .Map(dest => dest.ValueAr, src => src.VendorMaterialOption != null ? src.VendorMaterialOption.ValueAr : string.Empty)
+                .Map(dest => dest.ValueEn, src => src.VendorMaterialOption != null ? src.VendorMaterialOption.ValueEn : string.Empty);
 
             // CreateProductDto to Product (for creation — no price or vendor here)
             TypeAdapterConfig<CreateProductDto, Product>

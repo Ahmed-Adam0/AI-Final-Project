@@ -42,16 +42,25 @@ The system utilizes Role-Based Access Control (RBAC) with three primary roles:
 
 Products are the core entities in the system. **Remember: Products are instantly visible to the public upon creation.**
 
-### `POST /api/products`
+### `POST /api/Products`
 Creates a new product. (Requires **Vendor** role).
 
 **Request Body:**
 ```json
 {
-  "name": "Ergonomic Office Chair",
-  "description": "Adjustable chair with lumbar support.",
+  "productTypeId": 45,
+  "categoryId": 1,
+  "subCategoryId": 11,
+  "nameAr": "كرسي مكتب مريح",
+  "nameEn": "Ergonomic Office Chair",
+  "descriptionAr": "كرسي قابل للتعديل مع دعم للظهر.",
+  "descriptionEn": "Adjustable chair with lumbar support.",
   "basePrice": 199.99,
-  "productTypeId": 45
+  "isActive": true,
+  "materialOptions": [
+    { "vendorMaterialOptionId": 301, "priceOption": 0.00 },
+    { "vendorMaterialOptionId": 302, "priceOption": 50.00 }
+  ]
 }
 ```
 
@@ -59,24 +68,64 @@ Creates a new product. (Requires **Vendor** role).
 ```json
 {
   "id": 101,
-  "vendorId": 5,
-  "name": "Ergonomic Office Chair",
-  "description": "Adjustable chair with lumbar support.",
-  "basePrice": 199.99,
   "productTypeId": 45,
+  "productTypeNameAr": "كراسي",
+  "productTypeNameEn": "Chairs",
+  "subCategoryId": 11,
+  "subCategoryNameAr": "مكتب",
+  "subCategoryNameEn": "Office",
+  "categoryId": 1,
+  "categoryNameAr": "أثاث",
+  "categoryNameEn": "Furniture",
+  "nameAr": "كرسي مكتب مريح",
+  "nameEn": "Ergonomic Office Chair",
+  "descriptionAr": "كرسي قابل للتعديل مع دعم للظهر.",
+  "descriptionEn": "Adjustable chair with lumbar support.",
+  "isActive": true,
+  "basePrice": 199.99,
+  "workshopId": 5,
   "isHidden": false,
-  "createdAt": "2026-06-16T12:00:00Z"
+  "materialGroups": [
+    {
+      "id": 2,
+      "nameAr": "نوع القماش",
+      "nameEn": "Fabric Type",
+      "options": [
+        {
+          "id": 301,
+          "vendorMaterialGroupId": 2,
+          "valueAr": "شبك قياسي",
+          "valueEn": "Standard Mesh",
+          "priceOption": 0.00
+        },
+        {
+          "id": 302,
+          "vendorMaterialGroupId": 2,
+          "valueAr": "جلد طبيعي فاخر",
+          "valueEn": "Premium Leather",
+          "priceOption": 50.00
+        }
+      ]
+    }
+  ]
 }
 ```
 
-### `GET /api/products`
+### `GET /api/Products`
 Retrieves a paginated list of public products. (Publicly accessible).
 
 **Request Parameters:**
-- `page` (optional, default: 1)
-- `pageSize` (optional, default: 10)
-- `categoryId` (optional)
-- `vendorId` (optional)
+- `search` (string, optional - Searches product titles and descriptions)
+- `categoryId` (int, optional)
+- `subCategoryId` (int, optional)
+- `productTypeId` (int, optional)
+- `minPrice` (decimal, optional)
+- `maxPrice` (decimal, optional)
+- `material` (string, optional)
+- `workshopId` (int, optional)
+- `isActive` (bool, optional)
+- `pageNumber` (int, optional, default: 1)
+- `pageSize` (int, optional, default: 10)
 
 **Response (200 OK):**
 ```json
@@ -87,48 +136,133 @@ Retrieves a paginated list of public products. (Publicly accessible).
   "data": [
     {
       "id": 101,
-      "vendorId": 5,
-      "name": "Ergonomic Office Chair",
-      "basePrice": 199.99
+      "nameAr": "كرسي مكتب مريح",
+      "nameEn": "Ergonomic Office Chair",
+      "descriptionAr": "كرسي قابل للتعديل مع دعم للظهر.",
+      "descriptionEn": "Adjustable chair with lumbar support.",
+      "basePrice": 199.99,
+      "isHidden": false,
+      "productTypeId": 45,
+      "productTypeNameAr": "كراسي",
+      "productTypeNameEn": "Chairs",
+      "subCategoryId": 11,
+      "subCategoryNameAr": "مكتب",
+      "subCategoryNameEn": "Office",
+      "categoryId": 1,
+      "categoryNameAr": "أثاث",
+      "categoryNameEn": "Furniture",
+      "workshopId": 5,
+      "workshopNameAr": "ورشة النجارة الحديثة",
+      "workshopNameEn": "Modern Carpentry Workshop",
+      "createdAt": "2026-06-16T12:00:00Z",
+      "isActive": true,
+      "mainImageUrl": "/images/products/chair.jpg"
     }
   ]
 }
 ```
 
-### `GET /api/products/{id}`
+### `GET /api/Products/{id}`
 Retrieves detailed information about a specific product, including available options. (Publicly accessible).
 
 **Response (200 OK):**
 ```json
 {
   "id": 101,
-  "vendorId": 5,
-  "name": "Ergonomic Office Chair",
-  "description": "Adjustable chair with lumbar support.",
-  "basePrice": 199.99,
+  "nameAr": "كرسي مكتب مريح",
+  "nameEn": "Ergonomic Office Chair",
+  "descriptionAr": "كرسي قابل للتعديل مع دعم للظهر.",
+  "descriptionEn": "Adjustable chair with lumbar support.",
   "productTypeId": 45,
-  "materials": [
+  "productTypeNameAr": "كراسي",
+  "productTypeNameEn": "Chairs",
+  "subCategoryId": 11,
+  "subCategoryNameAr": "مكتب",
+  "subCategoryNameEn": "Office",
+  "categoryId": 1,
+  "categoryNameAr": "أثاث",
+  "categoryNameEn": "Furniture",
+  "createdAt": "2026-06-16T12:00:00Z",
+  "isActive": true,
+  "isHidden": false,
+  "basePrice": 199.99,
+  "workshopId": 5,
+  "workshopNameAr": "ورشة النجارة الحديثة",
+  "workshopNameEn": "Modern Carpentry Workshop",
+  "workshopLogoUrl": "/images/logos/workshop5.jpg",
+  "workshopRating": 4.5,
+  "workshopIsVerified": true,
+  "images": [
     {
-      "materialId": 10,
-      "name": "Fabric Type",
+      "id": 201,
+      "imageUrl": "/images/products/chair.jpg",
+      "isPrimary": true
+    }
+  ],
+  "attributes": [
+    {
+      "id": 10,
+      "nameAr": "نوع القماش",
+      "nameEn": "Fabric Type",
+      "values": [
+        { "id": 301, "valueAr": "شبك قياسي", "valueEn": "Standard Mesh", "priceDelta": 0 },
+        { "id": 302, "valueAr": "جلد طبيعي فاخر", "valueEn": "Premium Leather", "priceDelta": 50.00 }
+      ]
+    }
+  ],
+  "materialGroups": [
+    {
+      "id": 2,
+      "nameAr": "نوع القماش",
+      "nameEn": "Fabric Type",
       "options": [
-        { "id": 301, "name": "Standard Mesh", "priceDelta": 0 },
-        { "id": 302, "name": "Premium Leather", "priceDelta": 50.00 }
+        {
+          "id": 301,
+          "vendorMaterialGroupId": 2,
+          "valueAr": "شبك قياسي",
+          "valueEn": "Standard Mesh",
+          "priceOption": 0.00
+        },
+        {
+          "id": 302,
+          "vendorMaterialGroupId": 2,
+          "valueAr": "جلد طبيعي فاخر",
+          "valueEn": "Premium Leather",
+          "priceOption": 50.00
+        }
       ]
     }
   ]
 }
 ```
 
-### `PUT /api/products/{id}`
+### `PUT /api/Products/{id}`
 Updates an existing product's details. (Requires **Vendor** role, must own the product).
 
 **Request Body:**
 ```json
 {
-  "name": "Ergonomic Office Chair V2",
-  "description": "Updated adjustable chair with better lumbar support.",
-  "basePrice": 219.99
+  "productTypeId": 45,
+  "categoryId": 1,
+  "subCategoryId": 11,
+  "nameAr": "كرسي مكتب مريح V2",
+  "nameEn": "Ergonomic Office Chair V2",
+  "descriptionAr": "كرسي قابل للتعديل مع دعم أفضل للظهر.",
+  "descriptionEn": "Updated adjustable chair with better lumbar support.",
+  "basePrice": 219.99,
+  "isActive": true,
+  "materialOptions": [
+    { "vendorMaterialOptionId": 301, "priceOption": 0.00 }
+  ],
+  "attributes": [
+    {
+      "nameAr": "نوع القماش",
+      "nameEn": "Fabric Type",
+      "values": [
+        { "valueAr": "شبك قياسي", "valueEn": "Standard Mesh", "priceDelta": 0 }
+      ]
+    }
+  ]
 }
 ```
 
@@ -136,16 +270,51 @@ Updates an existing product's details. (Requires **Vendor** role, must own the p
 ```json
 {
   "id": 101,
-  "name": "Ergonomic Office Chair V2",
-  "basePrice": 219.99
+  "productTypeId": 45,
+  "productTypeNameAr": "كراسي",
+  "productTypeNameEn": "Chairs",
+  "subCategoryId": 11,
+  "subCategoryNameAr": "مكتب",
+  "subCategoryNameEn": "Office",
+  "categoryId": 1,
+  "categoryNameAr": "أثاث",
+  "categoryNameEn": "Furniture",
+  "nameAr": "كرسي مكتب مريح V2",
+  "nameEn": "Ergonomic Office Chair V2",
+  "descriptionAr": "كرسي قابل للتعديل مع دعم أفضل للظهر.",
+  "descriptionEn": "Updated adjustable chair with better lumbar support.",
+  "isActive": true,
+  "basePrice": 219.99,
+  "workshopId": 5,
+  "isHidden": false,
+  "materialGroups": [
+    {
+      "id": 2,
+      "nameAr": "نوع القماش",
+      "nameEn": "Fabric Type",
+      "options": [
+        {
+          "id": 301,
+          "vendorMaterialGroupId": 2,
+          "valueAr": "شبك قياسي",
+          "valueEn": "Standard Mesh",
+          "priceOption": 0.00
+        }
+      ]
+    }
+  ]
 }
 ```
 
-### `DELETE /api/products/{id}`
+### `DELETE /api/Products/{id}`
 Deactivates or deletes a product. (Requires **Vendor** role, must own the product).
 
-**Response (204 No Content):**
-*(No body returned)*
+**Response (200 OK):**
+```json
+{
+  "message": "Product deleted successfully"
+}
+```
 
 ---
 
@@ -153,65 +322,90 @@ Deactivates or deletes a product. (Requires **Vendor** role, must own the produc
 
 Vendors can manage reusable attributes or materials that act as customizable options for their products. These options can alter the final price using a `PriceDelta`.
 
-### `POST /api/materials`
+### `POST /api/VendorMaterials/Groups`
 Creates a new material group (e.g., "Wood Type", "Fabric Color"). (Requires **Vendor** role).
 
 **Request Body:**
 ```json
 {
-  "name": "Wood Type"
+  "nameAr": "نوع الخشب",
+  "nameEn": "Wood Type"
 }
 ```
 
-**Response (201 Created):**
+**Response (200 OK):**
 ```json
 {
   "id": 40,
-  "vendorId": 5,
-  "name": "Wood Type"
+  "workshopId": 5,
+  "nameAr": "نوع الخشب",
+  "nameEn": "Wood Type",
+  "options": []
 }
 ```
 
-### `POST /api/materials/{materialId}/options`
+### `POST /api/VendorMaterials/Groups/{groupId}/Options`
 Adds a specific option to a material group. (Requires **Vendor** role).
 
 **Request Body:**
 ```json
 {
-  "name": "Premium Walnut Finish",
+  "valueAr": "خشب جوز فاخر",
+  "valueEn": "Premium Walnut Finish",
   "priceDelta": 150.00
 }
 ```
 
-**Response (201 Created):**
+**Response (200 OK):**
 ```json
 {
   "id": 305,
-  "materialId": 40,
-  "name": "Premium Walnut Finish",
+  "vendorMaterialGroupId": 40,
+  "valueAr": "خشب جوز فاخر",
+  "valueEn": "Premium Walnut Finish",
   "priceDelta": 150.00
 }
 ```
 
-### `GET /api/vendors/{vendorId}/materials`
-Retrieves all materials and options for a specific vendor.
+### `GET /api/VendorMaterials`
+Retrieves all materials and options for the currently logged-in vendor's workshop. (Requires **Vendor** role).
 
 **Response (200 OK):**
 ```json
 [
   {
     "id": 40,
-    "name": "Wood Type",
+    "workshopId": 5,
+    "nameAr": "نوع الخشب",
+    "nameEn": "Wood Type",
     "options": [
-      { "id": 305, "name": "Premium Walnut Finish", "priceDelta": 150.00 },
-      { "id": 306, "name": "Standard Oak", "priceDelta": 0 }
+      {
+        "id": 305,
+        "vendorMaterialGroupId": 40,
+        "valueAr": "خشب جوز فاخر",
+        "valueEn": "Premium Walnut Finish",
+        "priceDelta": 150.00
+      },
+      {
+        "id": 306,
+        "vendorMaterialGroupId": 40,
+        "valueAr": "سنديان قياسي",
+        "valueEn": "Standard Oak",
+        "priceDelta": 0
+      }
     ]
   }
 ]
 ```
 
-### `DELETE /api/options/{optionId}`
-Deletes an option. (Requires **Vendor** role).
+### `DELETE /api/VendorMaterials/Groups/{groupId}`
+Deletes an entire material group. (Requires **Vendor** role).
+
+**Response (204 No Content):**
+*(No body returned)*
+
+### `DELETE /api/VendorMaterials/Options/{optionId}`
+Deletes a specific option. (Requires **Vendor** role).
 
 **Response (204 No Content):**
 *(No body returned)*
@@ -224,36 +418,80 @@ The platform uses a strict hierarchy for categorization to facilitate AI suggest
 
 **Hierarchy:** `Category` ➔ `SubCategory` ➔ `ProductType` ➔ `Product`
 
-### `GET /api/categories`
+### `GET /api/Categories`
 Retrieves top-level categories.
 
 **Response (200 OK):**
 ```json
 [
-  { "id": 1, "name": "Furniture" },
-  { "id": 2, "name": "Electronics" }
+  { 
+    "id": 1, 
+    "nameAr": "أثاث", 
+    "nameEn": "Furniture",
+    "imageUrl": "/images/categories/furniture.jpg"
+  },
+  { 
+    "id": 2, 
+    "nameAr": "إلكترونيات", 
+    "nameEn": "Electronics",
+    "imageUrl": "/images/categories/electronics.jpg"
+  }
 ]
 ```
 
-### `GET /api/categories/{categoryId}/subcategories`
+### `GET /api/SubCategories/category/{categoryId}`
 Retrieves subcategories belonging to a specific category.
 
 **Response (200 OK):**
 ```json
 [
-  { "id": 10, "categoryId": 1, "name": "Living Room" },
-  { "id": 11, "categoryId": 1, "name": "Office" }
+  { 
+    "id": 10, 
+    "nameAr": "غرفة المعيشة", 
+    "nameEn": "Living Room",
+    "categoryId": 1,
+    "categoryNameAr": "أثاث",
+    "categoryNameEn": "Furniture"
+  },
+  { 
+    "id": 11, 
+    "nameAr": "مكتب", 
+    "nameEn": "Office",
+    "categoryId": 1,
+    "categoryNameAr": "أثاث",
+    "categoryNameEn": "Furniture"
+  }
 ]
 ```
 
-### `GET /api/subcategories/{subCategoryId}/producttypes`
+### `GET /api/ProductTypes/subcategory/{subCategoryId}`
 Retrieves product types belonging to a specific subcategory.
 
 **Response (200 OK):**
 ```json
 [
-  { "id": 45, "subCategoryId": 11, "name": "Desks" },
-  { "id": 46, "subCategoryId": 11, "name": "Chairs" }
+  { 
+    "id": 45, 
+    "nameAr": "مكاتب", 
+    "nameEn": "Desks",
+    "subCategoryId": 11,
+    "subCategoryNameAr": "مكتب",
+    "subCategoryNameEn": "Office",
+    "categoryId": 1,
+    "categoryNameAr": "أثاث",
+    "categoryNameEn": "Furniture"
+  },
+  { 
+    "id": 46, 
+    "nameAr": "كراسي", 
+    "nameEn": "Chairs",
+    "subCategoryId": 11,
+    "subCategoryNameAr": "مكتب",
+    "subCategoryNameEn": "Office",
+    "categoryId": 1,
+    "categoryNameAr": "أثاث",
+    "categoryNameEn": "Furniture"
+  }
 ]
 ```
 
@@ -261,79 +499,112 @@ Retrieves product types belonging to a specific subcategory.
 
 ## 6. CART APIs
 
-The shopping cart relies on dynamic pricing based on the selected options. The cart stores the references (`OptionIds`) and calculates the total price on the fly.
+The shopping cart relies on dynamic pricing based on the selected options. The cart stores references (`OptionIds`) and calculates the total price on the fly.
 
-### `POST /api/cart/items`
-Adds a product to the cart with the user's chosen options. (Requires **Customer** role).
-
-**Request Body:**
-```json
-{
-  "productId": 101,
-  "quantity": 2,
-  "selectedOptionIds": [302] 
-}
-```
-
-**Response (201 Created):**
-```json
-{
-  "cartItemId": 501,
-  "productId": 101,
-  "quantity": 2,
-  "selectedOptionIds": [302],
-  "calculatedUnitPrice": 249.99,
-  "totalPrice": 499.98
-}
-```
-
-### `PUT /api/cart/items/{itemId}`
-Updates the quantity or selected options for an existing cart item.
-
-**Request Body:**
-```json
-{
-  "quantity": 3,
-  "selectedOptionIds": [301]
-}
-```
+### `GET /api/Cart`
+Retrieves the user's current cart, including computed dynamic prices. (Requires authenticated user).
 
 **Response (200 OK):**
 ```json
 {
-  "cartItemId": 501,
-  "quantity": 3,
-  "calculatedUnitPrice": 199.99,
-  "totalPrice": 599.97
-}
-```
-
-### `DELETE /api/cart/items/{itemId}`
-Removes an item from the cart.
-
-**Response (204 No Content):**
-*(No body returned)*
-
-### `GET /api/cart`
-Retrieves the user's current cart, including computed dynamic prices.
-
-**Response (200 OK):**
-```json
-{
-  "cartId": 99,
-  "totalCartValue": 599.97,
+  "id": 99,
+  "userId": "user-guid-xyz",
+  "totalPrice": 599.97,
   "items": [
     {
-      "cartItemId": 501,
+      "id": 501,
       "productId": 101,
-      "productName": "Ergonomic Office Chair",
+      "productNameAr": "كرسي مكتب مريح",
+      "productNameEn": "Ergonomic Office Chair",
+      "vendorNameEn": "Modern Carpentry Workshop",
+      "vendorNameAr": "ورشة النجارة الحديثة",
+      "cachedPrice": 199.99,
+      "livePrice": 199.99,
+      "isPriceStale": false,
       "quantity": 3,
-      "calculatedUnitPrice": 199.99,
-      "options": [
-        { "name": "Standard Mesh", "priceDelta": 0 }
-      ]
+      "totalPrice": 599.97,
+      "variantImageUrl": "/images/products/chair.jpg",
+      "selectedAttributes": [
+        {
+          "attributeNameAr": "نوع القماش",
+          "attributeNameEn": "Fabric Type",
+          "valueAr": "شبك قياسي",
+          "valueEn": "Standard Mesh"
+        }
+      ],
+      "productImages": ["/images/products/chair.jpg"]
     }
   ]
+}
+```
+
+### `POST /api/Cart/items`
+Adds a product to the cart with the user's chosen options. (Requires authenticated user).
+
+**Request Body:**
+```json
+{
+  "productId": 101,
+  "selectedOptionIds": [302],
+  "quantity": 2
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "message": "Item added to cart",
+  "data": {
+    "id": 501,
+    "productId": 101,
+    "productNameAr": "كرسي مكتب مريح",
+    "productNameEn": "Ergonomic Office Chair",
+    "vendorNameEn": "Modern Carpentry Workshop",
+    "vendorNameAr": "ورشة النجارة الحديثة",
+    "cachedPrice": 249.99,
+    "livePrice": 249.99,
+    "isPriceStale": false,
+    "quantity": 2,
+    "totalPrice": 499.98,
+    "variantImageUrl": "/images/products/chair.jpg",
+    "selectedAttributes": [
+      {
+        "attributeNameAr": "نوع القماش",
+        "attributeNameEn": "Fabric Type",
+        "valueAr": "جلد طبيعي فاخر",
+        "valueEn": "Premium Leather"
+      }
+    ],
+    "productImages": ["/images/products/chair.jpg"]
+  }
+}
+```
+
+### `PUT /api/Cart/items`
+Updates the quantity for an existing cart item. Note: This updates the item by its ID directly.
+
+**Request Body:**
+```json
+{
+  "cartItemId": 501,
+  "quantity": 3
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "message": "Cart item updated"
+}
+```
+
+### `DELETE /api/Cart/items/{id}`
+Removes an item from the cart by its CartItem ID.
+
+**Response (200 OK):**
+```json
+{
+  "message": "Item removed from cart"
 }
 ```
 
@@ -344,65 +615,119 @@ Retrieves the user's current cart, including computed dynamic prices.
 When a cart is checked out, an order is created. 
 **Crucial Concept - Snapshots:** Orders are immutable. The system takes a permanent snapshot of the product's `BasePrice`, the selected options' `PriceDelta`, and the final calculated total at the exact moment of checkout. Future changes to vendor prices will *not* affect past orders.
 
-### `POST /api/orders`
-Converts the active cart into a confirmed order. (Requires **Customer** role).
+### `POST /api/Order`
+Converts the active cart into a confirmed order. (Requires authenticated user).
 
 **Request Body:**
 ```json
 {
-  "shippingAddressId": 12,
-  "paymentMethodId": 3
+  "address": "123 Main St, Cairo, Egypt",
+  "phoneNumber": "+201234567890",
+  "notes": "Deliver during weekdays"
 }
 ```
 
-**Response (201 Created):**
+**Response (200 OK):**
 ```json
 {
-  "orderId": 9001,
-  "status": "Pending",
-  "totalAmount": 599.97
+  "message": "Order created successfully",
+  "data": {
+    "id": 9001,
+    "userId": "user-guid-xyz",
+    "totalPrice": 599.97,
+    "status": "Pending",
+    "address": "123 Main St, Cairo, Egypt",
+    "phoneNumber": "+201234567890",
+    "notes": "Deliver during weekdays",
+    "createdAt": "2026-06-16T12:00:00Z",
+    "paymentStatus": "Unpaid",
+    "paymentUrl": "https://stripe.com/checkout/pay/xyz",
+    "items": [
+      {
+        "id": 801,
+        "productId": 101,
+        "productNameAr": "كرسي مكتب مريح",
+        "productNameEn": "Ergonomic Office Chair",
+        "vendorName": "ورشة النجارة الحديثة",
+        "unitPrice": 199.99,
+        "quantity": 3,
+        "totalPrice": 599.97,
+        "attributes": [
+          {
+            "nameAr": "نوع القماش",
+            "nameEn": "Fabric Type",
+            "valueAr": "شبك قياسي",
+            "valueEn": "Standard Mesh"
+          }
+        ]
+      }
+    ],
+    "statusHistory": [
+      {
+        "id": 12,
+        "oldStatus": "None",
+        "newStatus": "Pending",
+        "createdAt": "2026-06-16T12:00:00Z"
+      }
+    ]
+  }
 }
 ```
 
-### `GET /api/orders`
-Retrieves the logged-in user's order history.
+### `GET /api/Order/my-orders`
+Retrieves the logged-in user's order history. (Requires authenticated user).
 
 **Response (200 OK):**
 ```json
 [
   {
-    "orderId": 9001,
-    "orderDate": "2026-06-16T12:00:00Z",
-    "totalAmount": 599.97,
-    "status": "Pending"
+    "id": 9001,
+    "userId": "user-guid-xyz",
+    "totalPrice": 599.97,
+    "status": "Pending",
+    "address": "123 Main St, Cairo, Egypt",
+    "phoneNumber": "+201234567890",
+    "notes": "Deliver during weekdays",
+    "createdAt": "2026-06-16T12:00:00Z",
+    "paymentStatus": "Unpaid",
+    "paymentUrl": "https://stripe.com/checkout/pay/xyz",
+    "items": [
+      {
+        "id": 801,
+        "productId": 101,
+        "productNameAr": "كرسي مكتب مريح",
+        "productNameEn": "Ergonomic Office Chair",
+        "vendorName": "ورشة النجارة الحديثة",
+        "unitPrice": 199.99,
+        "quantity": 3,
+        "totalPrice": 599.97,
+        "attributes": [
+          {
+            "nameAr": "نوع القماش",
+            "nameEn": "Fabric Type",
+            "valueAr": "شبك قياسي",
+            "valueEn": "Standard Mesh"
+          }
+        ]
+      }
+    ],
+    "statusHistory": [
+      {
+        "id": 12,
+        "oldStatus": "None",
+        "newStatus": "Pending",
+        "createdAt": "2026-06-16T12:00:00Z"
+      }
+    ]
   }
 ]
 ```
 
-### `GET /api/orders/{orderId}`
-Retrieves detailed snapshot data for a specific order.
+### `GET /api/Order/{id}`
+Retrieves detailed snapshot data for a specific order. (Requires authenticated user).
 
 **Response (200 OK):**
-```json
-{
-  "orderId": 9001,
-  "orderDate": "2026-06-16T12:00:00Z",
-  "totalAmount": 599.97,
-  "status": "Pending",
-  "items": [
-    {
-      "productName": "Ergonomic Office Chair",
-      "quantity": 3,
-      "snapshotBasePrice": 199.99,
-      "snapshotOptions": [
-        { "name": "Standard Mesh", "priceDelta": 0 }
-      ],
-      "finalUnitPrice": 199.99,
-      "totalItemPrice": 599.97
-    }
-  ]
-}
-```
+*(Returns a single Order object matching the structure of `data` in the POST response)*
 
 ---
 
@@ -412,13 +737,6 @@ Administrators monitor the marketplace and handle violations via post-moderation
 
 ### `PATCH /api/admin/products/{id}/hide`
 Hides a product from public view. (Requires **Admin** role).
-
-**Request Body:**
-```json
-{
-  "reason": "Violates terms of service regarding restricted materials."
-}
-```
 
 **Response (200 OK):**
 ```json
@@ -442,17 +760,34 @@ Restores a hidden product to public view. (Requires **Admin** role).
 ### `GET /api/admin/products`
 Retrieves all products on the platform, including hidden ones, for moderation purposes. (Requires **Admin** role).
 
+**Request Parameters:**
+- `search` (string, optional)
+- `categoryId` (int, optional)
+- `subCategoryId` (int, optional)
+- `productTypeId` (int, optional)
+- `vendorId` (string, optional)
+- `isHidden` (bool, optional)
+- `pageNumber` (int, optional, default: 1)
+- `pageSize` (int, optional, default: 10)
+
 **Response (200 OK):**
 ```json
 {
   "totalItems": 1000,
+  "pageNumber": 1,
+  "pageSize": 10,
   "data": [
     {
       "id": 101,
-      "vendorId": 5,
-      "name": "Ergonomic Office Chair",
+      "nameAr": "كرسي مكتب مريح",
+      "nameEn": "Ergonomic Office Chair",
+      "categoryName": "Furniture",
+      "vendorName": "John Doe",
+      "price": 199.99,
       "isHidden": true,
-      "hideReason": "Violates terms of service regarding restricted materials."
+      "isActive": true,
+      "createdAt": "2026-06-16T12:00:00Z",
+      "mainImageUrl": "/images/products/chair.jpg"
     }
   ]
 }
@@ -462,16 +797,18 @@ Retrieves all products on the platform, including hidden ones, for moderation pu
 
 ## 9. FILTERING & SEARCH
 
-The `GET /api/products` endpoint supports extensive filtering via query parameters. 
+The `GET /api/Products` endpoint supports extensive filtering via query parameters. 
 
 **Supported Query Parameters:**
-- `categoryId` (int)
-- `subCategoryId` (int)
-- `productTypeId` (int)
-- `vendorId` (int)
-- `minPrice` (decimal)
-- `maxPrice` (decimal)
-- `search` (string) - Searches product titles and descriptions.
+- `categoryId` (int) - Filter by category
+- `subCategoryId` (int) - Filter by subcategory
+- `productTypeId` (int) - Filter by product type
+- `minPrice` (decimal) - Minimum price
+- `maxPrice` (decimal) - Maximum price
+- `material` (string) - Filters by description contents matching the material name
+- `workshopId` (int) - Filter by workshop
+- `isActive` (bool) - Filter by active status
+- `search` (string) - Searches product titles (`NameAr`, `NameEn`) and descriptions.
 
 **Filtering Strategy:** Provide these parameters in the query string. The backend uses an intersection (`AND` logic) for disparate filter types. 
 

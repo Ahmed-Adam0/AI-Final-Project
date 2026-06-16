@@ -163,7 +163,11 @@ namespace Graduation_infrastructure.AppDbContext
             builder.Entity<ProductMaterialOption>(entity =>
             {
                 entity.ToTable("ProductMaterialOptions");
-                entity.HasKey(e => new { e.ProductId, e.VendorMaterialOptionId });
+                entity.HasKey(e => new { e.ProductId, e.VendorMaterialOptionId, e.PriceOption });
+
+                entity.Property(e => e.PriceOption)
+                      .HasColumnType("decimal(18,2)")
+                      .IsRequired();
 
                 entity.HasOne(e => e.Product)
                       .WithMany(p => p.MaterialOptions)
