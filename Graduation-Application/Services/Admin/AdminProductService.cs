@@ -7,7 +7,6 @@ using Graduation_Application.DTOs.Common;
 using Graduation_Application.IRepositories;
 using Graduation_Application.IServices.Admin;
 using Graduation_domain.Entities;
-using Graduation_Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Graduation_Application.Services.Admin
@@ -19,13 +18,15 @@ namespace Graduation_Application.Services.Admin
         private readonly IGenaricRepositories<Review> _reviewRepository;
         private readonly IGenaricRepositories<Category> _categoryRepository;
         private readonly IGenaricRepositories<ApplicationUser> _userRepository;
+        private readonly IGenaricRepositories<Workshop> _workshopRepository;
 
         public AdminProductService(
             IGenaricRepositories<Product> productRepository,
             IGenaricRepositories<ProductReport> reportRepository,
             IGenaricRepositories<Review> reviewRepository,
             IGenaricRepositories<Category> categoryRepository,
-            IGenaricRepositories<ApplicationUser> userRepository
+            IGenaricRepositories<ApplicationUser> userRepository,
+            IGenaricRepositories<Workshop> workshopRepository
         )
         {
             _productRepository = productRepository;
@@ -33,6 +34,7 @@ namespace Graduation_Application.Services.Admin
             _reviewRepository = reviewRepository;
             _categoryRepository = categoryRepository;
             _userRepository = userRepository;
+            _workshopRepository = workshopRepository;
         }
 
         public async Task<PaginatedResult<AdminProductListDto>> GetProductsAsync(
@@ -44,8 +46,11 @@ namespace Graduation_Application.Services.Admin
 
             IQueryable<Product> query = _productRepository
                 .GetAllAsNoTracking()
-                .Include(p => p.Category)
-                .Include(p => p.User)
+                .Include(p => p.ProductType)
+                    .ThenInclude(pt => pt.SubCategory)
+                        .ThenInclude(sc => sc.Category)
+                .Include(p => p.Workshop)
+                    .ThenInclude(w => w.User)
                 .Include(p => p.Images);
 
             // Filter by search term (name)
@@ -58,22 +63,33 @@ namespace Graduation_Application.Services.Admin
                 );
             }
 
-            // Filter by category
+            // Filter by category (3-tier)
             if (filter.CategoryId.HasValue && filter.CategoryId > 0)
             {
-                query = query.Where(p => p.CategoryId == filter.CategoryId.Value);
+                query = query.Where(p => p.ProductType.SubCategory.CategoryId == filter.CategoryId.Value);
             }
 
-            // Filter by vendor (userId)
+            if (filter.SubCategoryId.HasValue && filter.SubCategoryId > 0)
+            {
+                query = query.Where(p => p.ProductType.SubCategoryId == filter.SubCategoryId.Value);
+            }
+
+            if (filter.ProductTypeId.HasValue && filter.ProductTypeId > 0)
+            {
+                query = query.Where(p => p.ProductTypeId == filter.ProductTypeId.Value);
+            }
+
+            // Filter by vendor (workshopId via product)
             if (!string.IsNullOrWhiteSpace(filter.VendorId))
             {
-                query = query.Where(p => p.UserId == filter.VendorId);
+                if (int.TryParse(filter.VendorId, out int workshopId))
+                    query = query.Where(p => p.WorkshopId == workshopId);
             }
 
-            // Filter by status
-            if (filter.Status.HasValue)
+            // Filter by hidden status
+            if (filter.IsHidden.HasValue)
             {
-                query = query.Where(p => p.Status == filter.Status.Value);
+                query = query.Where(p => p.IsHidden == filter.IsHidden.Value);
             }
 
             int totalCount = await query.CountAsync();
@@ -85,18 +101,24 @@ namespace Graduation_Application.Services.Admin
                 .ToListAsync();
 
             var productDtos = products
-                .Select(p => new AdminProductListDto
+                .Select(p =>
                 {
-                    Id = p.Id,
-                    NameAr = p.NameAr,
-                    NameEn = p.NameEn,
-                    CategoryName = p.Category != null ? p.Category.NameEn : string.Empty,
-                    VendorName = p.User != null ? p.User.FullName : "N/A",
-                    Price = p.Price,
-                    Status = p.Status,
-                    IsActive = p.IsActive,
-                    CreatedAt = p.CreatedAt,
-                    MainImageUrl = GetMainImageUrl(p.Images),
+                    var minPrice = p.BasePrice;
+
+                    return new AdminProductListDto
+                    {
+                        Id = p.Id,
+                        NameAr = p.NameAr,
+                        NameEn = p.NameEn,
+                        CategoryName = p.ProductType != null && p.ProductType.SubCategory != null && p.ProductType.SubCategory.Category != null 
+                            ? p.ProductType.SubCategory.Category.NameEn : string.Empty,
+                        VendorName = p.Workshop?.User?.FullName ?? "N/A",
+                        Price = minPrice,
+                        IsHidden = p.IsHidden,
+                        IsActive = p.IsActive,
+                        CreatedAt = p.CreatedAt,
+                        MainImageUrl = GetMainImageUrl(p.Images),
+                    };
                 })
                 .ToList();
 
@@ -112,9 +134,11 @@ namespace Graduation_Application.Services.Admin
         {
             var product = await _productRepository
                 .GetAllAsNoTracking()
-                .Include(p => p.Category)
-                .Include(p => p.User)
+                .Include(p => p.ProductType)
+                    .ThenInclude(pt => pt.SubCategory)
+                        .ThenInclude(sc => sc.Category)
                 .Include(p => p.Workshop)
+                    .ThenInclude(w => w.User)
                 .Include(p => p.Images)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
@@ -128,6 +152,8 @@ namespace Graduation_Application.Services.Admin
             int reviewsCount = reviews.Count;
             double averageRating = reviewsCount > 0 ? reviews.Average(r => r.Rating) : 0;
 
+            var minPrice = product.BasePrice;
+
             return new AdminProductDetailsDto
             {
                 Id = product.Id,
@@ -135,16 +161,22 @@ namespace Graduation_Application.Services.Admin
                 NameEn = product.NameEn,
                 DescriptionAr = product.DescriptionAr,
                 DescriptionEn = product.DescriptionEn,
-                Price = product.Price,
-                Status = product.Status,
+                Price = minPrice,
+                IsHidden = product.IsHidden,
                 IsActive = product.IsActive,
                 CreatedAt = product.CreatedAt,
-                CategoryId = product.CategoryId,
-                CategoryNameAr = product.Category?.NameAr ?? string.Empty,
-                CategoryNameEn = product.Category?.NameEn ?? string.Empty,
-                VendorId = product.UserId,
-                VendorName = product.User?.FullName ?? "N/A",
-                VendorEmail = product.User?.Email ?? "N/A",
+                ProductTypeId = product.ProductTypeId,
+                ProductTypeNameAr = product.ProductType?.NameAr ?? string.Empty,
+                ProductTypeNameEn = product.ProductType?.NameEn ?? string.Empty,
+                SubCategoryId = product.ProductType != null ? product.ProductType.SubCategoryId : 0,
+                SubCategoryNameAr = product.ProductType?.SubCategory?.NameAr ?? string.Empty,
+                SubCategoryNameEn = product.ProductType?.SubCategory?.NameEn ?? string.Empty,
+                CategoryId = product.ProductType != null && product.ProductType.SubCategory != null ? product.ProductType.SubCategory.CategoryId : 0,
+                CategoryNameAr = product.ProductType?.SubCategory?.Category?.NameAr ?? string.Empty,
+                CategoryNameEn = product.ProductType?.SubCategory?.Category?.NameEn ?? string.Empty,
+                VendorId = product.Workshop?.UserId ?? string.Empty,
+                VendorName = product.Workshop?.User?.FullName ?? "N/A",
+                VendorEmail = product.Workshop?.User?.Email ?? "N/A",
                 WorkshopId = product.WorkshopId,
                 WorkshopNameAr = product.Workshop?.WorkshopNameAr ?? string.Empty,
                 WorkshopNameEn = product.Workshop?.WorkshopNameEn ?? string.Empty,
@@ -163,35 +195,6 @@ namespace Graduation_Application.Services.Admin
             };
         }
 
-        public async Task<bool> ActivateProductAsync(int id)
-        {
-            var product = await _productRepository.GetByIdAsync(id);
-            if (product == null)
-                return false;
-
-            product.Status = ProductStatus.Active;
-            product.IsActive = true;
-            product.UpdatedAt = DateTime.UtcNow;
-
-            _productRepository.Update(product);
-            await _productRepository.SaveChangesAsync();
-            return true;
-        }
-
-        public async Task<bool> DeactivateProductAsync(int id)
-        {
-            var product = await _productRepository.GetByIdAsync(id);
-            if (product == null)
-                return false;
-
-            product.Status = ProductStatus.Inactive;
-            product.IsActive = false;
-            product.UpdatedAt = DateTime.UtcNow;
-
-            _productRepository.Update(product);
-            await _productRepository.SaveChangesAsync();
-            return true;
-        }
 
         public async Task<bool> HideProductAsync(int id)
         {
@@ -199,8 +202,8 @@ namespace Graduation_Application.Services.Admin
             if (product == null)
                 return false;
 
-            product.Status = ProductStatus.Hidden;
-            product.IsActive = false;
+            // Hidden mapping: just use IsHidden = true
+            product.IsHidden = true;
             product.UpdatedAt = DateTime.UtcNow;
 
             _productRepository.Update(product);
@@ -208,14 +211,13 @@ namespace Graduation_Application.Services.Admin
             return true;
         }
 
-        public async Task<bool> RestoreProductAsync(int id)
+        public async Task<bool> UnhideProductAsync(int id)
         {
             var product = await _productRepository.GetByIdAsync(id);
             if (product == null)
                 return false;
 
-            product.Status = ProductStatus.Active;
-            product.IsActive = true;
+            product.IsHidden = false;
             product.UpdatedAt = DateTime.UtcNow;
 
             _productRepository.Update(product);
@@ -281,29 +283,20 @@ namespace Graduation_Application.Services.Admin
 
         public async Task<List<VendorDropdownDto>> GetAllVendorsAsync()
         {
-            // Get distinct vendor user IDs from products
-            var vendorUserIds = await _productRepository
+            // Vendors are now identified by workshops that have at least one listing
+            var vendors = await _workshopRepository
                 .GetAllAsNoTracking()
-                .Where(p => p.UserId != null)
-                .Select(p => p.UserId)
-                .Distinct()
-                .ToListAsync();
-
-            if (!vendorUserIds.Any())
-                return new List<VendorDropdownDto>();
-
-            var vendors = await _userRepository
-                .GetAllAsNoTracking()
-                .Where(u => vendorUserIds.Contains(u.Id))
-                .OrderBy(u => u.FullName)
+                .Include(w => w.User)
+                .Where(w => w.Products != null && w.Products.Any())
+                .OrderBy(w => w.WorkshopNameEn)
                 .ToListAsync();
 
             return vendors
-                .Select(u => new VendorDropdownDto
+                .Select(w => new VendorDropdownDto
                 {
-                    UserId = u.Id,
-                    FullName = u.FullName,
-                    Email = u.Email,
+                    UserId = w.UserId,
+                    FullName = w.User?.FullName ?? w.WorkshopNameEn,
+                    Email = w.User?.Email ?? string.Empty,
                 })
                 .ToList();
         }

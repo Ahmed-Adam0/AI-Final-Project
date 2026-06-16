@@ -14,10 +14,8 @@ namespace Graduation_Application.IServices.Admin
         Task<AdminProductDetailsDto> GetProductDetailsAsync(int id);
 
         // Product moderation actions
-        Task<bool> ActivateProductAsync(int id);
-        Task<bool> DeactivateProductAsync(int id);
         Task<bool> HideProductAsync(int id);
-        Task<bool> RestoreProductAsync(int id);
+        Task<bool> UnhideProductAsync(int id);
 
         // Report management
         Task<List<ReportedProductDto>> GetReportedProductsAsync();

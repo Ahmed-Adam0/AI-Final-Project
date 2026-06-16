@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Graduation_Application.Constants;
 using Graduation_Application.DTOs.Admin.UsersDTO;
-using Graduation_Application.IServices.Admin;
 using Graduation_Application.DTOs.Common;
+using Graduation_Application.IServices.Admin;
 using Graduation_MVC.Areas.Admin.ViewModels.Users;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,7 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Graduation_MVC.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = Roles.SuperAdmin)]
     [Route("Admin/Users/[action]")]
     public class UsersController : Controller
     {
@@ -41,7 +42,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 Status = filter.Status,
                 EmailConfirmed = filter.EmailConfirmed,
                 Page = filter.Page <= 0 ? 1 : filter.Page,
-                PageSize = filter.PageSize <= 0 ? 10 : filter.PageSize
+                PageSize = filter.PageSize <= 0 ? 10 : filter.PageSize,
             };
 
             var result = await _adminUsersService.GetUsersAsync(dtoFilter);
@@ -49,18 +50,21 @@ namespace Graduation_MVC.Areas.Admin.Controllers
             var vm = new AdminUsersPageViewModel
             {
                 Filter = filter,
-                Users = result.Items.Select(u => new AdminUserListItemViewModel {
-                    Id = u.Id,
-                    FullName = u.FullName,
-                    Email = u.Email,
-                    IsActive = u.IsActive,
-                    EmailConfirmed = u.EmailConfirmed,
-                    PhoneNumber = u.PhoneNumber,
-                }).ToList(),
+                Users = result
+                    .Items.Select(u => new AdminUserListItemViewModel
+                    {
+                        Id = u.Id,
+                        FullName = u.FullName,
+                        Email = u.Email,
+                        IsActive = u.IsActive,
+                        EmailConfirmed = u.EmailConfirmed,
+                        PhoneNumber = u.PhoneNumber,
+                    })
+                    .ToList(),
                 TotalCount = result.TotalCount,
                 TotalPages = result.TotalPages,
                 Page = result.PageNumber,
-                PageSize = result.PageSize
+                PageSize = result.PageSize,
             };
 
             return View(vm);
@@ -81,7 +85,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 EmailConfirmed = dto.EmailConfirmed,
                 CreatedAt = dto.CreatedAt,
                 TotalOrders = dto.TotalOrders,
-                TotalSpent = dto.TotalSpent
+                TotalSpent = dto.TotalSpent,
             };
 
             return View(vm);
@@ -148,11 +152,8 @@ namespace Graduation_MVC.Areas.Admin.Controllers
             User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "system";
 
         private string GetCurrentUserName() =>
-            User.FindFirstValue(ClaimTypes.Name)
-            ?? User.Identity?.Name
-            ?? "SuperAdmin";
+            User.FindFirstValue(ClaimTypes.Name) ?? User.Identity?.Name ?? "SuperAdmin";
 
-        private string GetCurrentUserRole() =>
-            User.FindFirstValue(ClaimTypes.Role) ?? "SuperAdmin";
+        private string GetCurrentUserRole() => User.FindFirstValue(ClaimTypes.Role) ?? "SuperAdmin";
     }
 }

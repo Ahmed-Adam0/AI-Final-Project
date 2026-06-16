@@ -8,6 +8,8 @@ namespace Graduation_Application.DTOs.ProductDTO
     {
         public string Search { get; set; }
         public int? CategoryId { get; set; }
+        public int? SubCategoryId { get; set; }
+        public int? ProductTypeId { get; set; }
         public decimal? MinPrice { get; set; }
         public decimal? MaxPrice { get; set; }
         public string Material { get; set; }

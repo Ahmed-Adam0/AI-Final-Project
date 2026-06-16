@@ -95,6 +95,9 @@
                             <!-- Actions -->
                             <td class="text-end align-middle">
                                 <div class="d-flex justify-content-end gap-2">
+                                    <a asp-area="Admin" asp-controller="Categories" asp-action="SubCategories" asp-route-categoryId="@item.Id" class="btn btn-sm btn-premium btn-premium-secondary py-1 px-2" title="View Subcategories">
+                                        <i class="fa-solid fa-list-nested me-1"></i> Subcategories
+                                    </a>
                                     <a asp-area="Admin" asp-controller="Categories" asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-premium btn-premium-secondary py-1 px-2" title="Edit">
                                         <i class="fa-solid fa-pen-to-square"></i>
                                     </a>

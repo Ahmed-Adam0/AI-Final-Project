@@ -33,7 +33,8 @@ namespace Graduation_Application.Services.Admin
                 .GetAllAsNoTracking()
                 .Include(r => r.User)
                 .Include(r => r.Product)
-                .ThenInclude(p => p.User)
+                    .ThenInclude(p => p.Workshop)
+                        .ThenInclude(w => w.User)
                 .Where(r => r.IsActive);
 
             if (!string.IsNullOrWhiteSpace(filter.Search))
@@ -87,7 +88,7 @@ namespace Graduation_Application.Services.Admin
                 Id = r.Id,
                 ProductId = r.ProductId,
                 ProductName = r.Product?.NameEn ?? r.Product?.NameAr ?? $"Product #{r.ProductId}",
-                VendorName = r.Product?.User?.FullName ?? "N/A",
+                VendorName = r.Product?.Workshop?.User?.FullName ?? "N/A",
                 UserName = r.User?.FullName ?? "N/A",
                 Rating = r.Rating,
                 IsReported = r.IsReported,
@@ -104,20 +105,23 @@ namespace Graduation_Application.Services.Admin
                 .GetAllAsNoTracking()
                 .Include(r => r.User)
                 .Include(r => r.Product)
-                .ThenInclude(p => p.User)
+                    .ThenInclude(p => p.Workshop)
+                        .ThenInclude(w => w.User)
                 .FirstOrDefaultAsync(r => r.Id == id);
 
             if (review == null) return null;
 
             var history = await GetModerationHistoryAsync(id);
 
+            var firstVendor = review.Product?.Workshop;
+
             return new AdminReviewDetailsDto
             {
                 Id = review.Id,
                 ProductId = review.ProductId,
                 ProductName = review.Product?.NameEn ?? review.Product?.NameAr ?? $"Product #{review.ProductId}",
-                VendorName = review.Product?.User?.FullName ?? "N/A",
-                VendorEmail = review.Product?.User?.Email ?? "N/A",
+                VendorName = firstVendor?.User?.FullName ?? "N/A",
+                VendorEmail = firstVendor?.User?.Email ?? "N/A",
                 UserName = review.User?.FullName ?? "N/A",
                 UserEmail = review.User?.Email ?? "N/A",
                 Rating = review.Rating,
@@ -140,7 +144,8 @@ namespace Graduation_Application.Services.Admin
                 .Where(r => r.IsReported)
                 .Include(r => r.User)
                 .Include(r => r.Product)
-                .ThenInclude(p => p.User)
+                    .ThenInclude(p => p.Workshop)
+                        .ThenInclude(w => w.User)
                 .OrderByDescending(r => r.UpdatedAt ?? r.CreatedAt)
                 .ToListAsync();
 
@@ -149,7 +154,7 @@ namespace Graduation_Application.Services.Admin
                 ReviewId = r.Id,
                 ProductId = r.ProductId,
                 ProductName = r.Product?.NameEn ?? r.Product?.NameAr ?? $"Product #{r.ProductId}",
-                VendorName = r.Product?.User?.FullName ?? "N/A",
+                VendorName = r.Product?.Workshop?.User?.FullName ?? "N/A",
                 UserName = r.User?.FullName ?? "N/A",
                 ReportReason = r.ReportReason,
                 ReportedAt = r.UpdatedAt ?? r.CreatedAt,

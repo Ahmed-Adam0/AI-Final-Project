@@ -24,6 +24,8 @@ namespace Graduation_MVC
 
             // Register Category and File services
             builder.Services.AddScoped<ICategoryService, CategoryService>();
+            builder.Services.AddScoped<ISubCategoryService, SubCategoryService>();
+            builder.Services.AddScoped<IProductTypeService, ProductTypeService>();
             builder.Services.AddScoped<IFileService, FileService>();
             builder.Services.AddScoped<IFaqService, FaqService>();
             builder.Services.AddScoped<IBannerService, BannerService>();

@@ -24,5 +24,14 @@ namespace Graduation_Application.IServices
         Task<ProductImageDto> ReplaceProductImageAsync(int productId, string userId, int imageId, string newImageUrl);
         Task<bool> SetPrimaryImageAsync(int productId, string userId, int imageId);
         Task<ProductResponseDto> SetProductStatusAsync(int productId, string userId, bool isActive);
+
+        // Attribute Management
+        Task<ProductAttributeDto> AddProductAttributeAsync(int productId, string userId, CreateProductAttributeDto dto);
+        Task<ProductAttributeDto> UpdateProductAttributeAsync(int productId, int attributeId, string userId, UpdateProductAttributeDto dto);
+        Task<bool> DeleteProductAttributeAsync(int productId, int attributeId, string userId);
+
+        Task<AttributeValueDto> AddAttributeValueAsync(int productId, int attributeId, string userId, CreateProductAttributeValueDto dto);
+        Task<AttributeValueDto> UpdateAttributeValueAsync(int productId, int attributeId, int valueId, string userId, UpdateProductAttributeValueDto dto);
+        Task<bool> DeleteAttributeValueAsync(int productId, int attributeId, int valueId, string userId);
     }
 }

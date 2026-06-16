@@ -10,7 +10,7 @@ namespace Graduation_Application.Mapper.ProductMapping
     {
         public static void RegisterMappings()
         {
-            // Product to ProductDto
+            // Product to ProductDto (catalog list view)
             TypeAdapterConfig<Product, ProductDto>
                 .NewConfig()
                 .Map(dest => dest.Id, src => src.Id)
@@ -18,34 +18,28 @@ namespace Graduation_Application.Mapper.ProductMapping
                 .Map(dest => dest.NameEn, src => src.NameEn)
                 .Map(dest => dest.DescriptionAr, src => src.DescriptionAr)
                 .Map(dest => dest.DescriptionEn, src => src.DescriptionEn)
-                .Map(dest => dest.Price, src => src.Price)
-                .Map(dest => dest.CategoryId, src => src.CategoryId)
-                .Map(
-                    dest => dest.CategoryNameAr,
-                    src => src.Category != null ? src.Category.NameAr : string.Empty
-                )
-                .Map(
-                    dest => dest.CategoryNameEn,
-                    src => src.Category != null ? src.Category.NameEn : string.Empty
-                )
+                // Category Hierarchy Mapping
+                .Map(dest => dest.ProductTypeId, src => src.ProductTypeId)
+                .Map(dest => dest.ProductTypeNameAr, src => src.ProductType != null ? src.ProductType.NameAr : string.Empty)
+                .Map(dest => dest.ProductTypeNameEn, src => src.ProductType != null ? src.ProductType.NameEn : string.Empty)
+                .Map(dest => dest.SubCategoryId, src => src.ProductType != null ? src.ProductType.SubCategoryId : 0)
+                .Map(dest => dest.SubCategoryNameAr, src => src.ProductType != null && src.ProductType.SubCategory != null ? src.ProductType.SubCategory.NameAr : string.Empty)
+                .Map(dest => dest.SubCategoryNameEn, src => src.ProductType != null && src.ProductType.SubCategory != null ? src.ProductType.SubCategory.NameEn : string.Empty)
+                .Map(dest => dest.CategoryId, src => src.ProductType != null && src.ProductType.SubCategory != null ? src.ProductType.SubCategory.CategoryId : 0)
+                .Map(dest => dest.CategoryNameAr, src => src.ProductType != null && src.ProductType.SubCategory != null && src.ProductType.SubCategory.Category != null ? src.ProductType.SubCategory.Category.NameAr : string.Empty)
+                .Map(dest => dest.CategoryNameEn, src => src.ProductType != null && src.ProductType.SubCategory != null && src.ProductType.SubCategory.Category != null ? src.ProductType.SubCategory.Category.NameEn : string.Empty)
+                // Workshop mapping
                 .Map(dest => dest.WorkshopId, src => src.WorkshopId)
-                .Map(
-                    dest => dest.WorkshopNameAr,
-                    src => src.Workshop != null ? src.Workshop.WorkshopNameAr : string.Empty
-                )
-                .Map(
-                    dest => dest.WorkshopNameEn,
-                    src => src.Workshop != null ? src.Workshop.WorkshopNameEn : string.Empty
-                )
+                .Map(dest => dest.WorkshopNameAr, src => src.Workshop != null ? src.Workshop.WorkshopNameAr : string.Empty)
+                .Map(dest => dest.WorkshopNameEn, src => src.Workshop != null ? src.Workshop.WorkshopNameEn : string.Empty)
                 .Map(dest => dest.CreatedAt, src => src.CreatedAt)
-                
                 .Map(dest => dest.IsActive, src => src.IsActive)
-                .AfterMapping((src, dest) => 
+                .AfterMapping((src, dest) =>
                 {
                     dest.MainImageUrl = GetMainImageUrl(src.Images);
                 });
 
-            // Product to ProductDetailsDto
+            // Product to ProductDetailsDto (full detail view with vendor listings)
             TypeAdapterConfig<Product, ProductDetailsDto>
                 .NewConfig()
                 .Map(dest => dest.Id, src => src.Id)
@@ -53,28 +47,24 @@ namespace Graduation_Application.Mapper.ProductMapping
                 .Map(dest => dest.NameEn, src => src.NameEn)
                 .Map(dest => dest.DescriptionAr, src => src.DescriptionAr)
                 .Map(dest => dest.DescriptionEn, src => src.DescriptionEn)
-                .Map(dest => dest.Price, src => src.Price)
-                .Map(dest => dest.CategoryId, src => src.CategoryId)
-                .Map(
-                    dest => dest.CategoryNameAr,
-                    src => src.Category != null ? src.Category.NameAr : string.Empty
-                )
-                .Map(
-                    dest => dest.CategoryNameEn,
-                    src => src.Category != null ? src.Category.NameEn : string.Empty
-                )
-                .Map(dest => dest.WorkshopId, src => src.WorkshopId)
-                .Map(dest => dest.WorkshopNameAr, src => src.Workshop != null ? src.Workshop.WorkshopNameAr : string.Empty)
-                .Map(dest => dest.WorkshopNameEn, src => src.Workshop != null ? src.Workshop.WorkshopNameEn : string.Empty)
-                .Map(dest => dest.WorkshopDescriptionAr, src => src.Workshop != null ? src.Workshop.DescriptionAr : string.Empty)
-                .Map(dest => dest.WorkshopDescriptionEn, src => src.Workshop != null ? src.Workshop.DescriptionEn : string.Empty)
-                .Map(dest => dest.WorkshopAddress, src => src.Workshop != null && src.Workshop.WorkshopAddress != null ? (src.Workshop.WorkshopAddress.Street ?? string.Empty) : string.Empty)
-                .Map(dest => dest.WorkshopLogoUrl, src => src.Workshop != null ? src.Workshop.LogoUrl ?? string.Empty : string.Empty)
-                .Map(dest => dest.WorkshopRating, src => src.Workshop != null ? src.Workshop.Rating : null)
-                .Map(dest => dest.WorkshopIsVerified, src => src.Workshop != null && src.Workshop.IsVerified)
+                // Category Hierarchy Mapping
+                .Map(dest => dest.ProductTypeId, src => src.ProductTypeId)
+                .Map(dest => dest.ProductTypeNameAr, src => src.ProductType != null ? src.ProductType.NameAr : string.Empty)
+                .Map(dest => dest.ProductTypeNameEn, src => src.ProductType != null ? src.ProductType.NameEn : string.Empty)
+                .Map(dest => dest.SubCategoryId, src => src.ProductType != null ? src.ProductType.SubCategoryId : 0)
+                .Map(dest => dest.SubCategoryNameAr, src => src.ProductType != null && src.ProductType.SubCategory != null ? src.ProductType.SubCategory.NameAr : string.Empty)
+                .Map(dest => dest.SubCategoryNameEn, src => src.ProductType != null && src.ProductType.SubCategory != null ? src.ProductType.SubCategory.NameEn : string.Empty)
+                .Map(dest => dest.CategoryId, src => src.ProductType != null && src.ProductType.SubCategory != null ? src.ProductType.SubCategory.CategoryId : 0)
+                .Map(dest => dest.CategoryNameAr, src => src.ProductType != null && src.ProductType.SubCategory != null && src.ProductType.SubCategory.Category != null ? src.ProductType.SubCategory.Category.NameAr : string.Empty)
+                .Map(dest => dest.CategoryNameEn, src => src.ProductType != null && src.ProductType.SubCategory != null && src.ProductType.SubCategory.Category != null ? src.ProductType.SubCategory.Category.NameEn : string.Empty)
                 .Map(dest => dest.CreatedAt, src => src.CreatedAt)
                 .Map(dest => dest.IsActive, src => src.IsActive)
-                .Map(dest => dest.Images, src => src.Images != null ? src.Images.Adapt<List<ProductImageDto>>() : new List<ProductImageDto>());
+                .Map(dest => dest.Images,
+                    src => src.Images != null
+                        ? src.Images.Adapt<List<ProductImageDto>>()
+                        : new List<ProductImageDto>())
+                // Attributes are mapped manually in the service layer
+                .Ignore(dest => dest.Attributes);
 
             // ProductImage to ProductImageDto
             TypeAdapterConfig<ProductImage, ProductImageDto>
@@ -87,16 +77,23 @@ namespace Graduation_Application.Mapper.ProductMapping
             TypeAdapterConfig<Product, ProductResponseDto>
                 .NewConfig()
                 .Map(dest => dest.Id, src => src.Id)
-                .Map(dest => dest.WorkshopId, src => src.WorkshopId)
-                .Map(dest => dest.CategoryId, src => src.CategoryId)
+                // Category Hierarchy Mapping
+                .Map(dest => dest.ProductTypeId, src => src.ProductTypeId)
+                .Map(dest => dest.ProductTypeNameAr, src => src.ProductType != null ? src.ProductType.NameAr : string.Empty)
+                .Map(dest => dest.ProductTypeNameEn, src => src.ProductType != null ? src.ProductType.NameEn : string.Empty)
+                .Map(dest => dest.SubCategoryId, src => src.ProductType != null ? src.ProductType.SubCategoryId : 0)
+                .Map(dest => dest.SubCategoryNameAr, src => src.ProductType != null && src.ProductType.SubCategory != null ? src.ProductType.SubCategory.NameAr : string.Empty)
+                .Map(dest => dest.SubCategoryNameEn, src => src.ProductType != null && src.ProductType.SubCategory != null ? src.ProductType.SubCategory.NameEn : string.Empty)
+                .Map(dest => dest.CategoryId, src => src.ProductType != null && src.ProductType.SubCategory != null ? src.ProductType.SubCategory.CategoryId : 0)
+                .Map(dest => dest.CategoryNameAr, src => src.ProductType != null && src.ProductType.SubCategory != null && src.ProductType.SubCategory.Category != null ? src.ProductType.SubCategory.Category.NameAr : string.Empty)
+                .Map(dest => dest.CategoryNameEn, src => src.ProductType != null && src.ProductType.SubCategory != null && src.ProductType.SubCategory.Category != null ? src.ProductType.SubCategory.Category.NameEn : string.Empty)
                 .Map(dest => dest.NameAr, src => src.NameAr)
                 .Map(dest => dest.NameEn, src => src.NameEn)
                 .Map(dest => dest.DescriptionAr, src => src.DescriptionAr)
                 .Map(dest => dest.DescriptionEn, src => src.DescriptionEn)
-                .Map(dest => dest.Price, src => src.Price)
                 .Map(dest => dest.IsActive, src => src.IsActive);
 
-            // CreateProductDto to Product (for creation)
+            // CreateProductDto to Product (for creation — no price or vendor here)
             TypeAdapterConfig<CreateProductDto, Product>
                 .NewConfig()
                 .Ignore(dest => dest.Id)
@@ -104,8 +101,8 @@ namespace Graduation_Application.Mapper.ProductMapping
                 .Ignore(dest => dest.CreatedAt)
                 .Ignore(dest => dest.UpdatedAt)
                 .Ignore(dest => dest.Images)
-                .Ignore(dest => dest.Category)
-                .Ignore(dest => dest.Workshop);
+                .Ignore(dest => dest.ProductType)
+                .Ignore(dest => dest.Attributes);
         }
 
         private static string GetMainImageUrl(List<ProductImage> images)

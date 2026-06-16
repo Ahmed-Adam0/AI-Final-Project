@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Graduation_Application.DTOs.CartDTO;
+using Graduation_Application.DTOs.ProductDTO;
 using Graduation_Application.IRepositories;
 using Graduation_Application.IServices;
 using Graduation_domain.Entities;
@@ -16,16 +17,19 @@ namespace Graduation_Application.Services
         private readonly IGenaricRepositories<Cart> _cartRepository;
         private readonly IGenaricRepositories<CartItem> _cartItemRepository;
         private readonly IGenaricRepositories<Product> _productRepository;
+        private readonly IGenaricRepositories<VendorMaterialOption> _vendorMaterialOptionRepository;
 
         public CartService(
             IGenaricRepositories<Cart> cartRepository,
             IGenaricRepositories<CartItem> cartItemRepository,
-            IGenaricRepositories<Product> productRepository
+            IGenaricRepositories<Product> productRepository,
+            IGenaricRepositories<VendorMaterialOption> vendorMaterialOptionRepository
         )
         {
             _cartRepository = cartRepository;
             _cartItemRepository = cartItemRepository;
             _productRepository = productRepository;
+            _vendorMaterialOptionRepository = vendorMaterialOptionRepository;
         }
 
         public async Task<CartResponseDto> GetCartAsync(string userId)
@@ -35,6 +39,9 @@ namespace Graduation_Application.Services
                 .Include(c => c.Items)
                     .ThenInclude(ci => ci.Product)
                         .ThenInclude(p => p.Images)
+                .Include(c => c.Items)
+                    .ThenInclude(ci => ci.Product)
+                        .ThenInclude(p => p.Workshop)
                 .FirstOrDefaultAsync();
 
             if (cart == null)
@@ -48,26 +55,35 @@ namespace Graduation_Application.Services
             {
                 Id = cart.Id,
                 UserId = cart.UserId,
-                Items = cart
-                    .Items.Select(ci => new CartItemResponseDto
-                    {
-                        Id = ci.Id,
-                        ProductId = ci.ProductId,
-                        ProductName = ci.Product.NameEn,
-                        Quantity = ci.Quantity,
-                        Price = ci.Price,
-                        TotalPrice = ci.Price * ci.Quantity,
-                        Images =
-                            ci.Product.Images != null
-                                ? ci
-                                    .Product.Images.Select(i =>
-                                        NormalizeProductImageUrl(i.ImageUrl)
-                                    )
-                                    .ToList()
-                                : new List<string>(),
-                    })
-                    .ToList(),
+                Items = new List<CartItemResponseDto>()
             };
+
+            foreach (var ci in cart.Items)
+            {
+                var optionIds = System.Text.Json.JsonSerializer.Deserialize<List<int>>(ci.SelectedOptionsJson ?? "[]");
+                decimal delta = 0;
+                if (optionIds != null && optionIds.Any())
+                {
+                    delta = await _vendorMaterialOptionRepository.Where(o => optionIds.Contains(o.Id)).SumAsync(o => o.PriceDelta);
+                }
+
+                cartDto.Items.Add(new CartItemResponseDto
+                {
+                    Id = ci.Id,
+                    ProductId = ci.ProductId,
+                    ProductNameEn = ci.Product?.NameEn ?? string.Empty,
+                    ProductNameAr = ci.Product?.NameAr ?? string.Empty,
+                    VendorNameEn = ci.Product?.Workshop?.WorkshopNameEn ?? string.Empty,
+                    VendorNameAr = ci.Product?.Workshop?.WorkshopNameAr ?? string.Empty,
+                    Quantity = ci.Quantity,
+                    CachedPrice = ci.CachedPrice,
+                    LivePrice = (ci.Product?.BasePrice ?? 0m) + delta,
+                    SelectedAttributes = new List<SelectedAttributeDto>(),
+                    ProductImages = ci.Product?.Images != null
+                        ? ci.Product.Images.Select(i => NormalizeProductImageUrl(i.ImageUrl)).ToList()
+                        : new List<string>()
+                });
+            }
 
             cartDto.TotalPrice = cartDto.Items.Sum(item => item.TotalPrice);
             return cartDto;
@@ -78,7 +94,9 @@ namespace Graduation_Application.Services
             var product = await _productRepository
                 .Where(p => p.Id == dto.ProductId)
                 .Include(p => p.Images)
+                .Include(p => p.Workshop)
                 .FirstOrDefaultAsync();
+
             if (product == null)
             {
                 throw new Exception("Product not found");
@@ -96,7 +114,15 @@ namespace Graduation_Application.Services
                 await _cartRepository.SaveChangesAsync();
             }
 
-            var existingItem = cart.Items.FirstOrDefault(ci => ci.ProductId == dto.ProductId);
+            decimal totalDelta = 0;
+            if (dto.SelectedOptionIds != null && dto.SelectedOptionIds.Any())
+            {
+                totalDelta = await _vendorMaterialOptionRepository
+                    .Where(o => dto.SelectedOptionIds.Contains(o.Id))
+                    .SumAsync(o => o.PriceDelta);
+            }
+
+            var existingItem = cart.Items.FirstOrDefault(ci => ci.ProductId == dto.ProductId && ci.SelectedOptionsJson == System.Text.Json.JsonSerializer.Serialize(dto.SelectedOptionIds));
             if (existingItem != null)
             {
                 existingItem.Quantity += dto.Quantity;
@@ -109,33 +135,33 @@ namespace Graduation_Application.Services
                     CartId = cart.Id,
                     ProductId = dto.ProductId,
                     Quantity = dto.Quantity,
-                    Price = product.Price,
+                    CachedPrice = product.BasePrice + totalDelta,
+                    SelectedOptionsJson = System.Text.Json.JsonSerializer.Serialize(dto.SelectedOptionIds ?? new List<int>())
                 };
                 await _cartItemRepository.AddAsync(cartItem);
             }
 
             await _cartItemRepository.SaveChangesAsync();
 
-            var addedItem =
-                existingItem
-                ?? (
-                    await _cartItemRepository
-                        .Where(ci => ci.CartId == cart.Id && ci.ProductId == dto.ProductId)
-                        .FirstOrDefaultAsync()
-                );
+            var addedItem = existingItem ?? await _cartItemRepository
+                .Where(ci => ci.CartId == cart.Id && ci.ProductId == dto.ProductId)
+                .FirstOrDefaultAsync();
 
             var cartItemResponseDto = new CartItemResponseDto
             {
                 Id = addedItem.Id,
-                ProductId = dto.ProductId,
-                ProductName = product.NameEn,
+                ProductId = addedItem.ProductId,
+                ProductNameEn = product.NameEn,
+                ProductNameAr = product.NameAr,
+                VendorNameEn = product.Workshop?.WorkshopNameEn ?? string.Empty,
+                VendorNameAr = product.Workshop?.WorkshopNameAr ?? string.Empty,
                 Quantity = addedItem.Quantity,
-                Price = product.Price,
-                TotalPrice = product.Price * addedItem.Quantity,
-                Images =
-                    product.Images != null
-                        ? product.Images.Select(i => NormalizeProductImageUrl(i.ImageUrl)).ToList()
-                        : new List<string>(),
+                CachedPrice = addedItem.CachedPrice,
+                LivePrice = product.BasePrice + totalDelta,
+                SelectedAttributes = new List<SelectedAttributeDto>(),
+                ProductImages = product.Images != null
+                    ? product.Images.Select(i => NormalizeProductImageUrl(i.ImageUrl)).ToList()
+                    : new List<string>()
             };
 
             return cartItemResponseDto;
@@ -209,16 +235,8 @@ namespace Graduation_Application.Services
 
         private static string NormalizeProductImageUrl(string imageUrl)
         {
-            if (string.IsNullOrWhiteSpace(imageUrl))
-            {
-                return imageUrl;
-            }
-
-            if (imageUrl.StartsWith("/images/products/", StringComparison.OrdinalIgnoreCase))
-            {
-                return $"{ProductImagesBaseUrl}{imageUrl}";
-            }
-
+            if (string.IsNullOrWhiteSpace(imageUrl)) return imageUrl;
+            if (imageUrl.StartsWith("/images/products/", StringComparison.OrdinalIgnoreCase)) return $"{ProductImagesBaseUrl}{imageUrl}";
             return imageUrl;
         }
     }

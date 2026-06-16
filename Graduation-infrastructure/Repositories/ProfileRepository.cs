@@ -1,4 +1,4 @@
-﻿using Graduation_Application.IRepositories;
+using Graduation_Application.IRepositories;
 using Graduation_domain.Entities;
 using Graduation_infrastructure.AppDbContext;
 using Microsoft.EntityFrameworkCore;
@@ -42,6 +42,12 @@ namespace Graduation_infrastructure.Repositories
         {
             return await _dbContext.Users
                 .AnyAsync(u => u.UserName == userName && u.Id != excludeUserId);
+        }
+
+        public async Task<bool> EmailExistsAsync(string email, string excludeUserId)
+        {
+            return await _dbContext.Users
+                .AnyAsync(u => u.Email == email && u.Id != excludeUserId);
         }
     }
 }

@@ -30,6 +30,29 @@ namespace Graduation_Application.Mapper.CategoryMapping
                 .Ignore(dest => dest.IsActive)
                 .Ignore(dest => dest.CreatedAt)
                 .Ignore(dest => dest.UpdatedAt);
+
+            // SubCategory mappings
+            TypeAdapterConfig<SubCategory, SubCategoryDto>
+                .NewConfig()
+                .Map(dest => dest.Id, src => src.Id)
+                .Map(dest => dest.NameAr, src => src.NameAr)
+                .Map(dest => dest.NameEn, src => src.NameEn)
+                .Map(dest => dest.CategoryId, src => src.CategoryId)
+                .Map(dest => dest.CategoryNameAr, src => src.Category != null ? src.Category.NameAr : string.Empty)
+                .Map(dest => dest.CategoryNameEn, src => src.Category != null ? src.Category.NameEn : string.Empty);
+
+            // ProductType mappings
+            TypeAdapterConfig<ProductType, ProductTypeDto>
+                .NewConfig()
+                .Map(dest => dest.Id, src => src.Id)
+                .Map(dest => dest.NameAr, src => src.NameAr)
+                .Map(dest => dest.NameEn, src => src.NameEn)
+                .Map(dest => dest.SubCategoryId, src => src.SubCategoryId)
+                .Map(dest => dest.SubCategoryNameAr, src => src.SubCategory != null ? src.SubCategory.NameAr : string.Empty)
+                .Map(dest => dest.SubCategoryNameEn, src => src.SubCategory != null ? src.SubCategory.NameEn : string.Empty)
+                .Map(dest => dest.CategoryId, src => src.SubCategory != null ? src.SubCategory.CategoryId : 0)
+                .Map(dest => dest.CategoryNameAr, src => src.SubCategory != null && src.SubCategory.Category != null ? src.SubCategory.Category.NameAr : string.Empty)
+                .Map(dest => dest.CategoryNameEn, src => src.SubCategory != null && src.SubCategory.Category != null ? src.SubCategory.Category.NameEn : string.Empty);
         }
     }
 }

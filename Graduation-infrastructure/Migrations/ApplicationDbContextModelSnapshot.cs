@@ -343,6 +343,9 @@ namespace Graduation_infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<decimal>("CachedPrice")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("CartId")
                         .HasColumnType("int");
 
@@ -355,14 +358,15 @@ namespace Graduation_infrastructure.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
+
+                    b.Property<string>("SelectedOptionsJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -763,14 +767,33 @@ namespace Graduation_infrastructure.Migrations
                     b.Property<int>("OrderId")
                         .HasColumnType("int");
 
-                    b.Property<int>("ProductId")
+                    b.Property<int?>("ProductId")
                         .HasColumnType("int");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("UnitPrice")
+                    b.Property<string>("SnapshotAttributesJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SnapshotProductNameAr")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("SnapshotProductNameEn")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<decimal>("SnapshotUnitPrice")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("SnapshotVendorName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -945,8 +968,8 @@ namespace Graduation_infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("int");
+                    b.Property<decimal>("BasePrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -965,6 +988,9 @@ namespace Graduation_infrastructure.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsHidden")
+                        .HasColumnType("bit");
+
                     b.Property<string>("NameAr")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -973,10 +999,7 @@ namespace Graduation_infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("Status")
+                    b.Property<int>("ProductTypeId")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
@@ -985,21 +1008,105 @@ namespace Graduation_infrastructure.Migrations
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<int>("WorkshopId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CategoryId");
-
-                    b.HasIndex("UserId");
+                    b.HasIndex("ProductTypeId");
 
                     b.HasIndex("WorkshopId");
 
                     b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("Graduation_domain.Entities.ProductAttribute", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("ProductAttributes", (string)null);
+                });
+
+            modelBuilder.Entity("Graduation_domain.Entities.ProductAttributeValue", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AttributeId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("PriceDelta")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ValueAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("ValueEn")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttributeId");
+
+                    b.ToTable("ProductAttributeValues", (string)null);
                 });
 
             modelBuilder.Entity("Graduation_domain.Entities.ProductImage", b =>
@@ -1040,6 +1147,21 @@ namespace Graduation_infrastructure.Migrations
                     b.HasIndex("ProductId");
 
                     b.ToTable("ProductImages");
+                });
+
+            modelBuilder.Entity("Graduation_domain.Entities.ProductMaterialOption", b =>
+                {
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VendorMaterialOptionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ProductId", "VendorMaterialOptionId");
+
+                    b.HasIndex("VendorMaterialOptionId");
+
+                    b.ToTable("ProductMaterialOptions", (string)null);
                 });
 
             modelBuilder.Entity("Graduation_domain.Entities.ProductReport", b =>
@@ -1086,6 +1208,49 @@ namespace Graduation_infrastructure.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("ProductReports");
+                });
+
+            modelBuilder.Entity("Graduation_domain.Entities.ProductType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("SubCategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubCategoryId");
+
+                    b.ToTable("ProductTypes", (string)null);
                 });
 
             modelBuilder.Entity("Graduation_domain.Entities.Review", b =>
@@ -1194,6 +1359,49 @@ namespace Graduation_infrastructure.Migrations
                     b.ToTable("ReviewModerationLogs");
                 });
 
+            modelBuilder.Entity("Graduation_domain.Entities.SubCategory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.ToTable("SubCategories", (string)null);
+                });
+
             modelBuilder.Entity("Graduation_domain.Entities.VendorAccountStatusHistory", b =>
                 {
                     b.Property<int>("Id")
@@ -1244,6 +1452,95 @@ namespace Graduation_infrastructure.Migrations
                     b.HasIndex("WorkshopId");
 
                     b.ToTable("VendorAccountStatusHistory");
+                });
+
+            modelBuilder.Entity("Graduation_domain.Entities.VendorMaterialGroup", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("WorkshopId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WorkshopId");
+
+                    b.ToTable("VendorMaterialGroups", (string)null);
+                });
+
+            modelBuilder.Entity("Graduation_domain.Entities.VendorMaterialOption", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("PriceDelta")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ValueAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("ValueEn")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("VendorMaterialGroupId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VendorMaterialGroupId");
+
+                    b.ToTable("VendorMaterialOptions", (string)null);
                 });
 
             modelBuilder.Entity("Graduation_domain.Entities.VendorVerificationHistory", b =>
@@ -1605,7 +1902,7 @@ namespace Graduation_infrastructure.Migrations
                     b.HasOne("Graduation_domain.Entities.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Cart");
@@ -1692,8 +1989,7 @@ namespace Graduation_infrastructure.Migrations
                     b.HasOne("Graduation_domain.Entities.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Order");
 
@@ -1713,16 +2009,11 @@ namespace Graduation_infrastructure.Migrations
 
             modelBuilder.Entity("Graduation_domain.Entities.Product", b =>
                 {
-                    b.HasOne("Graduation_domain.Entities.Category", "Category")
-                        .WithMany()
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                    b.HasOne("Graduation_domain.Entities.ProductType", "ProductType")
+                        .WithMany("Products")
+                        .HasForeignKey("ProductTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("Graduation_domain.Entities.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Graduation_domain.Entities.Workshop", "Workshop")
                         .WithMany("Products")
@@ -1730,11 +2021,31 @@ namespace Graduation_infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Category");
-
-                    b.Navigation("User");
+                    b.Navigation("ProductType");
 
                     b.Navigation("Workshop");
+                });
+
+            modelBuilder.Entity("Graduation_domain.Entities.ProductAttribute", b =>
+                {
+                    b.HasOne("Graduation_domain.Entities.Product", "Product")
+                        .WithMany("Attributes")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("Graduation_domain.Entities.ProductAttributeValue", b =>
+                {
+                    b.HasOne("Graduation_domain.Entities.ProductAttribute", "Attribute")
+                        .WithMany("Values")
+                        .HasForeignKey("AttributeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Attribute");
                 });
 
             modelBuilder.Entity("Graduation_domain.Entities.ProductImage", b =>
@@ -1746,6 +2057,25 @@ namespace Graduation_infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("Graduation_domain.Entities.ProductMaterialOption", b =>
+                {
+                    b.HasOne("Graduation_domain.Entities.Product", "Product")
+                        .WithMany("MaterialOptions")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Graduation_domain.Entities.VendorMaterialOption", "VendorMaterialOption")
+                        .WithMany("ProductMaterialOptions")
+                        .HasForeignKey("VendorMaterialOptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("VendorMaterialOption");
                 });
 
             modelBuilder.Entity("Graduation_domain.Entities.ProductReport", b =>
@@ -1765,6 +2095,17 @@ namespace Graduation_infrastructure.Migrations
                     b.Navigation("Product");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Graduation_domain.Entities.ProductType", b =>
+                {
+                    b.HasOne("Graduation_domain.Entities.SubCategory", "SubCategory")
+                        .WithMany("ProductTypes")
+                        .HasForeignKey("SubCategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SubCategory");
                 });
 
             modelBuilder.Entity("Graduation_domain.Entities.Review", b =>
@@ -1804,6 +2145,17 @@ namespace Graduation_infrastructure.Migrations
                     b.Navigation("Review");
                 });
 
+            modelBuilder.Entity("Graduation_domain.Entities.SubCategory", b =>
+                {
+                    b.HasOne("Graduation_domain.Entities.Category", "Category")
+                        .WithMany("SubCategories")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+                });
+
             modelBuilder.Entity("Graduation_domain.Entities.VendorAccountStatusHistory", b =>
                 {
                     b.HasOne("Graduation_domain.Entities.ApplicationUser", "PerformedByAdmin")
@@ -1820,6 +2172,28 @@ namespace Graduation_infrastructure.Migrations
                     b.Navigation("PerformedByAdmin");
 
                     b.Navigation("Workshop");
+                });
+
+            modelBuilder.Entity("Graduation_domain.Entities.VendorMaterialGroup", b =>
+                {
+                    b.HasOne("Graduation_domain.Entities.Workshop", "Workshop")
+                        .WithMany("MaterialGroups")
+                        .HasForeignKey("WorkshopId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Workshop");
+                });
+
+            modelBuilder.Entity("Graduation_domain.Entities.VendorMaterialOption", b =>
+                {
+                    b.HasOne("Graduation_domain.Entities.VendorMaterialGroup", "Group")
+                        .WithMany("Options")
+                        .HasForeignKey("VendorMaterialGroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Group");
                 });
 
             modelBuilder.Entity("Graduation_domain.Entities.VendorVerificationHistory", b =>
@@ -1949,6 +2323,11 @@ namespace Graduation_infrastructure.Migrations
                     b.Navigation("Items");
                 });
 
+            modelBuilder.Entity("Graduation_domain.Entities.Category", b =>
+                {
+                    b.Navigation("SubCategories");
+                });
+
             modelBuilder.Entity("Graduation_domain.Entities.Order", b =>
                 {
                     b.Navigation("FinalResultImages");
@@ -1960,12 +2339,43 @@ namespace Graduation_infrastructure.Migrations
 
             modelBuilder.Entity("Graduation_domain.Entities.Product", b =>
                 {
+                    b.Navigation("Attributes");
+
                     b.Navigation("Images");
+
+                    b.Navigation("MaterialOptions");
+                });
+
+            modelBuilder.Entity("Graduation_domain.Entities.ProductAttribute", b =>
+                {
+                    b.Navigation("Values");
+                });
+
+            modelBuilder.Entity("Graduation_domain.Entities.ProductType", b =>
+                {
+                    b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("Graduation_domain.Entities.SubCategory", b =>
+                {
+                    b.Navigation("ProductTypes");
+                });
+
+            modelBuilder.Entity("Graduation_domain.Entities.VendorMaterialGroup", b =>
+                {
+                    b.Navigation("Options");
+                });
+
+            modelBuilder.Entity("Graduation_domain.Entities.VendorMaterialOption", b =>
+                {
+                    b.Navigation("ProductMaterialOptions");
                 });
 
             modelBuilder.Entity("Graduation_domain.Entities.Workshop", b =>
                 {
                     b.Navigation("AccountStatusHistory");
+
+                    b.Navigation("MaterialGroups");
 
                     b.Navigation("Products");
 

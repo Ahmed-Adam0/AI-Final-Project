@@ -35,10 +35,12 @@ namespace Graduation_Application.Services
             int pageNumber = filter.PageNumber <= 0 ? 1 : filter.PageNumber;
             int pageSize = filter.PageSize <= 0 ? 10 : filter.PageSize;
 
-            // Start query: get products owned by this vendor
+            // Start query: get products owned by this vendor via their VendorProductListings
             IQueryable<Product> query = _productRepository.GetAllAsNoTracking()
-                .Where(p => p.UserId == userId)
-                .Include(p => p.Category)
+                .Where(p => p.Workshop != null && p.Workshop.UserId == userId)
+                .Include(p => p.ProductType)
+                    .ThenInclude(pt => pt.SubCategory)
+                        .ThenInclude(sc => sc.Category)
                 .Include(p => p.Workshop)
                 .Include(p => p.Images);
 
@@ -58,21 +60,31 @@ namespace Graduation_Application.Services
                 );
             }
 
-            // Apply category filter
+            // Apply category filters (3-tier)
             if (filter.CategoryId.HasValue && filter.CategoryId > 0)
             {
-                query = query.Where(p => p.CategoryId == filter.CategoryId.Value);
+                query = query.Where(p => p.ProductType.SubCategory.CategoryId == filter.CategoryId.Value);
             }
 
-            // Apply price range filter
+            if (filter.SubCategoryId.HasValue && filter.SubCategoryId > 0)
+            {
+                query = query.Where(p => p.ProductType.SubCategoryId == filter.SubCategoryId.Value);
+            }
+
+            if (filter.ProductTypeId.HasValue && filter.ProductTypeId > 0)
+            {
+                query = query.Where(p => p.ProductTypeId == filter.ProductTypeId.Value);
+            }
+
+            // Apply price range filter (against minimum variant price across listings)
             if (filter.MinPrice.HasValue && filter.MinPrice > 0)
             {
-                query = query.Where(p => p.Price >= filter.MinPrice.Value);
+                query = query.Where(p => p.BasePrice >= filter.MinPrice.Value);
             }
 
             if (filter.MaxPrice.HasValue && filter.MaxPrice > 0)
             {
-                query = query.Where(p => p.Price <= filter.MaxPrice.Value);
+                query = query.Where(p => p.BasePrice <= filter.MaxPrice.Value);
             }
 
             // Get total count
@@ -104,9 +116,15 @@ namespace Graduation_Application.Services
         public async Task<ProductDetailsDto> GetVendorProductDetailsAsync(string userId, int productId)
         {
             var product = await _productRepository.GetAllAsNoTracking()
-                .Where(p => p.Id == productId && p.UserId == userId && p.IsActive)
-                .Include(p => p.Category)
+                .Where(p => p.Id == productId
+                    && p.Workshop != null && p.Workshop.UserId == userId
+                    && p.IsActive)
+                .Include(p => p.ProductType)
+                    .ThenInclude(pt => pt.SubCategory)
+                        .ThenInclude(sc => sc.Category)
                 .Include(p => p.Workshop)
+                .Include(p => p.Attributes)
+                    .ThenInclude(a => a.Values)
                 .Include(p => p.Images)
                 .FirstOrDefaultAsync();
 
@@ -125,9 +143,17 @@ namespace Graduation_Application.Services
             if (product == null)
                 throw new ArgumentException($"Product with ID {productId} not found.");
 
-            // Verify ownership
-            if (product.UserId != userId)
-                throw new UnauthorizedAccessException("You do not have permission to modify this product.");
+            // Verify ownership via listings
+            var isOwner = product.Workshop?.UserId == userId;
+            if (!isOwner)
+            {
+                // Fallback: load workshop if not already included
+                var hasListing = await _productRepository.GetAllAsNoTracking()
+                    .Where(p => p.Id == productId && p.Workshop != null && p.Workshop.UserId == userId)
+                    .AnyAsync();
+                if (!hasListing)
+                    throw new UnauthorizedAccessException("You do not have permission to modify this product.");
+            }
 
             product.IsActive = isActive;
             product.UpdatedAt = DateTime.UtcNow;
@@ -147,8 +173,11 @@ namespace Graduation_Application.Services
             if (product == null)
                 return false;
 
-            // Verify ownership
-            if (product.UserId != userId)
+            // Verify ownership via listings
+            var hasListing = await _productRepository.GetAllAsNoTracking()
+                .Where(p => p.Id == productId && p.Workshop != null && p.Workshop.UserId == userId)
+                .AnyAsync();
+            if (!hasListing)
                 throw new UnauthorizedAccessException("You do not have permission to delete this product.");
 
             _productRepository.Delete(product);
@@ -163,11 +192,11 @@ namespace Graduation_Application.Services
         public async Task<VendorProductStatsDto> GetVendorProductStatsAsync(string userId)
         {
             var products = await _productRepository.GetAllAsNoTracking()
-                .Where(p => p.UserId == userId)
+                .Where(p => p.Workshop != null && p.Workshop.UserId == userId)
                 .ToListAsync();
 
             var reviews = await _reviewRepository.GetAllAsNoTracking()
-                .Where(r => r.Product.UserId == userId)
+                .Where(r => r.Product.Workshop != null && r.Product.Workshop.UserId == userId)
                 .ToListAsync();
 
             var totalProducts = products.Count;
@@ -178,7 +207,9 @@ namespace Graduation_Application.Services
                 ? Math.Round((decimal)reviews.Average(r => r.Rating), 2)
                 : 0;
 
-            var totalRevenue = products.Sum(p => p.Price);
+            // Revenue is now calculated from OrderItems with snapshots, not from Product.Price
+            // Returning 0 here as a placeholder — connect to OrderItem.SnapshotUnitPrice for accuracy
+            var totalRevenue = 0m;
 
             return new VendorProductStatsDto
             {
@@ -191,21 +222,20 @@ namespace Graduation_Application.Services
             };
         }
 
-        /// <summary>
-        /// Get top-rated products for vendor
-        /// </summary>
         public async Task<IEnumerable<ProductDto>> GetVendorTopProductsAsync(string userId, int topCount = 5)
         {
             var products = await _productRepository.GetAllAsNoTracking()
-                .Where(p => p.UserId == userId && p.IsActive)
-                .Include(p => p.Category)
+                .Where(p => p.Workshop != null && p.Workshop.UserId == userId && p.IsActive)
+                .Include(p => p.ProductType)
+                    .ThenInclude(pt => pt.SubCategory)
+                        .ThenInclude(sc => sc.Category)
                 .Include(p => p.Workshop)
                 .Include(p => p.Images)
                 .ToListAsync();
 
             // Get reviews for each product
             var reviews = await _reviewRepository.GetAllAsNoTracking()
-                .Where(r => r.Product.UserId == userId)
+                .Where(r => r.Product.Workshop != null && r.Product.Workshop.UserId == userId)
                 .GroupBy(r => r.ProductId)
                 .Select(g => new { ProductId = g.Key, AvgRating = g.Average(r => r.Rating) })
                 .ToListAsync();
@@ -223,5 +253,7 @@ namespace Graduation_Application.Services
 
             return topProducts.Adapt<List<ProductDto>>();
         }
+
+
     }
 }

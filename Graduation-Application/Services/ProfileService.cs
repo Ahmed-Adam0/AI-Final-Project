@@ -1,4 +1,4 @@
-﻿using Graduation_Application.DTOs.UserDTO;
+using Graduation_Application.DTOs.UserDTO;
 using Graduation_Application.IRepositories;
 using Graduation_Application.IServices;
 using Graduation_domain.Enums;
@@ -44,6 +44,13 @@ namespace Graduation_Application.Services
             {
                 var exists = await _profileRepository.UsernameExistsAsync(dto.UserName, userId);
                 if (exists) throw new System.Exception("Username already taken.");
+            }
+
+            // validate email
+            if (!string.IsNullOrWhiteSpace(dto.Email))
+            {
+                var exists = await _profileRepository.EmailExistsAsync(dto.Email, userId);
+                if (exists) throw new System.Exception("Email already taken.");
             }
 
             // Mapster will update allowed properties

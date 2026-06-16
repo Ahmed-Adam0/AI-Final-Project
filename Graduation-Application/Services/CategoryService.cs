@@ -31,6 +31,18 @@ namespace Graduation_Application.Services
             return categories.Adapt<List<CategoryDto>>();
         }
 
+        public async Task<List<CategoryTreeDto>> GetCategoryTreeAsync()
+        {
+            var categories = await _repository
+                .GetAllAsNoTracking()
+                .Include(c => c.SubCategories)
+                    .ThenInclude(sc => sc.ProductTypes)
+                .Where(c => c.IsActive)
+                .ToListAsync();
+
+            return categories.Adapt<List<CategoryTreeDto>>();
+        }
+
         public async Task<CategoryResponseDto> CreateCategoryAsync(CreateCategoryDto createCategoryDto)
         {
             if (createCategoryDto == null)

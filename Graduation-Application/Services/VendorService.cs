@@ -294,8 +294,15 @@ namespace Graduation_Application.Services
         /// </summary>
         public async Task<int> GetVendorProductCountAsync(string userId)
         {
-            var count = await _productRepository.CountAsync(p => p.UserId == userId);
-            return count;
+            var workshop = await _workshopRepository.FirstOrDefaultAsync(w => w.UserId == userId);
+            if (workshop == null) return 0;
+
+            var workshopWithProducts = await _workshopRepository
+                .Where(w => w.Id == workshop.Id)
+                .Include(w => w.Products)
+                .FirstOrDefaultAsync();
+
+            return workshopWithProducts?.Products?.Count ?? 0;
         }
 
         /// <summary>
@@ -304,22 +311,10 @@ namespace Graduation_Application.Services
         /// </summary>
         public async Task LinkVendorProductsAsync(string userId)
         {
-            var workshop = await _workshopRepository.FirstOrDefaultAsync(w => w.UserId == userId);
-            if (workshop == null)
-                throw new Exception("Workshop not found for user");
-
-            var products = await _productRepository
-                .Where(p => p.WorkshopId == workshop.Id && p.UserId == null)
-                .ToListAsync();
-
-            foreach (var product in products)
-            {
-                product.UserId = userId;
-                _productRepository.Update(product);
-            }
-
-            if (products.Count > 0)
-                await _productRepository.SaveChangesAsync();
+            // Note: Since we moved WorkshopId/UserId from Product to VendorProductListing,
+            // products are linked to vendor via VendorProductListing.
+            // This migration method is no longer needed in this format, so we can make it a no-op or log it.
+            await Task.CompletedTask;
         }
     }
 }

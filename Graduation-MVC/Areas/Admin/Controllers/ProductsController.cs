@@ -1,5 +1,6 @@
-using System.Threading.Tasks;
 using System.Security.Claims;
+using System.Threading.Tasks;
+using Graduation_Application.Constants;
 using Graduation_Application.DTOs.Admin.AdminProductDTO;
 using Graduation_Application.IServices.Admin;
 using Graduation_MVC.Areas.Admin.ViewModels.Products;
@@ -9,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Graduation_MVC.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = Roles.SuperAdmin)]
     public class ProductsController : Controller
     {
         private readonly IAdminProductService _adminProductService;
@@ -40,7 +41,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 Search = filter.Search,
                 CategoryId = filter.CategoryId,
                 VendorId = filter.VendorId,
-                Status = filter.Status,
+                IsHidden = filter.IsHidden,
                 Products = products,
                 Categories = categories,
                 Vendors = vendors,
@@ -60,26 +61,6 @@ namespace Graduation_MVC.Areas.Admin.Controllers
             var viewModel = new AdminProductDetailsViewModel { Product = product };
 
             return View(viewModel);
-        }
-
-        // POST: /Admin/Products/{id}/Activate
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Activate(int id)
-        {
-            await _adminProductService.ActivateProductAsync(id);
-            TempData["SuccessMessage"] = _localizationService.Get("admin.products.activate.success");
-            return RedirectToAction(nameof(Index));
-        }
-
-        // POST: /Admin/Products/{id}/Deactivate
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Deactivate(int id)
-        {
-            await _adminProductService.DeactivateProductAsync(id);
-            TempData["SuccessMessage"] = _localizationService.Get("admin.products.deactivate.success");
-            return RedirectToAction(nameof(Index));
         }
 
         // POST: /Admin/Products/{id}/Hide
@@ -102,12 +83,12 @@ namespace Graduation_MVC.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // POST: /Admin/Products/{id}/Restore
+        // POST: /Admin/Products/{id}/Unhide
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Restore(int id)
+        public async Task<IActionResult> Unhide(int id)
         {
-            await _adminProductService.RestoreProductAsync(id);
+            await _adminProductService.UnhideProductAsync(id);
             TempData["SuccessMessage"] = _localizationService.Get("admin.products.restore.success");
             return RedirectToAction(nameof(Index));
         }
@@ -159,11 +140,8 @@ namespace Graduation_MVC.Areas.Admin.Controllers
             User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "system";
 
         private string GetCurrentUserName() =>
-            User.FindFirstValue(ClaimTypes.Name)
-            ?? User.Identity?.Name
-            ?? "SuperAdmin";
+            User.FindFirstValue(ClaimTypes.Name) ?? User.Identity?.Name ?? "SuperAdmin";
 
-        private string GetCurrentUserRole() =>
-            User.FindFirstValue(ClaimTypes.Role) ?? "SuperAdmin";
+        private string GetCurrentUserRole() => User.FindFirstValue(ClaimTypes.Role) ?? "SuperAdmin";
     }
 }

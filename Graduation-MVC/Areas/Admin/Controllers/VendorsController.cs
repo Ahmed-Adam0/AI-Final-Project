@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Graduation_Application.Constants;
 using Graduation_Application.DTOs.Admin.VendorManagementDTO;
 using Graduation_Application.IServices.Admin;
 using Graduation_domain.Enums;
@@ -9,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Graduation_MVC.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    //[Authorize(Roles = "Admin")]
+    [Authorize(Roles = Roles.SuperAdmin)]
     public class VendorsController : Controller
     {
         private readonly IAdminVendorsService _adminVendorsService;
@@ -220,7 +221,9 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                     workshopId.ToString(),
                     $"Approved vendor '{vendor?.Profile?.VendorName ?? "Unknown"}' (WorkshopId: {workshopId})."
                 );
-                TempData["SuccessMessage"] = _localizationService.Get("admin.vendors.approve.success");
+                TempData["SuccessMessage"] = _localizationService.Get(
+                    "admin.vendors.approve.success"
+                );
             }
             catch (ArgumentException ex)
             {
@@ -236,14 +239,18 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         {
             if (!ModelState.IsValid)
             {
-                TempData["ErrorMessage"] = _localizationService.Get("admin.vendors.reject.invalidRequest");
+                TempData["ErrorMessage"] = _localizationService.Get(
+                    "admin.vendors.reject.invalidRequest"
+                );
                 return RedirectToAction(nameof(Details), new { id = model.WorkshopId });
             }
 
             var adminId = GetAdminId();
             if (string.IsNullOrEmpty(adminId))
             {
-                TempData["ErrorMessage"] = _localizationService.Get("admin.vendors.auth.notAuthenticated");
+                TempData["ErrorMessage"] = _localizationService.Get(
+                    "admin.vendors.auth.notAuthenticated"
+                );
                 return RedirectToAction(nameof(Details), new { id = model.WorkshopId });
             }
 
@@ -265,7 +272,9 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                     model.WorkshopId.ToString(),
                     $"Rejected vendor '{vendor?.Profile?.VendorName ?? "Unknown"}' (WorkshopId: {model.WorkshopId}). Reason: {model.RejectionReason}"
                 );
-                TempData["SuccessMessage"] = _localizationService.Get("admin.vendors.reject.success");
+                TempData["SuccessMessage"] = _localizationService.Get(
+                    "admin.vendors.reject.success"
+                );
             }
             catch (ArgumentException ex)
             {
@@ -281,14 +290,18 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         {
             if (!ModelState.IsValid)
             {
-                TempData["ErrorMessage"] = _localizationService.Get("admin.vendors.suspend.invalidRequest");
+                TempData["ErrorMessage"] = _localizationService.Get(
+                    "admin.vendors.suspend.invalidRequest"
+                );
                 return RedirectToAction(nameof(Details), new { id = model.WorkshopId });
             }
 
             var adminId = GetAdminId();
             if (string.IsNullOrEmpty(adminId))
             {
-                TempData["ErrorMessage"] = _localizationService.Get("admin.vendors.auth.notAuthenticated");
+                TempData["ErrorMessage"] = _localizationService.Get(
+                    "admin.vendors.auth.notAuthenticated"
+                );
                 return RedirectToAction(nameof(Details), new { id = model.WorkshopId });
             }
 
@@ -300,7 +313,9 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                     model.Reason,
                     model.Notes
                 );
-                TempData["SuccessMessage"] = _localizationService.Get("admin.vendors.suspend.success");
+                TempData["SuccessMessage"] = _localizationService.Get(
+                    "admin.vendors.suspend.success"
+                );
             }
             catch (ArgumentException ex)
             {
@@ -325,7 +340,9 @@ namespace Graduation_MVC.Areas.Admin.Controllers
             {
                 //await _adminVendorsService.ActivateVendorAsync(workshopId, adminId, notes);
                 await _adminVendorsService.ActivateVendorAsync(workshopId, notes);
-                TempData["SuccessMessage"] = _localizationService.Get("admin.vendors.activate.success");
+                TempData["SuccessMessage"] = _localizationService.Get(
+                    "admin.vendors.activate.success"
+                );
             }
             catch (ArgumentException ex)
             {

@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Graduation_Application.Constants;
 using Graduation_Application.DTOs.Admin.Reviews;
 using Graduation_Application.IServices.Admin;
 using Microsoft.AspNetCore.Authorization;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Graduation_MVC.Areas.Admin.Controllers
 {
     [Area("Admin")]
-  //  [Authorize(Roles = "Admin")]
+    [Authorize(Roles = Roles.SuperAdmin)]
     public class ReviewsController : Controller
     {
         private readonly IAdminReviewService _adminReviewService;
@@ -35,7 +36,8 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         public async Task<IActionResult> Details(int id)
         {
             var review = await _adminReviewService.GetReviewDetailsAsync(id);
-            if (review == null) return NotFound();
+            if (review == null)
+                return NotFound();
 
             return View(review);
         }
@@ -82,4 +84,3 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         }
     }
 }
-

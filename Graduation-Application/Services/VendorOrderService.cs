@@ -128,7 +128,6 @@ namespace Graduation_Application.Services
                 .Where(o => o.Id == orderId && o.WorkshopId == workshopId)
                 .Include(o => o.User)
                 .Include(o => o.Items)
-                    .ThenInclude(oi => oi.Product)
                 .Include(o => o.StatusHistory)
                 .FirstOrDefaultAsync();
 
@@ -152,11 +151,11 @@ namespace Graduation_Application.Services
                 Items = order
                     .Items.Select(oi => new VendorOrderItemDto
                     {
-                        ProductId = oi.ProductId,
-                        ProductName = oi.Product.NameEn,
-                        UnitPrice = oi.UnitPrice,
+                        ProductId = oi.ProductId ?? 0,
+                        ProductName = oi.SnapshotProductNameEn,
+                        UnitPrice = oi.SnapshotUnitPrice,
                         Quantity = oi.Quantity,
-                        Total = oi.UnitPrice * oi.Quantity,
+                        Total = oi.SnapshotUnitPrice * oi.Quantity,
                     })
                     .ToList(),
                 StatusHistory = order

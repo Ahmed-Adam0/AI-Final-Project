@@ -12,6 +12,8 @@ namespace Graduation_infrastructure.AppDbContext
         public DbSet<Workshop> Workshops { get; set; }
         public DbSet<WorkshopAddress> WorkshopAddresses { get; set; }
         public DbSet<Category> Categories { get; set; }
+        public DbSet<SubCategory> SubCategories { get; set; }
+        public DbSet<ProductType> ProductTypes { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<ProductImage> ProductImages { get; set; }
         public DbSet<Address> Addresses { get; set; }
@@ -36,31 +38,64 @@ namespace Graduation_infrastructure.AppDbContext
         public DbSet<Faq> Faqs { get; set; }
         public DbSet<Banner> Banners { get; set; }
 
+        // ── Vendor-Driven Catalog ──────────────────────────────────────────────────
+        public DbSet<ProductAttribute> ProductAttributes { get; set; }
+        public DbSet<ProductAttributeValue> ProductAttributeValues { get; set; }
+
+        // ── Vendor Materials Library ───────────────────────────────────────────────
+        public DbSet<VendorMaterialGroup> VendorMaterialGroups { get; set; }
+        public DbSet<VendorMaterialOption> VendorMaterialOptions { get; set; }
+        public DbSet<ProductMaterialOption> ProductMaterialOptions { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
-            builder
-                .Entity<Product>()
-                .HasOne(p => p.Workshop)
-                .WithMany(w => w.Products)
-                .HasForeignKey(p => p.WorkshopId)
-                .OnDelete(DeleteBehavior.Restrict);
+            // ── Product (Vendor-owned) ────────────────────────────────────
+             builder.Entity<Product>(entity =>
+            {
+                entity.HasOne(p => p.ProductType)
+                      .WithMany(pt => pt.Products)
+                      .HasForeignKey(p => p.ProductTypeId)
+                      .OnDelete(DeleteBehavior.Restrict);
 
-            // Add Product-User relationship for vendor ownership
-            builder
-                .Entity<Product>()
-                .HasOne(p => p.User)
-                .WithMany()
-                .HasForeignKey(p => p.UserId)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(p => p.Workshop)
+                      .WithMany(w => w.Products)
+                      .HasForeignKey(p => p.WorkshopId)
+                      .OnDelete(DeleteBehavior.Restrict);
 
-            builder
-                .Entity<Product>()
-                .HasOne(p => p.Category)
-                .WithMany()
-                .HasForeignKey(p => p.CategoryId);
+                entity.Property(e => e.BasePrice)
+                      .HasColumnType("decimal(18,2)")
+                      .IsRequired();
+            });
+
+            // ── SubCategory ─────────────────────────────────────────────────
+            builder.Entity<SubCategory>(entity =>
+            {
+                entity.ToTable("SubCategories");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.NameAr).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.NameEn).HasMaxLength(100).IsRequired();
+
+                entity.HasOne(e => e.Category)
+                      .WithMany(c => c.SubCategories)
+                      .HasForeignKey(e => e.CategoryId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ── ProductType ─────────────────────────────────────────────────
+            builder.Entity<ProductType>(entity =>
+            {
+                entity.ToTable("ProductTypes");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.NameAr).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.NameEn).HasMaxLength(100).IsRequired();
+
+                entity.HasOne(e => e.SubCategory)
+                      .WithMany(sc => sc.ProductTypes)
+                      .HasForeignKey(e => e.SubCategoryId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
 
             builder
                 .Entity<ProductImage>()
@@ -68,18 +103,116 @@ namespace Graduation_infrastructure.AppDbContext
                 .WithMany(p => p.Images)
                 .HasForeignKey(pi => pi.ProductId);
 
-            builder
-                .Entity<CartItem>()
-                .HasOne(ci => ci.Cart)
-                .WithMany(c => c.Items)
-                .HasForeignKey(ci => ci.CartId);
+            // ── ProductAttribute ─────────────────────────────────────────────────
+            builder.Entity<ProductAttribute>(entity =>
+            {
+                entity.ToTable("ProductAttributes");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.NameAr).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.NameEn).HasMaxLength(100).IsRequired();
 
-            // FIX: use OrderId as the foreign key (not Id)
-            builder
-                .Entity<OrderItem>()
-                .HasOne(oi => oi.Order)
-                .WithMany(o => o.Items)
-                .HasForeignKey(oi => oi.OrderId);
+                entity.HasOne(e => e.Product)
+                      .WithMany(p => p.Attributes)
+                      .HasForeignKey(e => e.ProductId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ── ProductAttributeValue ────────────────────────────────────────────
+            builder.Entity<ProductAttributeValue>(entity =>
+            {
+                entity.ToTable("ProductAttributeValues");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.ValueAr).HasMaxLength(200).IsRequired();
+                entity.Property(e => e.ValueEn).HasMaxLength(200).IsRequired();
+                entity.Property(e => e.PriceDelta).HasColumnType("decimal(18,2)");
+
+                entity.HasOne(e => e.Attribute)
+                      .WithMany(a => a.Values)
+                      .HasForeignKey(e => e.AttributeId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ── Vendor Materials Library ───────────────────────────────────────────
+            builder.Entity<VendorMaterialGroup>(entity =>
+            {
+                entity.ToTable("VendorMaterialGroups");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.NameAr).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.NameEn).HasMaxLength(100).IsRequired();
+
+                entity.HasOne(e => e.Workshop)
+                      .WithMany(w => w.MaterialGroups)
+                      .HasForeignKey(e => e.WorkshopId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<VendorMaterialOption>(entity =>
+            {
+                entity.ToTable("VendorMaterialOptions");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.ValueAr).HasMaxLength(200).IsRequired();
+                entity.Property(e => e.ValueEn).HasMaxLength(200).IsRequired();
+                entity.Property(e => e.PriceDelta).HasColumnType("decimal(18,2)");
+
+                entity.HasOne(e => e.Group)
+                      .WithMany(g => g.Options)
+                      .HasForeignKey(e => e.VendorMaterialGroupId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<ProductMaterialOption>(entity =>
+            {
+                entity.ToTable("ProductMaterialOptions");
+                entity.HasKey(e => new { e.ProductId, e.VendorMaterialOptionId });
+
+                entity.HasOne(e => e.Product)
+                      .WithMany(p => p.MaterialOptions)
+                      .HasForeignKey(e => e.ProductId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.VendorMaterialOption)
+                      .WithMany(o => o.ProductMaterialOptions)
+                      .HasForeignKey(e => e.VendorMaterialOptionId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ── CartItem ─────────────────────────
+            builder.Entity<CartItem>(entity =>
+            {
+                entity.Property(e => e.CachedPrice).HasColumnType("decimal(18,2)");
+
+                entity.HasOne(e => e.Cart)
+                      .WithMany(c => c.Items)
+                      .HasForeignKey(e => e.CartId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.Product)
+                      .WithMany()
+                      .HasForeignKey(e => e.ProductId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ── OrderItem (snapshot pattern) ──────────────────────────────────────
+            builder.Entity<OrderItem>(entity =>
+            {
+                entity.Property(e => e.SnapshotUnitPrice).HasColumnType("decimal(18,2)").IsRequired();
+                entity.Property(e => e.SnapshotProductNameAr).HasMaxLength(300).IsRequired();
+                entity.Property(e => e.SnapshotProductNameEn).HasMaxLength(300).IsRequired();
+                entity.Property(e => e.SnapshotVendorName).HasMaxLength(200).IsRequired();
+                entity.Property(e => e.SnapshotAttributesJson).HasColumnType("nvarchar(max)");
+
+                entity.HasOne(e => e.Order)
+                      .WithMany(o => o.Items)
+                      .HasForeignKey(e => e.OrderId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                // Soft-reference: if a product is deleted, preserve the snapshot (set null)
+                entity.HasOne(e => e.Product)
+                      .WithMany()
+                      .HasForeignKey(e => e.ProductId)
+                      .IsRequired(false)
+                      .OnDelete(DeleteBehavior.SetNull);
+            });
 
             builder
                 .Entity<OrderStatusHistory>()
@@ -169,15 +302,11 @@ namespace Graduation_infrastructure.AppDbContext
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Decimal precision configuration to avoid truncation
-            builder.Entity<CartItem>().Property(ci => ci.Price).HasColumnType("decimal(18,2)");
-            builder
-                .Entity<Discount>()
-                .Property(d => d.DiscountValue)
-                .HasColumnType("decimal(18,2)");
+            builder.Entity<Discount>().Property(d => d.DiscountValue).HasColumnType("decimal(18,2)");
             builder.Entity<Order>().Property(o => o.TotalPrice).HasColumnType("decimal(18,2)");
-            builder.Entity<OrderItem>().Property(oi => oi.UnitPrice).HasColumnType("decimal(18,2)");
-            builder.Entity<Product>().Property(p => p.Price).HasColumnType("decimal(18,2)");
             builder.Entity<Workshop>().Property(w => w.Rating).HasColumnType("decimal(18,2)");
+            // Note: CartItem.CachedPrice, OrderItem snapshot prices, VendorProductListing.BasePrice,
+            // and ProductVariant prices are configured in their respective entity blocks above.
 
             builder
                 .Entity<InternalNotification>()

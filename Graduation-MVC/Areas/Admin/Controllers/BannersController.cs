@@ -1,22 +1,29 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Graduation_Application.Constants;
 using Graduation_Application.DTOs.BannerDTO;
 using Graduation_Application.IServices;
 using Graduation_Application.IServices.Admin;
 using Graduation_MVC.Areas.Admin.ViewModels.Banners;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Graduation_MVC.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = Roles.SuperAdmin)]
     public class BannersController : Controller
     {
         private readonly IBannerService _bannerService;
         private readonly IFileService _fileService;
         private readonly ILocalizationService _localizationService;
 
-        public BannersController(IBannerService bannerService, IFileService fileService, ILocalizationService localizationService)
+        public BannersController(
+            IBannerService bannerService,
+            IFileService fileService,
+            ILocalizationService localizationService
+        )
         {
             _bannerService = bannerService;
             _fileService = fileService;
@@ -32,18 +39,22 @@ namespace Graduation_MVC.Areas.Admin.Controllers
             if (!string.IsNullOrWhiteSpace(search))
             {
                 banners = banners
-                    .Where(b => b.TitleEn.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                                b.TitleAr.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                                (b.DescriptionEn != null && b.DescriptionEn.Contains(search, StringComparison.OrdinalIgnoreCase)) ||
-                                (b.DescriptionAr != null && b.DescriptionAr.Contains(search, StringComparison.OrdinalIgnoreCase)))
+                    .Where(b =>
+                        b.TitleEn.Contains(search, StringComparison.OrdinalIgnoreCase)
+                        || b.TitleAr.Contains(search, StringComparison.OrdinalIgnoreCase)
+                        || (
+                            b.DescriptionEn != null
+                            && b.DescriptionEn.Contains(search, StringComparison.OrdinalIgnoreCase)
+                        )
+                        || (
+                            b.DescriptionAr != null
+                            && b.DescriptionAr.Contains(search, StringComparison.OrdinalIgnoreCase)
+                        )
+                    )
                     .ToList();
             }
 
-            var viewModel = new AdminBannersPageViewModel
-            {
-                Banners = banners,
-                Search = search
-            };
+            var viewModel = new AdminBannersPageViewModel { Banners = banners, Search = search };
 
             return View(viewModel);
         }
@@ -63,14 +74,20 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         {
             if (model.ImageFile == null || model.ImageFile.Length == 0)
             {
-                ModelState.AddModelError("ImageFile", _localizationService.Get("admin.banners.create.imageRequired"));
+                ModelState.AddModelError(
+                    "ImageFile",
+                    _localizationService.Get("admin.banners.create.imageRequired")
+                );
             }
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    string imageUrl = await _fileService.SaveImageAsync(model.ImageFile!, "banners");
+                    string imageUrl = await _fileService.SaveImageAsync(
+                        model.ImageFile!,
+                        "banners"
+                    );
 
                     var dto = new CreateBannerDto
                     {
@@ -81,17 +98,22 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                         ImageUrl = imageUrl,
                         RedirectUrl = model.RedirectUrl,
                         DisplayOrder = model.DisplayOrder,
-                        IsActive = model.IsActive
+                        IsActive = model.IsActive,
                     };
 
                     await _bannerService.CreateBannerAsync(dto);
 
-                    TempData["SuccessMessage"] = _localizationService.Get("admin.banners.create.success");
+                    TempData["SuccessMessage"] = _localizationService.Get(
+                        "admin.banners.create.success"
+                    );
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", $"An error occurred while creating the banner: {ex.Message}");
+                    ModelState.AddModelError(
+                        "",
+                        $"An error occurred while creating the banner: {ex.Message}"
+                    );
                 }
             }
 
@@ -119,7 +141,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 ImageUrl = banner.ImageUrl,
                 RedirectUrl = banner.RedirectUrl,
                 DisplayOrder = banner.DisplayOrder,
-                IsActive = banner.IsActive
+                IsActive = banner.IsActive,
             };
 
             return View(model);
@@ -143,7 +165,11 @@ namespace Graduation_MVC.Areas.Admin.Controllers
 
                     if (model.ImageFile != null && model.ImageFile.Length > 0)
                     {
-                        imageUrl = await _fileService.SaveImageAsync(model.ImageFile, "banners", model.ImageUrl);
+                        imageUrl = await _fileService.SaveImageAsync(
+                            model.ImageFile,
+                            "banners",
+                            model.ImageUrl
+                        );
                     }
 
                     var dto = new UpdateBannerDto
@@ -155,17 +181,22 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                         ImageUrl = imageUrl,
                         RedirectUrl = model.RedirectUrl,
                         DisplayOrder = model.DisplayOrder,
-                        IsActive = model.IsActive
+                        IsActive = model.IsActive,
                     };
 
                     await _bannerService.UpdateBannerAsync(id, dto);
 
-                    TempData["SuccessMessage"] = _localizationService.Get("admin.banners.edit.success");
+                    TempData["SuccessMessage"] = _localizationService.Get(
+                        "admin.banners.edit.success"
+                    );
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", $"An error occurred while updating the banner: {ex.Message}");
+                    ModelState.AddModelError(
+                        "",
+                        $"An error occurred while updating the banner: {ex.Message}"
+                    );
                 }
             }
 
@@ -182,16 +213,21 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 var success = await _bannerService.DeleteBannerAsync(id);
                 if (success)
                 {
-                    TempData["SuccessMessage"] = _localizationService.Get("admin.banners.delete.success");
+                    TempData["SuccessMessage"] = _localizationService.Get(
+                        "admin.banners.delete.success"
+                    );
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = _localizationService.Get("admin.banners.delete.error");
+                    TempData["ErrorMessage"] = _localizationService.Get(
+                        "admin.banners.delete.error"
+                    );
                 }
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"An error occurred while deleting the banner: {ex.Message}";
+                TempData["ErrorMessage"] =
+                    $"An error occurred while deleting the banner: {ex.Message}";
             }
 
             return RedirectToAction(nameof(Index));
@@ -207,7 +243,9 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 var success = await _bannerService.UpdateBannerStatusAsync(id, isActive);
                 if (success)
                 {
-                    var statusKey = isActive ? "admin.banners.status.active" : "admin.banners.status.inactive";
+                    var statusKey = isActive
+                        ? "admin.banners.status.active"
+                        : "admin.banners.status.inactive";
                     TempData["SuccessMessage"] = string.Format(
                         _localizationService.Get("admin.banners.status.updated"),
                         _localizationService.Get(statusKey)

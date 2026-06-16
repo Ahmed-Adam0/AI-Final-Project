@@ -10,6 +10,7 @@ namespace Graduation_Application.IServices
     {
         // Read operations (existing)
         Task<List<CategoryDto>> GetAllCategoriesAsync();
+        Task<List<CategoryTreeDto>> GetCategoryTreeAsync();
 
         // Write operations (admin)
         Task<CategoryResponseDto> CreateCategoryAsync(CreateCategoryDto createCategoryDto);

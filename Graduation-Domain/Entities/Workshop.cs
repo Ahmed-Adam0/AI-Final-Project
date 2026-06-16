@@ -43,7 +43,13 @@ namespace Graduation_domain.Entities
         public ApplicationUser? AccountStatusChangedByAdmin { get; set; }
 
         public WorkshopAddress? WorkshopAddress { get; set; }
+
+        /// <summary>
+        /// All products owned by this workshop.
         public List<Product>? Products { get; set; }
+
+        public List<VendorMaterialGroup>? MaterialGroups { get; set; }
+
         public List<Review>? Reviews { get; set; }
 
         public List<VendorVerificationHistory>? VerificationHistory { get; set; }

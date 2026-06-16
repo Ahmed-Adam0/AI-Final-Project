@@ -20,19 +20,19 @@
     <div class="col-md-6 text-md-end mt-3 mt-md-0">
         <div class="glass-card px-4 py-3 d-inline-flex align-items-center gap-3">
             <span class="text-muted small">@L.Get("admin.products.details.status")</span>
-            @if (Model.Product.Status == ProductStatus.Active)
+            @if (Model.Product.IsActive && !Model.Product.IsHidden)
             {
                 <span class="badge-status badge-status-active">
                     <i class="fa-solid fa-circle-check"></i> @L.Get("shared.status.active")
                 </span>
             }
-            else if (Model.Product.Status == ProductStatus.Inactive)
+            else if (!Model.Product.IsActive)
             {
                 <span class="badge-status badge-status-inactive">
                     <i class="fa-solid fa-circle-minus"></i> @L.Get("shared.status.inactive")
                 </span>
             }
-            else if (Model.Product.Status == ProductStatus.Hidden)
+            else if (Model.Product.IsHidden)
             {
                 <span class="badge-status badge-status-hidden">
                     <i class="fa-solid fa-eye-slash"></i> @L.Get("shared.status.hidden")
@@ -128,7 +128,7 @@
             <h5 class="text-light mb-3"><i class="fa-solid fa-sliders me-2 text-indigo" style="color: var(--accent-primary);"></i>@L.Get("admin.products.details.moderation.title")</h5>
             
             <div class="d-grid gap-2">
-                @if (Model.Product.Status == ProductStatus.Active)
+                @if (Model.Product.IsActive && !Model.Product.IsHidden)
                 {
                     <form asp-area="Admin" asp-controller="Products" asp-action="Deactivate" asp-route-id="@Model.Product.Id" method="post" class="w-100">
                         <button type="submit" class="btn btn-warning w-100 btn-premium justify-content-center">
@@ -142,7 +142,7 @@
                         </button>
                     </form>
                 }
-                else if (Model.Product.Status == ProductStatus.Inactive)
+                else if (!Model.Product.IsActive)
                 {
                     <form asp-area="Admin" asp-controller="Products" asp-action="Activate" asp-route-id="@Model.Product.Id" method="post" class="w-100">
                         <button type="submit" class="btn btn-success w-100 btn-premium justify-content-center">
@@ -150,9 +150,9 @@
                         </button>
                     </form>
                 }
-                else if (Model.Product.Status == ProductStatus.Hidden)
+                else if (Model.Product.IsHidden)
                 {
-                    <form asp-area="Admin" asp-controller="Products" asp-action="Restore" asp-route-id="@Model.Product.Id" method="post" class="w-100">
+                    <form asp-area="Admin" asp-controller="Products" asp-action="Unhide" asp-route-id="@Model.Product.Id" method="post" class="w-100">
                         <button type="submit" class="btn btn-primary w-100 btn-premium justify-content-center" style="background-color: var(--accent-primary); border-color: var(--accent-primary);">
                             <i class="fa-solid fa-eye"></i> @L.Get("admin.products.details.moderation.restore")
                         </button>
