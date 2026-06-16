@@ -15,8 +15,7 @@ namespace Graduation_domain.Entities
         /// <summary>Value in English — e.g. "Oak"</summary>
         public string ValueEn { get; set; } = string.Empty;
 
-        // ── Navigations ──────────────────────────────────────────────────────────
-        /// <summary>Join entries linking this value to the variants it participates in.</summary>
-        public List<ProductVariantAttributeValue> VariantAttributeValues { get; set; } = [];
+        /// <summary>Price modifier for this option (e.g. +50 or -20)</summary>
+        public decimal PriceDelta { get; set; }
     }
 }

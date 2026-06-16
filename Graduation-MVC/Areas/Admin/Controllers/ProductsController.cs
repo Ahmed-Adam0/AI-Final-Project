@@ -40,7 +40,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 Search = filter.Search,
                 CategoryId = filter.CategoryId,
                 VendorId = filter.VendorId,
-                Status = filter.Status,
+                IsHidden = filter.IsHidden,
                 Products = products,
                 Categories = categories,
                 Vendors = vendors,
@@ -62,25 +62,6 @@ namespace Graduation_MVC.Areas.Admin.Controllers
             return View(viewModel);
         }
 
-        // POST: /Admin/Products/{id}/Activate
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Activate(int id)
-        {
-            await _adminProductService.ActivateProductAsync(id);
-            TempData["SuccessMessage"] = _localizationService.Get("admin.products.activate.success");
-            return RedirectToAction(nameof(Index));
-        }
-
-        // POST: /Admin/Products/{id}/Deactivate
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Deactivate(int id)
-        {
-            await _adminProductService.DeactivateProductAsync(id);
-            TempData["SuccessMessage"] = _localizationService.Get("admin.products.deactivate.success");
-            return RedirectToAction(nameof(Index));
-        }
 
         // POST: /Admin/Products/{id}/Hide
         [HttpPost]
@@ -102,12 +83,12 @@ namespace Graduation_MVC.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // POST: /Admin/Products/{id}/Restore
+        // POST: /Admin/Products/{id}/Unhide
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Restore(int id)
+        public async Task<IActionResult> Unhide(int id)
         {
-            await _adminProductService.RestoreProductAsync(id);
+            await _adminProductService.UnhideProductAsync(id);
             TempData["SuccessMessage"] = _localizationService.Get("admin.products.restore.success");
             return RedirectToAction(nameof(Index));
         }

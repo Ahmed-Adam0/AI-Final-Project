@@ -45,11 +45,10 @@ namespace Graduation_domain.Entities
         public WorkshopAddress? WorkshopAddress { get; set; }
 
         /// <summary>
-        /// All vendor listings this workshop has created across different products.
-        /// Replaces the old direct Products collection — vendor's catalog is now expressed
-        /// through VendorProductListings rather than direct Product ownership.
-        /// </summary>
-        public List<VendorProductListing>? VendorListings { get; set; }
+        /// All products owned by this workshop.
+        public List<Product>? Products { get; set; }
+
+        public List<VendorMaterialGroup>? MaterialGroups { get; set; }
 
         public List<Review>? Reviews { get; set; }
 

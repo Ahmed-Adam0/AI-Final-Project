@@ -33,9 +33,8 @@ namespace Graduation_Application.Services.Admin
                 .GetAllAsNoTracking()
                 .Include(r => r.User)
                 .Include(r => r.Product)
-                    .ThenInclude(p => p.VendorListings)
-                        .ThenInclude(vl => vl.Workshop)
-                            .ThenInclude(w => w.User)
+                    .ThenInclude(p => p.Workshop)
+                        .ThenInclude(w => w.User)
                 .Where(r => r.IsActive);
 
             if (!string.IsNullOrWhiteSpace(filter.Search))
@@ -89,7 +88,7 @@ namespace Graduation_Application.Services.Admin
                 Id = r.Id,
                 ProductId = r.ProductId,
                 ProductName = r.Product?.NameEn ?? r.Product?.NameAr ?? $"Product #{r.ProductId}",
-                VendorName = r.Product?.VendorListings?.FirstOrDefault()?.Workshop?.User?.FullName ?? "N/A",
+                VendorName = r.Product?.Workshop?.User?.FullName ?? "N/A",
                 UserName = r.User?.FullName ?? "N/A",
                 Rating = r.Rating,
                 IsReported = r.IsReported,
@@ -106,16 +105,15 @@ namespace Graduation_Application.Services.Admin
                 .GetAllAsNoTracking()
                 .Include(r => r.User)
                 .Include(r => r.Product)
-                    .ThenInclude(p => p.VendorListings)
-                        .ThenInclude(vl => vl.Workshop)
-                            .ThenInclude(w => w.User)
+                    .ThenInclude(p => p.Workshop)
+                        .ThenInclude(w => w.User)
                 .FirstOrDefaultAsync(r => r.Id == id);
 
             if (review == null) return null;
 
             var history = await GetModerationHistoryAsync(id);
 
-            var firstVendor = review.Product?.VendorListings?.FirstOrDefault()?.Workshop;
+            var firstVendor = review.Product?.Workshop;
 
             return new AdminReviewDetailsDto
             {
@@ -146,9 +144,8 @@ namespace Graduation_Application.Services.Admin
                 .Where(r => r.IsReported)
                 .Include(r => r.User)
                 .Include(r => r.Product)
-                    .ThenInclude(p => p.VendorListings)
-                        .ThenInclude(vl => vl.Workshop)
-                            .ThenInclude(w => w.User)
+                    .ThenInclude(p => p.Workshop)
+                        .ThenInclude(w => w.User)
                 .OrderByDescending(r => r.UpdatedAt ?? r.CreatedAt)
                 .ToListAsync();
 
@@ -157,7 +154,7 @@ namespace Graduation_Application.Services.Admin
                 ReviewId = r.Id,
                 ProductId = r.ProductId,
                 ProductName = r.Product?.NameEn ?? r.Product?.NameAr ?? $"Product #{r.ProductId}",
-                VendorName = r.Product?.VendorListings?.FirstOrDefault()?.Workshop?.User?.FullName ?? "N/A",
+                VendorName = r.Product?.Workshop?.User?.FullName ?? "N/A",
                 UserName = r.User?.FullName ?? "N/A",
                 ReportReason = r.ReportReason,
                 ReportedAt = r.UpdatedAt ?? r.CreatedAt,

@@ -15,6 +15,8 @@ using Graduation_Application.Mapper.VendorMapping;
 using Graduation_Application.Options;
 using Graduation_Application.Services;
 using Graduation_Application.Services.Admin;
+using Graduation_Application.IServices.Vendor;
+using Graduation_Application.Services.Vendor;
 using Graduation_domain.Entities;
 using Graduation_infrastructure.AppDbContext;
 using Graduation_Infrastructure.Identity;
@@ -98,6 +100,7 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<IVendorProductService, VendorProductService>();
+            services.AddScoped<IVendorMaterialService, VendorMaterialService>();
             services.AddScoped<ICartService, CartService>();
             services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<IVendorOrderService, VendorOrderService>();

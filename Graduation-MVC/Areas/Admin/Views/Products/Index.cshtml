@@ -78,18 +78,23 @@
             <!-- Status -->
             <div class="col-md-3">
                 <label class="form-label text-muted small">@L.Get("admin.products.filter.status")</label>
-                <select name="Status" class="form-select form-select-premium">
+                <select name="IsHidden" class="form-select form-select-premium">
                     <option value="">@L.Get("admin.products.filter.statusAll")</option>
-                    @foreach (var status in System.Enum.GetValues<ProductStatus>())
+                    @if (Model.IsHidden == false)
                     {
-                        if (Model.Status == status)
-                        {
-                            <option value="@status" selected="selected">@L.Get("shared.status." + status.ToString().ToLower())</option>
-                        }
-                        else
-                        {
-                            <option value="@status">@L.Get("shared.status." + status.ToString().ToLower())</option>
-                        }
+                        <option value="false" selected="selected">@L.Get("shared.status.visible")</option>
+                    }
+                    else
+                    {
+                        <option value="false">@L.Get("shared.status.visible")</option>
+                    }
+                    @if (Model.IsHidden == true)
+                    {
+                        <option value="true" selected="selected">@L.Get("shared.status.hidden")</option>
+                    }
+                    else
+                    {
+                        <option value="true">@L.Get("shared.status.hidden")</option>
                     }
                 </select>
             </div>
@@ -165,19 +170,19 @@
                             
                             <!-- Status -->
                             <td>
-                                @if (item.Status == ProductStatus.Active)
+                                @if (item.IsActive && !item.IsHidden)
                                 {
                                     <span class="badge-status badge-status-active">
                                         <i class="fa-solid fa-circle-check"></i> @L.Get("shared.status.active")
                                     </span>
                                 }
-                                else if (item.Status == ProductStatus.Inactive)
+                                else if (!item.IsActive)
                                 {
                                     <span class="badge-status badge-status-inactive">
                                         <i class="fa-solid fa-circle-minus"></i> @L.Get("shared.status.inactive")
                                     </span>
                                 }
-                                else if (item.Status == ProductStatus.Hidden)
+                                else if (item.IsHidden)
                                 {
                                     <span class="badge-status badge-status-hidden">
                                         <i class="fa-solid fa-eye-slash"></i> @L.Get("shared.status.hidden")
@@ -197,7 +202,7 @@
                                         <i class="fa-solid fa-info-circle"></i>
                                     </a>
                                     
-                                    @if (item.Status == ProductStatus.Active)
+                                    @if (item.IsActive && !item.IsHidden)
                                     {
                                         <form asp-area="Admin" asp-controller="Products" asp-action="Deactivate" asp-route-id="@item.Id" method="post" class="d-inline">
                                             <button type="submit" class="btn btn-sm btn-outline-warning" style="border-radius: 8px;" title="@L.Get("admin.products.action.deactivate")">
@@ -210,7 +215,7 @@
                                             </button>
                                         </form>
                                     }
-                                    else if (item.Status == ProductStatus.Inactive)
+                                    else if (!item.IsActive)
                                     {
                                         <form asp-area="Admin" asp-controller="Products" asp-action="Activate" asp-route-id="@item.Id" method="post" class="d-inline">
                                             <button type="submit" class="btn btn-sm btn-outline-success" style="border-radius: 8px;" title="@L.Get("admin.products.action.activate")">
@@ -218,9 +223,9 @@
                                             </button>
                                         </form>
                                     }
-                                    else if (item.Status == ProductStatus.Hidden)
+                                    else if (item.IsHidden)
                                     {
-                                        <form asp-area="Admin" asp-controller="Products" asp-action="Restore" asp-route-id="@item.Id" method="post" class="d-inline">
+                                        <form asp-area="Admin" asp-controller="Products" asp-action="Unhide" asp-route-id="@item.Id" method="post" class="d-inline">
                                             <button type="submit" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;" title="@L.Get("admin.products.action.restore")">
                                                 <i class="fa-solid fa-eye"></i>
                                             </button>
@@ -246,7 +251,7 @@
                     @if (Model.Products.HasPreviousPage)
                     {
                         <li class="page-item">
-                            <a class="page-link" href="@Url.Action("Index", "Products", new { area = "Admin", PageNumber = Model.Products.PageNumber - 1, Search = Model.Search, CategoryId = Model.CategoryId, VendorId = Model.VendorId, Status = Model.Status })">
+                            <a class="page-link" href="@Url.Action("Index", "Products", new { area = "Admin", PageNumber = Model.Products.PageNumber - 1, Search = Model.Search, CategoryId = Model.CategoryId, VendorId = Model.VendorId, IsHidden = Model.IsHidden })">
                                 <i class="fa-solid fa-chevron-left"></i>
                             </a>
                         </li>
@@ -270,7 +275,7 @@
                         else
                         {
                             <li class="page-item">
-                                <a class="page-link" href="@Url.Action("Index", "Products", new { area = "Admin", PageNumber = i, Search = Model.Search, CategoryId = Model.CategoryId, VendorId = Model.VendorId, Status = Model.Status })">@i</a>
+                                <a class="page-link" href="@Url.Action("Index", "Products", new { area = "Admin", PageNumber = i, Search = Model.Search, CategoryId = Model.CategoryId, VendorId = Model.VendorId, IsHidden = Model.IsHidden })">@i</a>
                             </li>
                         }
                     }
@@ -279,7 +284,7 @@
                     @if (Model.Products.HasNextPage)
                     {
                         <li class="page-item">
-                            <a class="page-link" href="@Url.Action("Index", "Products", new { area = "Admin", PageNumber = Model.Products.PageNumber + 1, Search = Model.Search, CategoryId = Model.CategoryId, VendorId = Model.VendorId, Status = Model.Status })">
+                            <a class="page-link" href="@Url.Action("Index", "Products", new { area = "Admin", PageNumber = Model.Products.PageNumber + 1, Search = Model.Search, CategoryId = Model.CategoryId, VendorId = Model.VendorId, IsHidden = Model.IsHidden })">
                                 <i class="fa-solid fa-chevron-right"></i>
                             </a>
                         </li>

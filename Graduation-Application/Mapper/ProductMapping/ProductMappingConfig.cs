@@ -18,14 +18,7 @@ namespace Graduation_Application.Mapper.ProductMapping
                 .Map(dest => dest.NameEn, src => src.NameEn)
                 .Map(dest => dest.DescriptionAr, src => src.DescriptionAr)
                 .Map(dest => dest.DescriptionEn, src => src.DescriptionEn)
-                // MinPrice: lowest CurrentPrice across all active vendor variants
-                .Map(dest => dest.Price,
-                    src => src.VendorListings != null && src.VendorListings.Count > 0
-                        ? src.VendorListings
-                            .SelectMany(l => l.Variants ?? Enumerable.Empty<ProductVariant>())
-                            .Select(v => (decimal?)v.CurrentPrice)
-                            .Min() ?? 0m
-                        : 0m)
+                // BasePrice is mapped automatically because property names match
                 .Map(dest => dest.CategoryId, src => src.CategoryId)
                 .Map(
                     dest => dest.CategoryNameAr,
@@ -35,23 +28,10 @@ namespace Graduation_Application.Mapper.ProductMapping
                     dest => dest.CategoryNameEn,
                     src => src.Category != null ? src.Category.NameEn : string.Empty
                 )
-                // WorkshopId: first vendor's workshop (backward compat for list view)
-                .Map(dest => dest.WorkshopId,
-                    src => src.VendorListings != null && src.VendorListings.Count > 0
-                        ? src.VendorListings[0].WorkshopId
-                        : 0)
-                .Map(
-                    dest => dest.WorkshopNameAr,
-                    src => src.VendorListings != null && src.VendorListings.Count > 0 && src.VendorListings[0].Workshop != null
-                        ? src.VendorListings[0].Workshop.WorkshopNameAr
-                        : string.Empty
-                )
-                .Map(
-                    dest => dest.WorkshopNameEn,
-                    src => src.VendorListings != null && src.VendorListings.Count > 0 && src.VendorListings[0].Workshop != null
-                        ? src.VendorListings[0].Workshop.WorkshopNameEn
-                        : string.Empty
-                )
+                // Workshop mapping
+                .Map(dest => dest.WorkshopId, src => src.WorkshopId)
+                .Map(dest => dest.WorkshopNameAr, src => src.Workshop != null ? src.Workshop.WorkshopNameAr : string.Empty)
+                .Map(dest => dest.WorkshopNameEn, src => src.Workshop != null ? src.Workshop.WorkshopNameEn : string.Empty)
                 .Map(dest => dest.CreatedAt, src => src.CreatedAt)
                 .Map(dest => dest.IsActive, src => src.IsActive)
                 .AfterMapping((src, dest) =>
@@ -82,10 +62,8 @@ namespace Graduation_Application.Mapper.ProductMapping
                     src => src.Images != null
                         ? src.Images.Adapt<List<ProductImageDto>>()
                         : new List<ProductImageDto>())
-                // Attributes and VendorListings are mapped manually in the service layer
-                // because they require complex nested projections
-                .Ignore(dest => dest.Attributes)
-                .Ignore(dest => dest.VendorListings);
+                // Attributes are mapped manually in the service layer
+                .Ignore(dest => dest.Attributes);
 
             // ProductImage to ProductImageDto
             TypeAdapterConfig<ProductImage, ProductImageDto>
@@ -103,16 +81,7 @@ namespace Graduation_Application.Mapper.ProductMapping
                 .Map(dest => dest.NameEn, src => src.NameEn)
                 .Map(dest => dest.DescriptionAr, src => src.DescriptionAr)
                 .Map(dest => dest.DescriptionEn, src => src.DescriptionEn)
-                .Map(dest => dest.IsActive, src => src.IsActive)
-                .Map(dest => dest.VendorCount,
-                    src => src.VendorListings != null ? src.VendorListings.Count : 0)
-                .Map(dest => dest.MinPrice,
-                    src => src.VendorListings != null && src.VendorListings.Count > 0
-                        ? src.VendorListings
-                            .SelectMany(l => l.Variants ?? Enumerable.Empty<ProductVariant>())
-                            .Select(v => (decimal?)v.CurrentPrice)
-                            .Min()
-                        : null);
+                .Map(dest => dest.IsActive, src => src.IsActive);
 
             // CreateProductDto to Product (for creation — no price or vendor here)
             TypeAdapterConfig<CreateProductDto, Product>
@@ -123,7 +92,6 @@ namespace Graduation_Application.Mapper.ProductMapping
                 .Ignore(dest => dest.UpdatedAt)
                 .Ignore(dest => dest.Images)
                 .Ignore(dest => dest.Category)
-                .Ignore(dest => dest.VendorListings)
                 .Ignore(dest => dest.Attributes);
         }
 

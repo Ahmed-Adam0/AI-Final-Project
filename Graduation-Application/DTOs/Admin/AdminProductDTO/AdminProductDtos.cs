@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Graduation_Domain.Enums;
 
 namespace Graduation_Application.DTOs.Admin.AdminProductDTO
 {
@@ -15,8 +14,7 @@ namespace Graduation_Application.DTOs.Admin.AdminProductDTO
         public string CategoryName { get; set; }
         public string VendorName { get; set; }
         public decimal Price { get; set; }
-        public ProductStatus Status { get; set; }
-        public string StatusDisplay => Status.ToString();
+        public bool IsHidden { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
         public string MainImageUrl { get; set; }
@@ -34,8 +32,7 @@ namespace Graduation_Application.DTOs.Admin.AdminProductDTO
         public string DescriptionAr { get; set; }
         public string DescriptionEn { get; set; }
         public decimal Price { get; set; }
-        public ProductStatus Status { get; set; }
-        public string StatusDisplay => Status.ToString();
+        public bool IsHidden { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
 
@@ -80,7 +77,7 @@ namespace Graduation_Application.DTOs.Admin.AdminProductDTO
         public string Search { get; set; }
         public int? CategoryId { get; set; }
         public string VendorId { get; set; }
-        public ProductStatus? Status { get; set; }
+        public bool? IsHidden { get; set; }
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;
     }

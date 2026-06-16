@@ -60,8 +60,8 @@ namespace Graduation_Application.Services
             await _reviewRepository.AddAsync(review);
             await _reviewRepository.SaveChangesAsync();
 
-            // Vendor notification deferred — requires loading listings to find the vendor
-            // TODO: look up vendor via product.VendorListings.First().Workshop.UserId
+            // Vendor notification deferred
+            // TODO: look up vendor via product.Workshop.UserId
 
             // Map to DTO
             var reviewDto = review.Adapt<ReviewDto>();
@@ -143,11 +143,9 @@ namespace Graduation_Application.Services
 
             var reviews = await _reviewRepository.GetAllAsNoTracking()
                 .Include(r => r.Product)
-                    .ThenInclude(p => p.VendorListings)
-                        .ThenInclude(l => l.Workshop)
+                    .ThenInclude(p => p.Workshop)
                 .Include(r => r.User)
-                .Where(r => r.Product != null
-                    && r.Product.VendorListings.Any(l => l.Workshop.UserId == userId))
+                .Where(r => r.Product != null && r.Product.Workshop != null && r.Product.Workshop.UserId == userId)
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync();
 
@@ -188,6 +186,7 @@ namespace Graduation_Application.Services
         {
             var review = await _reviewRepository.GetAll()
                 .Include(r => r.Product)
+                    .ThenInclude(p => p.Workshop)
                 .FirstOrDefaultAsync(r => r.Id == reviewId);
 
             if (review == null)
@@ -208,9 +207,8 @@ namespace Graduation_Application.Services
 
         private static void EnsureVendorOwnsReview(Review review, string userId)
         {
-            // Ownership check via VendorListings — if product listings are loaded use them
-            var hasListing = review.Product?.VendorListings?.Any(l => l.Workshop?.UserId == userId) ?? false;
-            if (!hasListing)
+            var isOwner = review.Product?.Workshop?.UserId == userId;
+            if (!isOwner)
                 throw new UnauthorizedAccessException("You do not have permission to manage this review.");
         }
     }

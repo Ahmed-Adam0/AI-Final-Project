@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Graduation_Application.DTOs.Admin.AdminProductDTO;
 using Graduation_Application.DTOs.Common;
-using Graduation_Domain.Enums;
 
 namespace Graduation_MVC.Areas.Admin.ViewModels.Products
 {
@@ -15,7 +14,7 @@ namespace Graduation_MVC.Areas.Admin.ViewModels.Products
         public string Search { get; set; }
         public int? CategoryId { get; set; }
         public string VendorId { get; set; }
-        public ProductStatus? Status { get; set; }
+        public bool? IsHidden { get; set; }
 
         // Paginated product results
         public PaginatedResult<AdminProductListDto> Products { get; set; }

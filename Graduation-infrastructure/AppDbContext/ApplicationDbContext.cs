@@ -36,53 +36,41 @@ namespace Graduation_infrastructure.AppDbContext
         public DbSet<Faq> Faqs { get; set; }
         public DbSet<Banner> Banners { get; set; }
 
-        // ── Multi-Vendor Catalog ──────────────────────────────────────────────────
-        public DbSet<VendorProductListing> VendorProductListings { get; set; }
+        // ── Vendor-Driven Catalog ──────────────────────────────────────────────────
         public DbSet<ProductAttribute> ProductAttributes { get; set; }
         public DbSet<ProductAttributeValue> ProductAttributeValues { get; set; }
-        public DbSet<ProductVariant> ProductVariants { get; set; }
-        public DbSet<ProductVariantAttributeValue> ProductVariantAttributeValues { get; set; }
+
+        // ── Vendor Materials Library ───────────────────────────────────────────────
+        public DbSet<VendorMaterialGroup> VendorMaterialGroups { get; set; }
+        public DbSet<VendorMaterialOption> VendorMaterialOptions { get; set; }
+        public DbSet<ProductMaterialOption> ProductMaterialOptions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
-            // ── Product (vendor-agnostic base) ────────────────────────────────────
-            builder
-                .Entity<Product>()
-                .HasOne(p => p.Category)
-                .WithMany()
-                .HasForeignKey(p => p.CategoryId);
+            // ── Product (Vendor-owned) ────────────────────────────────────
+            builder.Entity<Product>(entity =>
+            {
+                entity.HasOne(p => p.Category)
+                      .WithMany()
+                      .HasForeignKey(p => p.CategoryId);
+
+                entity.HasOne(p => p.Workshop)
+                      .WithMany(w => w.Products)
+                      .HasForeignKey(p => p.WorkshopId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.Property(e => e.BasePrice)
+                      .HasColumnType("decimal(18,2)")
+                      .IsRequired();
+            });
 
             builder
                 .Entity<ProductImage>()
                 .HasOne(pi => pi.Product)
                 .WithMany(p => p.Images)
                 .HasForeignKey(pi => pi.ProductId);
-
-            // ── VendorProductListing ──────────────────────────────────────────────
-            builder.Entity<VendorProductListing>(entity =>
-            {
-                entity.ToTable("VendorProductListings");
-                entity.HasKey(e => e.Id);
-
-                // Enforce: one workshop can create only one listing per product
-                entity.HasIndex(e => new { e.ProductId, e.WorkshopId }).IsUnique();
-
-                entity.Property(e => e.BasePrice)
-                      .HasColumnType("decimal(18,2)")
-                      .IsRequired();
-
-                entity.HasOne(e => e.Product)
-                      .WithMany(p => p.VendorListings)
-                      .HasForeignKey(e => e.ProductId)
-                      .OnDelete(DeleteBehavior.Restrict);
-
-                entity.HasOne(e => e.Workshop)
-                      .WithMany(w => w.VendorListings)
-                      .HasForeignKey(e => e.WorkshopId)
-                      .OnDelete(DeleteBehavior.Restrict);
-            });
 
             // ── ProductAttribute ─────────────────────────────────────────────────
             builder.Entity<ProductAttribute>(entity =>
@@ -105,6 +93,7 @@ namespace Graduation_infrastructure.AppDbContext
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.ValueAr).HasMaxLength(200).IsRequired();
                 entity.Property(e => e.ValueEn).HasMaxLength(200).IsRequired();
+                entity.Property(e => e.PriceDelta).HasColumnType("decimal(18,2)");
 
                 entity.HasOne(e => e.Attribute)
                       .WithMany(a => a.Values)
@@ -112,42 +101,51 @@ namespace Graduation_infrastructure.AppDbContext
                       .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // ── ProductVariant ───────────────────────────────────────────────────
-            builder.Entity<ProductVariant>(entity =>
+            // ── Vendor Materials Library ───────────────────────────────────────────
+            builder.Entity<VendorMaterialGroup>(entity =>
             {
-                entity.ToTable("ProductVariants");
+                entity.ToTable("VendorMaterialGroups");
                 entity.HasKey(e => e.Id);
+                entity.Property(e => e.NameAr).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.NameEn).HasMaxLength(100).IsRequired();
 
-                entity.Property(e => e.PriceDelta).HasColumnType("decimal(18,2)");
-                entity.Property(e => e.CurrentPrice).HasColumnType("decimal(18,2)");
-                entity.Property(e => e.VariantImageUrl).HasMaxLength(1000);
-
-                entity.HasOne(e => e.Listing)
-                      .WithMany(l => l.Variants)
-                      .HasForeignKey(e => e.ListingId)
+                entity.HasOne(e => e.Workshop)
+                      .WithMany(w => w.MaterialGroups)
+                      .HasForeignKey(e => e.WorkshopId)
                       .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // ── ProductVariantAttributeValue (explicit many-to-many join) ────────
-            builder.Entity<ProductVariantAttributeValue>(entity =>
+            builder.Entity<VendorMaterialOption>(entity =>
             {
-                entity.ToTable("ProductVariantAttributeValues");
+                entity.ToTable("VendorMaterialOptions");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.ValueAr).HasMaxLength(200).IsRequired();
+                entity.Property(e => e.ValueEn).HasMaxLength(200).IsRequired();
+                entity.Property(e => e.PriceDelta).HasColumnType("decimal(18,2)");
 
-                // Composite primary key — no surrogate Id needed
-                entity.HasKey(e => new { e.VariantId, e.AttributeValueId });
-
-                entity.HasOne(e => e.Variant)
-                      .WithMany(v => v.VariantAttributeValues)
-                      .HasForeignKey(e => e.VariantId)
+                entity.HasOne(e => e.Group)
+                      .WithMany(g => g.Options)
+                      .HasForeignKey(e => e.VendorMaterialGroupId)
                       .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasOne(e => e.AttributeValue)
-                      .WithMany(av => av.VariantAttributeValues)
-                      .HasForeignKey(e => e.AttributeValueId)
-                      .OnDelete(DeleteBehavior.Restrict); // Don't cascade-delete attribute values
             });
 
-            // ── CartItem (now references ProductVariant) ─────────────────────────
+            builder.Entity<ProductMaterialOption>(entity =>
+            {
+                entity.ToTable("ProductMaterialOptions");
+                entity.HasKey(e => new { e.ProductId, e.VendorMaterialOptionId });
+
+                entity.HasOne(e => e.Product)
+                      .WithMany(p => p.MaterialOptions)
+                      .HasForeignKey(e => e.ProductId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.VendorMaterialOption)
+                      .WithMany(o => o.ProductMaterialOptions)
+                      .HasForeignKey(e => e.VendorMaterialOptionId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ── CartItem ─────────────────────────
             builder.Entity<CartItem>(entity =>
             {
                 entity.Property(e => e.CachedPrice).HasColumnType("decimal(18,2)");
@@ -157,9 +155,9 @@ namespace Graduation_infrastructure.AppDbContext
                       .HasForeignKey(e => e.CartId)
                       .OnDelete(DeleteBehavior.Cascade);
 
-                entity.HasOne(e => e.ProductVariant)
+                entity.HasOne(e => e.Product)
                       .WithMany()
-                      .HasForeignKey(e => e.ProductVariantId)
+                      .HasForeignKey(e => e.ProductId)
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
@@ -177,10 +175,10 @@ namespace Graduation_infrastructure.AppDbContext
                       .HasForeignKey(e => e.OrderId)
                       .OnDelete(DeleteBehavior.Cascade);
 
-                // Soft-reference: if a variant is deleted, preserve the snapshot (set null)
-                entity.HasOne(e => e.ProductVariant)
-                      .WithMany(v => v.OrderItems)
-                      .HasForeignKey(e => e.ProductVariantId)
+                // Soft-reference: if a product is deleted, preserve the snapshot (set null)
+                entity.HasOne(e => e.Product)
+                      .WithMany()
+                      .HasForeignKey(e => e.ProductId)
                       .IsRequired(false)
                       .OnDelete(DeleteBehavior.SetNull);
             });

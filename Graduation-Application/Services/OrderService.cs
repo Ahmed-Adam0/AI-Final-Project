@@ -78,18 +78,8 @@ namespace Graduation_Application.Services
             var cart = await _cartRepository
                 .WhereAsNoTracking(c => c.UserId == userId)
                 .Include(c => c.Items)
-                    .ThenInclude(ci => ci.ProductVariant)
-                        .ThenInclude(v => v.Listing)
-                            .ThenInclude(l => l.Product)
-                .Include(c => c.Items)
-                    .ThenInclude(ci => ci.ProductVariant)
-                        .ThenInclude(v => v.Listing)
-                            .ThenInclude(l => l.Workshop)
-                .Include(c => c.Items)
-                    .ThenInclude(ci => ci.ProductVariant)
-                        .ThenInclude(v => v.VariantAttributeValues)
-                            .ThenInclude(vav => vav.AttributeValue)
-                                .ThenInclude(av => av.Attribute)
+                    .ThenInclude(ci => ci.Product)
+                        .ThenInclude(p => p.Workshop)
                 .FirstOrDefaultAsync();
 
             if (cart == null || !cart.Items.Any())
@@ -112,28 +102,14 @@ namespace Graduation_Application.Services
                 // Build immutable snapshot items from cart items
                 Items = cart.Items.Select(ci =>
                 {
-                    var variant = ci.ProductVariant;
-                    var listing = variant?.Listing;
-                    var product = listing?.Product;
-                    var workshop = listing?.Workshop;
+                    var product = ci.Product;
+                    var workshop = product?.Workshop;
 
-                    // Serialize chosen attributes to JSON
-                    var attrs = variant?.VariantAttributeValues
-                        ?.Select(vav => new
-                        {
-                            nameEn = vav.AttributeValue?.Attribute?.NameEn ?? string.Empty,
-                            nameAr = vav.AttributeValue?.Attribute?.NameAr ?? string.Empty,
-                            valueEn = vav.AttributeValue?.ValueEn ?? string.Empty,
-                            valueAr = vav.AttributeValue?.ValueAr ?? string.Empty,
-                        })
-                        .ToList();
-                    string attrsJson = attrs != null
-                        ? System.Text.Json.JsonSerializer.Serialize(attrs)
-                        : "[]";
+                    string attrsJson = "[]";
 
                     return new OrderItem
                     {
-                        ProductVariantId = ci.ProductVariantId,
+                        ProductId = ci.ProductId,
                         Quantity = ci.Quantity,
                         SnapshotUnitPrice = ci.CachedPrice,
                         SnapshotProductNameEn = product?.NameEn ?? string.Empty,
@@ -433,7 +409,7 @@ namespace Graduation_Application.Services
 
             foreach (var itemDto in dto.Items)
             {
-                var orderItem = order.Items.FirstOrDefault(oi => oi.ProductVariantId == itemDto.ProductId);
+                var orderItem = order.Items.FirstOrDefault(oi => oi.ProductId == itemDto.ProductId);
                 if (orderItem == null)
                 {
                     throw new Exception(
@@ -474,7 +450,7 @@ namespace Graduation_Application.Services
                 Items = order.Items.Select(oi => new OrderItemResponseDto
                     {
                         Id = oi.Id,
-                        ProductVariantId = oi.ProductVariantId,
+                        ProductId = oi.ProductId,
                         ProductNameEn = oi.SnapshotProductNameEn,
                         ProductNameAr = oi.SnapshotProductNameAr,
                         VendorName = oi.SnapshotVendorName,

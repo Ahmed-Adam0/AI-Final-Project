@@ -15,7 +15,7 @@ namespace Graduation_Application.Mapper.FavoriteMapping
                 .Map(dest => dest.ProductId, src => src.ProductId)
                 .Map(dest => dest.ProductNameAr, src => src.Product != null ? src.Product.NameAr : string.Empty)
                 .Map(dest => dest.ProductNameEn, src => src.Product != null ? src.Product.NameEn : string.Empty)
-                .Map(dest => dest.Price, src => src.Product != null && src.Product.VendorListings != null && src.Product.VendorListings.Any() ? src.Product.VendorListings.Min(vl => vl.BasePrice) : 0)
+                .Map(dest => dest.Price, src => src.Product != null ? src.Product.BasePrice : 0)
                 .AfterMapping((src, dest) =>
                 {
                     dest.MainImageUrl = GetMainImageUrl(src.Product?.Images);

@@ -18,19 +18,21 @@ namespace Graduation_domain.Entities
         public int CartId { get; set; }
         public Cart? Cart { get; set; }
 
-        /// <summary>
-        /// The specific variant the customer has selected (encodes vendor + attribute combination).
-        /// </summary>
         [Required]
-        public int ProductVariantId { get; set; }
-        public ProductVariant? ProductVariant { get; set; }
+        public int ProductId { get; set; }
+        public Product? Product { get; set; }
+
+        /// <summary>
+        /// JSON array of selected ProductAttributeValue IDs. E.g., "[10, 15]".
+        /// </summary>
+        public string SelectedOptionsJson { get; set; } = "[]";
 
         [Required]
         public int Quantity { get; set; }
 
         /// <summary>
         /// Price per unit captured when the item was added to the cart.
-        /// Always re-validate this against ProductVariant.CurrentPrice before finalizing an order.
+        /// Always re-validate this against the product's BasePrice + Option Deltas before finalizing an order.
         /// </summary>
         public decimal CachedPrice { get; set; }
     }

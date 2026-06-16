@@ -11,8 +11,8 @@ namespace Graduation_Application.DTOs.OrderDTO
     {
         public int Id { get; set; }
 
-        /// <summary>Nullable — variant may have been deleted after purchase.</summary>
-        public int? ProductVariantId { get; set; }
+        /// <summary>Nullable — product may have been deleted after purchase.</summary>
+        public int? ProductId { get; set; }
 
         // ── Snapshot fields (what was true at purchase time) ──────────────────
         public string ProductNameAr { get; set; } = string.Empty;

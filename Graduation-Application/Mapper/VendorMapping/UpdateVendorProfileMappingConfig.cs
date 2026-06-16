@@ -32,7 +32,7 @@ namespace Graduation_Application.Mapper.VendorMapping
                 .Ignore(dest => dest.Id)
                 .Ignore(dest => dest.UserId)
                 .Ignore(dest => dest.User)
-                .Ignore(dest => dest.VendorListings)
+                .Ignore(dest => dest.Products)
                 .Ignore(dest => dest.Reviews)
                 .Ignore(dest => dest.WorkshopAddress)
                 .Ignore(dest => dest.CreatedAt)

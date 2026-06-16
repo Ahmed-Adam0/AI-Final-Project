@@ -36,5 +36,6 @@ namespace Graduation_Application.IServices
         /// Get top-rated products owned by vendor
         /// </summary>
         Task<IEnumerable<ProductDto>> GetVendorTopProductsAsync(string userId, int topCount = 5);
+
     }
 }

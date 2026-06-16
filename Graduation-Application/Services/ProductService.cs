@@ -3,6 +3,7 @@ using Graduation_Application.DTOs.ProductDTO;
 using Graduation_Application.IRepositories;
 using Graduation_Application.IServices;
 using Graduation_domain.Entities;
+
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -19,17 +20,26 @@ namespace Graduation_Application.Services
         private readonly IGenaricRepositories<Category> _categoryRepository;
         private readonly IGenaricRepositories<ProductImage> _productImageRepository;
         private readonly IGenaricRepositories<Workshop> _workshopRepository;
+        private readonly IGenaricRepositories<ProductAttribute> _attributeRepository;
+        private readonly IGenaricRepositories<ProductAttributeValue> _attributeValueRepository;
+        private readonly IGenaricRepositories<ProductMaterialOption> _productMaterialOptionRepository;
 
         public ProductService(
             IGenaricRepositories<Product> productRepository,
             IGenaricRepositories<Category> categoryRepository,
             IGenaricRepositories<ProductImage> productImageRepository,
-            IGenaricRepositories<Workshop> workshopRepository)
+            IGenaricRepositories<Workshop> workshopRepository,
+            IGenaricRepositories<ProductAttribute> attributeRepository,
+            IGenaricRepositories<ProductAttributeValue> attributeValueRepository,
+            IGenaricRepositories<ProductMaterialOption> productMaterialOptionRepository)
         {
             _productRepository = productRepository;
             _categoryRepository = categoryRepository;
             _productImageRepository = productImageRepository;
             _workshopRepository = workshopRepository;
+            _attributeRepository = attributeRepository;
+            _attributeValueRepository = attributeValueRepository;
+            _productMaterialOptionRepository = productMaterialOptionRepository;
         }
 
         public async Task<PaginatedResult<ProductDto>> GetProductsAsync(ProductFilterDto filter)
@@ -41,13 +51,12 @@ namespace Graduation_Application.Services
             // Start with base query (AsNoTracking for performance)
             IQueryable<Product> query = _productRepository.GetAllAsNoTracking()
                 .Include(p => p.Category)
-                .Include(p => p.VendorListings)
-                    .ThenInclude(l => l.Workshop)
+                .Include(p => p.Workshop)
                 .Include(p => p.Images);
 
             // Apply IsActive status filter: default to showing only active products
             bool activeFilter = filter.IsActive ?? true;
-            query = query.Where(p => p.IsActive == activeFilter);
+            query = query.Where(p => p.IsActive == activeFilter && !p.IsHidden);
 
             // Apply Search Filter (Name and Description)
             if (!string.IsNullOrWhiteSpace(filter.Search))
@@ -67,23 +76,21 @@ namespace Graduation_Application.Services
                 query = query.Where(p => p.CategoryId == filter.CategoryId.Value);
             }
 
-            // Apply Workshop Filter (via VendorListing)
+            // Apply Workshop Filter
             if (filter.WorkshopId.HasValue && filter.WorkshopId > 0)
             {
-                query = query.Where(p => p.VendorListings.Any(l => l.WorkshopId == filter.WorkshopId.Value));
+                query = query.Where(p => p.WorkshopId == filter.WorkshopId.Value);
             }
 
-            // Apply Price Range Filter (against minimum variant price)
+            // Apply Price Range Filter
             if (filter.MinPrice.HasValue && filter.MinPrice > 0)
             {
-                query = query.Where(p => p.VendorListings.Any(l =>
-                    l.Variants.Any(v => v.CurrentPrice >= filter.MinPrice.Value)));
+                query = query.Where(p => p.BasePrice >= filter.MinPrice.Value);
             }
 
             if (filter.MaxPrice.HasValue && filter.MaxPrice > 0)
             {
-                query = query.Where(p => p.VendorListings.Any(l =>
-                    l.Variants.Any(v => v.CurrentPrice <= filter.MaxPrice.Value)));
+                query = query.Where(p => p.BasePrice <= filter.MaxPrice.Value);
             }
 
             // Apply Material Filter (search in description if not a separate field)
@@ -123,17 +130,11 @@ namespace Graduation_Application.Services
             var product = await _productRepository
                 .GetAllAsNoTracking()
                 .Include(p => p.Category)
-                .Include(p => p.VendorListings)
-                    .ThenInclude(l => l.Workshop)
-                .Include(p => p.VendorListings)
-                    .ThenInclude(l => l.Variants)
-                        .ThenInclude(v => v.VariantAttributeValues)
-                            .ThenInclude(vav => vav.AttributeValue)
-                                .ThenInclude(av => av.Attribute)
+                .Include(p => p.Workshop)
                 .Include(p => p.Attributes)
                     .ThenInclude(a => a.Values)
                 .Include(p => p.Images)
-                .FirstOrDefaultAsync(p => p.Id == id && p.IsActive);
+                .FirstOrDefaultAsync(p => p.Id == id && p.IsActive && !p.IsHidden);
 
             if (product == null)
                 return null;
@@ -157,7 +158,7 @@ namespace Graduation_Application.Services
             if (!categoryExists)
                 throw new ArgumentException($"Category with ID {createProductDto.CategoryId} does not exist.");
 
-            // Create the base product (vendor-agnostic)
+            // Create the base product (vendor-owned)
             var product = new Product
             {
                 CategoryId = createProductDto.CategoryId,
@@ -165,16 +166,16 @@ namespace Graduation_Application.Services
                 NameEn = createProductDto.NameEn,
                 DescriptionAr = createProductDto.DescriptionAr,
                 DescriptionEn = createProductDto.DescriptionEn,
+                BasePrice = createProductDto.BasePrice,
+                WorkshopId = workshop.Id,
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow
+                IsHidden = false,
+                CreatedAt = DateTime.UtcNow,
+                MaterialOptions = createProductDto.VendorMaterialOptionIds?.Select(id => new ProductMaterialOption { VendorMaterialOptionId = id }).ToList() ?? new List<ProductMaterialOption>()
             };
 
             await _productRepository.AddAsync(product);
             await _productRepository.SaveChangesAsync();
-
-            // Create the vendor's listing with base price
-            // Note: If createProductDto had a Price field previously, create a default listing here.
-            // The full listing/variant setup is done via the VendorProductListing endpoints.
 
             return product.Adapt<ProductResponseDto>();
         }
@@ -187,12 +188,12 @@ namespace Graduation_Application.Services
 
             EnsureProductOwnership(product, userId);
 
+
             // Validate Category exists
             var categoryExists = await _categoryRepository.AnyAsync(c => c.Id == updateProductDto.CategoryId);
             if (!categoryExists)
                 throw new ArgumentException($"Category with ID {updateProductDto.CategoryId} does not exist.");
 
-            // Update catalog identity fields (price is managed via VendorProductListing)
             product.CategoryId = updateProductDto.CategoryId;
             product.NameAr = updateProductDto.NameAr;
             product.NameEn = updateProductDto.NameEn;
@@ -200,9 +201,24 @@ namespace Graduation_Application.Services
             product.DescriptionEn = updateProductDto.DescriptionEn;
             product.UpdatedAt = DateTime.UtcNow;
 
+            if (updateProductDto.BasePrice.HasValue)
+            {
+                product.BasePrice = updateProductDto.BasePrice.Value;
+            }
+
             if (updateProductDto.IsActive.HasValue)
             {
                 product.IsActive = updateProductDto.IsActive.Value;
+            }
+
+
+            if (updateProductDto.VendorMaterialOptionIds != null)
+            {
+                var existingOptions = await _productMaterialOptionRepository.Where(pmo => pmo.ProductId == productId).ToListAsync();
+                _productMaterialOptionRepository.DeleteRange(existingOptions);
+
+                var newOptions = updateProductDto.VendorMaterialOptionIds.Select(id => new ProductMaterialOption { ProductId = productId, VendorMaterialOptionId = id });
+                await _productMaterialOptionRepository.AddRangeAsync(newOptions);
             }
 
             _productRepository.Update(product);
@@ -369,14 +385,120 @@ namespace Graduation_Application.Services
 
             return product.Adapt<ProductResponseDto>();
         }
+        public async Task<ProductAttributeDto> AddProductAttributeAsync(int productId, string userId, CreateProductAttributeDto dto)
+        {
+            var product = await _productRepository.GetByIdAsync(productId);
+            if (product == null) throw new ArgumentException("Product not found.");
+            EnsureProductOwnership(product, userId);
+
+            var attribute = new ProductAttribute
+            {
+                ProductId = productId,
+                NameAr = dto.NameAr,
+                NameEn = dto.NameEn,
+                CreatedAt = DateTime.UtcNow
+            };
+            await _attributeRepository.AddAsync(attribute);
+            await _attributeRepository.SaveChangesAsync();
+
+            return attribute.Adapt<ProductAttributeDto>();
+        }
+
+        public async Task<ProductAttributeDto> UpdateProductAttributeAsync(int productId, int attributeId, string userId, UpdateProductAttributeDto dto)
+        {
+            var product = await _productRepository.GetByIdAsync(productId);
+            if (product == null) throw new ArgumentException("Product not found.");
+            EnsureProductOwnership(product, userId);
+
+            var attribute = await _attributeRepository.GetByIdAsync(attributeId);
+            if (attribute == null || attribute.ProductId != productId) throw new ArgumentException("Attribute not found.");
+
+            if (!string.IsNullOrWhiteSpace(dto.NameAr)) attribute.NameAr = dto.NameAr;
+            if (!string.IsNullOrWhiteSpace(dto.NameEn)) attribute.NameEn = dto.NameEn;
+            attribute.UpdatedAt = DateTime.UtcNow;
+
+            _attributeRepository.Update(attribute);
+            await _attributeRepository.SaveChangesAsync();
+
+            return attribute.Adapt<ProductAttributeDto>();
+        }
+
+        public async Task<bool> DeleteProductAttributeAsync(int productId, int attributeId, string userId)
+        {
+            var product = await _productRepository.GetByIdAsync(productId);
+            if (product == null) return false;
+            EnsureProductOwnership(product, userId);
+
+            var attribute = await _attributeRepository.GetByIdAsync(attributeId);
+            if (attribute == null || attribute.ProductId != productId) return false;
+
+            _attributeRepository.Delete(attribute);
+            await _attributeRepository.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<AttributeValueDto> AddAttributeValueAsync(int productId, int attributeId, string userId, CreateProductAttributeValueDto dto)
+        {
+            var product = await _productRepository.GetByIdAsync(productId);
+            if (product == null) throw new ArgumentException("Product not found.");
+            EnsureProductOwnership(product, userId);
+
+            var attribute = await _attributeRepository.GetByIdAsync(attributeId);
+            if (attribute == null || attribute.ProductId != productId) throw new ArgumentException("Attribute not found.");
+
+            var value = new ProductAttributeValue
+            {
+                AttributeId = attributeId,
+                ValueAr = dto.ValueAr,
+                ValueEn = dto.ValueEn,
+                PriceDelta = dto.PriceDelta,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _attributeValueRepository.AddAsync(value);
+            await _attributeValueRepository.SaveChangesAsync();
+
+            return value.Adapt<AttributeValueDto>();
+        }
+
+        public async Task<AttributeValueDto> UpdateAttributeValueAsync(int productId, int attributeId, int valueId, string userId, UpdateProductAttributeValueDto dto)
+        {
+            var product = await _productRepository.GetByIdAsync(productId);
+            if (product == null) throw new ArgumentException("Product not found.");
+            EnsureProductOwnership(product, userId);
+
+            var value = await _attributeValueRepository.GetByIdAsync(valueId);
+            if (value == null || value.AttributeId != attributeId) throw new ArgumentException("Value not found.");
+
+            if (!string.IsNullOrWhiteSpace(dto.ValueAr)) value.ValueAr = dto.ValueAr;
+            if (!string.IsNullOrWhiteSpace(dto.ValueEn)) value.ValueEn = dto.ValueEn;
+            if (dto.PriceDelta.HasValue) value.PriceDelta = dto.PriceDelta.Value;
+            value.UpdatedAt = DateTime.UtcNow;
+
+            _attributeValueRepository.Update(value);
+            await _attributeValueRepository.SaveChangesAsync();
+
+            return value.Adapt<AttributeValueDto>();
+        }
+
+        public async Task<bool> DeleteAttributeValueAsync(int productId, int attributeId, int valueId, string userId)
+        {
+            var product = await _productRepository.GetByIdAsync(productId);
+            if (product == null) return false;
+            EnsureProductOwnership(product, userId);
+
+            var value = await _attributeValueRepository.GetByIdAsync(valueId);
+            if (value == null || value.AttributeId != attributeId) return false;
+
+            _attributeValueRepository.Delete(value);
+            await _attributeValueRepository.SaveChangesAsync();
+            return true;
+        }
 
         private static void EnsureProductOwnership(Product product, string userId)
         {
-            // Ownership is now expressed through VendorProductListings.
-            // If listings are loaded, check them; otherwise do a permissive pass
-            // (caller should validate via a separate async check when needed).
-            var hasListing = product.VendorListings?.Any(l => l.Workshop?.UserId == userId) ?? false;
-            if (!hasListing && product.VendorListings != null && product.VendorListings.Count > 0)
+            var isOwner = product.Workshop?.UserId == userId;
+            if (!isOwner && product.Workshop != null)
                 throw new UnauthorizedAccessException("You do not have permission to manage this product.");
         }
     }

@@ -22,11 +22,11 @@ namespace Graduation_domain.Entities
 
         // ── Live soft-reference (nullable — variant may be deleted later) ─────────
         /// <summary>
-        /// Points to the variant that was purchased.
+        /// Points to the product that was purchased.
         /// SetNull on delete — the snapshot columns below guarantee data is never lost.
         /// </summary>
-        public int? ProductVariantId { get; set; }
-        public ProductVariant? ProductVariant { get; set; }
+        public int? ProductId { get; set; }
+        public Product? Product { get; set; }
 
         // ── Immutable historical snapshot ─────────────────────────────────────────
         // IMPORTANT: These columns are written once at checkout and MUST NEVER be updated.

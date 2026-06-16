@@ -294,20 +294,15 @@ namespace Graduation_Application.Services
         /// </summary>
         public async Task<int> GetVendorProductCountAsync(string userId)
         {
-            var workshopRepository = (IGenaricRepositories<Workshop>)AppDomain.CurrentDomain.GetData("WorkshopRepository");
             var workshop = await _workshopRepository.FirstOrDefaultAsync(w => w.UserId == userId);
             if (workshop == null) return 0;
 
-            var listingRepository = (IGenaricRepositories<VendorProductListing>)AppDomain.CurrentDomain.GetData("VendorProductListingRepository");
-            // Alternatively, query through workshop relationships: workshop.VendorListings.Count()
-            // Let's inject IGenaricRepositories<VendorProductListing> or load it if we don't have it.
-            // Wait, we can load workshop with VendorListings:
-            var workshopWithListings = await _workshopRepository
+            var workshopWithProducts = await _workshopRepository
                 .Where(w => w.Id == workshop.Id)
-                .Include(w => w.VendorListings)
+                .Include(w => w.Products)
                 .FirstOrDefaultAsync();
 
-            return workshopWithListings?.VendorListings?.Count ?? 0;
+            return workshopWithProducts?.Products?.Count ?? 0;
         }
 
         /// <summary>

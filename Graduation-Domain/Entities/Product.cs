@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Graduation_Domain.Enums;
 
 namespace Graduation_domain.Entities
 {
@@ -16,7 +15,7 @@ namespace Graduation_domain.Entities
     /// </summary>
     public class Product : BaseEntity<int>
     {
-        public ProductStatus Status { get; set; } = ProductStatus.Active;
+        public bool IsHidden { get; set; } = false;
 
         public int CategoryId { get; set; }
         public Category Category { get; set; } = null!;
@@ -27,18 +26,17 @@ namespace Graduation_domain.Entities
         public string DescriptionAr { get; set; } = string.Empty;
         public string DescriptionEn { get; set; } = string.Empty;
 
+        public int WorkshopId { get; set; }
+        public Workshop Workshop { get; set; } = null!;
+
+        public decimal BasePrice { get; set; }
+
         // ── Navigations ──────────────────────────────────────────────────────────
         /// <summary>
-        /// All vendor listings for this product.
-        /// Multiple vendors (Workshops) can each have their own listing with their own pricing.
-        /// </summary>
-        public List<VendorProductListing> VendorListings { get; set; } = [];
-
-        /// <summary>
         /// Attribute dimensions available for this product type (e.g., "Material", "Color").
-        /// Shared across all vendor listings of this product.
-        /// </summary>
         public List<ProductAttribute> Attributes { get; set; } = [];
+
+        public List<ProductMaterialOption> MaterialOptions { get; set; } = [];
 
         public List<ProductImage>? Images { get; set; }
     }

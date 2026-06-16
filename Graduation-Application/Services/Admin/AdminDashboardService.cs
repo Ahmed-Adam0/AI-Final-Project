@@ -82,7 +82,7 @@ namespace Graduation_Application.Services.Admin
             var vendorStats = await _workshopRepository
                 .GetAllAsNoTracking()
                 .Include(w => w.User)
-                .Include(w => w.VendorListings)
+                .Include(w => w.Products)
                 .Select(w => new AdminVendorListItemDto
                 {
                     WorkshopId = w.Id,
@@ -241,7 +241,7 @@ namespace Graduation_Application.Services.Admin
                         Id = r.Id,
                         Title = $"Product report #{r.Id}",
                         Type = "Product",
-                        VendorName = r.Product?.VendorListings?.FirstOrDefault()?.Workshop?.WorkshopNameEn ?? "N/A",
+                        VendorName = r.Product?.Workshop?.WorkshopNameEn ?? "N/A",
                         CreatedAt = r.CreatedAt,
                         DownloadUrl = $"/Admin/Reports/Download?reportId={r.Id}",
                     })
@@ -592,7 +592,7 @@ namespace Graduation_Application.Services.Admin
                         Id = r.Id,
                         Title = r.Product?.NameEn ?? $"Report #{r.Id}",
                         Type = "Product",
-                        VendorName = r.Product?.VendorListings?.FirstOrDefault()?.Workshop?.WorkshopNameEn ?? "N/A",
+                        VendorName = r.Product?.Workshop?.WorkshopNameEn ?? "N/A",
                         CreatedAt = r.CreatedAt,
                         DownloadUrl = $"/Admin/Reports/Download?reportId={r.Id}",
                     })

@@ -553,6 +553,97 @@ namespace Graduation_API.Controllers
             }
         }
 
-        // =====================================================================
+
+        // ==================== ATTRIBUTE MANAGEMENT ENDPOINTS ====================
+
+        [HttpPost("{productId}/attributes")]
+        [Authorize(Roles = "Vendor")]
+        public async Task<IActionResult> AddProductAttribute(int productId, [FromBody] CreateProductAttributeDto dto)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                var result = await _productService.AddProductAttributeAsync(productId, userId, dto);
+                return Ok(result);
+            }
+            catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+            catch (UnauthorizedAccessException ex) { return StatusCode(403, new { message = ex.Message }); }
+            catch (Exception ex) { return StatusCode(500, new { message = ex.Message }); }
+        }
+
+        [HttpPut("{productId}/attributes/{attributeId}")]
+        [Authorize(Roles = "Vendor")]
+        public async Task<IActionResult> UpdateProductAttribute(int productId, int attributeId, [FromBody] UpdateProductAttributeDto dto)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                var result = await _productService.UpdateProductAttributeAsync(productId, attributeId, userId, dto);
+                return Ok(result);
+            }
+            catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+            catch (UnauthorizedAccessException ex) { return StatusCode(403, new { message = ex.Message }); }
+            catch (Exception ex) { return StatusCode(500, new { message = ex.Message }); }
+        }
+
+        [HttpDelete("{productId}/attributes/{attributeId}")]
+        [Authorize(Roles = "Vendor")]
+        public async Task<IActionResult> DeleteProductAttribute(int productId, int attributeId)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                var result = await _productService.DeleteProductAttributeAsync(productId, attributeId, userId);
+                if (!result) return NotFound(new { message = "Attribute not found" });
+                return Ok(new { message = "Attribute deleted successfully" });
+            }
+            catch (UnauthorizedAccessException ex) { return StatusCode(403, new { message = ex.Message }); }
+            catch (Exception ex) { return StatusCode(500, new { message = ex.Message }); }
+        }
+
+        [HttpPost("{productId}/attributes/{attributeId}/values")]
+        [Authorize(Roles = "Vendor")]
+        public async Task<IActionResult> AddAttributeValue(int productId, int attributeId, [FromBody] CreateProductAttributeValueDto dto)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                var result = await _productService.AddAttributeValueAsync(productId, attributeId, userId, dto);
+                return Ok(result);
+            }
+            catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+            catch (UnauthorizedAccessException ex) { return StatusCode(403, new { message = ex.Message }); }
+            catch (Exception ex) { return StatusCode(500, new { message = ex.Message }); }
+        }
+
+        [HttpPut("{productId}/attributes/{attributeId}/values/{valueId}")]
+        [Authorize(Roles = "Vendor")]
+        public async Task<IActionResult> UpdateAttributeValue(int productId, int attributeId, int valueId, [FromBody] UpdateProductAttributeValueDto dto)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                var result = await _productService.UpdateAttributeValueAsync(productId, attributeId, valueId, userId, dto);
+                return Ok(result);
+            }
+            catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
+            catch (UnauthorizedAccessException ex) { return StatusCode(403, new { message = ex.Message }); }
+            catch (Exception ex) { return StatusCode(500, new { message = ex.Message }); }
+        }
+
+        [HttpDelete("{productId}/attributes/{attributeId}/values/{valueId}")]
+        [Authorize(Roles = "Vendor")]
+        public async Task<IActionResult> DeleteAttributeValue(int productId, int attributeId, int valueId)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                var result = await _productService.DeleteAttributeValueAsync(productId, attributeId, valueId, userId);
+                if (!result) return NotFound(new { message = "Value not found" });
+                return Ok(new { message = "Value deleted successfully" });
+            }
+            catch (UnauthorizedAccessException ex) { return StatusCode(403, new { message = ex.Message }); }
+            catch (Exception ex) { return StatusCode(500, new { message = ex.Message }); }
+        }
     }
 }

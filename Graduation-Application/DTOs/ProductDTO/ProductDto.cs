@@ -11,7 +11,8 @@ namespace Graduation_Application.DTOs.ProductDTO
         public string NameEn { get; set; }
         public string DescriptionAr { get; set; }
         public string DescriptionEn { get; set; }
-        public decimal Price { get; set; }
+        public decimal BasePrice { get; set; }
+        public bool IsHidden { get; set; }
         public int CategoryId { get; set; }
         public string CategoryNameAr { get; set; }
         public string CategoryNameEn { get; set; }

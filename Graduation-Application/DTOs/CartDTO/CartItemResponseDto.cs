@@ -7,8 +7,7 @@ namespace Graduation_Application.DTOs.CartDTO
     {
         public int Id { get; set; }
 
-        // ── Variant identity ────────────────────────────────────────────────
-        public int ProductVariantId { get; set; }
+        // ── Identity ────────────────────────────────────────────────
         public int ProductId { get; set; }
         public string ProductNameAr { get; set; } = string.Empty;
         public string ProductNameEn { get; set; } = string.Empty;
@@ -19,7 +18,7 @@ namespace Graduation_Application.DTOs.CartDTO
         /// <summary>Price per unit cached when item was added. May differ from live price.</summary>
         public decimal CachedPrice { get; set; }
 
-        /// <summary>Live current price from ProductVariant — use this at checkout.</summary>
+        /// <summary>Live current price from Product BasePrice + Option Deltas — use this at checkout.</summary>
         public decimal LivePrice { get; set; }
 
         /// <summary>True if the price has changed since the item was added to cart.</summary>
@@ -35,5 +34,13 @@ namespace Graduation_Application.DTOs.CartDTO
         public List<SelectedAttributeDto> SelectedAttributes { get; set; } = [];
 
         public List<string> ProductImages { get; set; } = [];
+    }
+
+    public class SelectedAttributeDto
+    {
+        public string AttributeNameEn { get; set; } = string.Empty;
+        public string AttributeNameAr { get; set; } = string.Empty;
+        public string ValueEn { get; set; } = string.Empty;
+        public string ValueAr { get; set; } = string.Empty;
     }
 }

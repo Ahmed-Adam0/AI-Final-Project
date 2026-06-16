@@ -37,10 +37,9 @@ namespace Graduation_Application.Services
 
             // Start query: get products owned by this vendor via their VendorProductListings
             IQueryable<Product> query = _productRepository.GetAllAsNoTracking()
-                .Where(p => p.VendorListings.Any(l => l.Workshop.UserId == userId))
+                .Where(p => p.Workshop != null && p.Workshop.UserId == userId)
                 .Include(p => p.Category)
-                .Include(p => p.VendorListings)
-                    .ThenInclude(l => l.Workshop)
+                .Include(p => p.Workshop)
                 .Include(p => p.Images);
 
             // Apply status filter
@@ -68,14 +67,12 @@ namespace Graduation_Application.Services
             // Apply price range filter (against minimum variant price across listings)
             if (filter.MinPrice.HasValue && filter.MinPrice > 0)
             {
-                query = query.Where(p => p.VendorListings.Any(l =>
-                    l.Variants.Any(v => v.CurrentPrice >= filter.MinPrice.Value)));
+                query = query.Where(p => p.BasePrice >= filter.MinPrice.Value);
             }
 
             if (filter.MaxPrice.HasValue && filter.MaxPrice > 0)
             {
-                query = query.Where(p => p.VendorListings.Any(l =>
-                    l.Variants.Any(v => v.CurrentPrice <= filter.MaxPrice.Value)));
+                query = query.Where(p => p.BasePrice <= filter.MaxPrice.Value);
             }
 
             // Get total count
@@ -108,16 +105,10 @@ namespace Graduation_Application.Services
         {
             var product = await _productRepository.GetAllAsNoTracking()
                 .Where(p => p.Id == productId
-                    && p.VendorListings.Any(l => l.Workshop.UserId == userId)
+                    && p.Workshop != null && p.Workshop.UserId == userId
                     && p.IsActive)
                 .Include(p => p.Category)
-                .Include(p => p.VendorListings)
-                    .ThenInclude(l => l.Workshop)
-                .Include(p => p.VendorListings)
-                    .ThenInclude(l => l.Variants)
-                        .ThenInclude(v => v.VariantAttributeValues)
-                            .ThenInclude(vav => vav.AttributeValue)
-                                .ThenInclude(av => av.Attribute)
+                .Include(p => p.Workshop)
                 .Include(p => p.Attributes)
                     .ThenInclude(a => a.Values)
                 .Include(p => p.Images)
@@ -139,12 +130,12 @@ namespace Graduation_Application.Services
                 throw new ArgumentException($"Product with ID {productId} not found.");
 
             // Verify ownership via listings
-            var isOwner = product.VendorListings?.Any(l => l.Workshop?.UserId == userId) ?? false;
+            var isOwner = product.Workshop?.UserId == userId;
             if (!isOwner)
             {
-                // Fallback: load listings if not already included
+                // Fallback: load workshop if not already included
                 var hasListing = await _productRepository.GetAllAsNoTracking()
-                    .Where(p => p.Id == productId && p.VendorListings.Any(l => l.Workshop.UserId == userId))
+                    .Where(p => p.Id == productId && p.Workshop != null && p.Workshop.UserId == userId)
                     .AnyAsync();
                 if (!hasListing)
                     throw new UnauthorizedAccessException("You do not have permission to modify this product.");
@@ -170,7 +161,7 @@ namespace Graduation_Application.Services
 
             // Verify ownership via listings
             var hasListing = await _productRepository.GetAllAsNoTracking()
-                .Where(p => p.Id == productId && p.VendorListings.Any(l => l.Workshop.UserId == userId))
+                .Where(p => p.Id == productId && p.Workshop != null && p.Workshop.UserId == userId)
                 .AnyAsync();
             if (!hasListing)
                 throw new UnauthorizedAccessException("You do not have permission to delete this product.");
@@ -187,11 +178,11 @@ namespace Graduation_Application.Services
         public async Task<VendorProductStatsDto> GetVendorProductStatsAsync(string userId)
         {
             var products = await _productRepository.GetAllAsNoTracking()
-                .Where(p => p.VendorListings.Any(l => l.Workshop.UserId == userId))
+                .Where(p => p.Workshop != null && p.Workshop.UserId == userId)
                 .ToListAsync();
 
             var reviews = await _reviewRepository.GetAllAsNoTracking()
-                .Where(r => r.Product.VendorListings.Any(l => l.Workshop.UserId == userId))
+                .Where(r => r.Product.Workshop != null && r.Product.Workshop.UserId == userId)
                 .ToListAsync();
 
             var totalProducts = products.Count;
@@ -217,22 +208,18 @@ namespace Graduation_Application.Services
             };
         }
 
-        /// <summary>
-        /// Get top-rated products for vendor
-        /// </summary>
         public async Task<IEnumerable<ProductDto>> GetVendorTopProductsAsync(string userId, int topCount = 5)
         {
             var products = await _productRepository.GetAllAsNoTracking()
-                .Where(p => p.VendorListings.Any(l => l.Workshop.UserId == userId) && p.IsActive)
+                .Where(p => p.Workshop != null && p.Workshop.UserId == userId && p.IsActive)
                 .Include(p => p.Category)
-                .Include(p => p.VendorListings)
-                    .ThenInclude(l => l.Workshop)
+                .Include(p => p.Workshop)
                 .Include(p => p.Images)
                 .ToListAsync();
 
             // Get reviews for each product
             var reviews = await _reviewRepository.GetAllAsNoTracking()
-                .Where(r => r.Product.VendorListings.Any(l => l.Workshop.UserId == userId))
+                .Where(r => r.Product.Workshop != null && r.Product.Workshop.UserId == userId)
                 .GroupBy(r => r.ProductId)
                 .Select(g => new { ProductId = g.Key, AvgRating = g.Average(r => r.Rating) })
                 .ToListAsync();
@@ -250,5 +237,7 @@ namespace Graduation_Application.Services
 
             return topProducts.Adapt<List<ProductDto>>();
         }
+
+
     }
 }

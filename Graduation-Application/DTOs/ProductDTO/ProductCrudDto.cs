@@ -24,7 +24,13 @@ namespace Graduation_Application.DTOs.ProductDTO
         [Required]
         public string DescriptionEn { get; set; } = string.Empty;
 
+        [Required]
+        [Range(0.01, double.MaxValue, ErrorMessage = "BasePrice must be strictly greater than 0.")]
+        public decimal BasePrice { get; set; }
+
         public bool IsActive { get; set; } = true;
+
+        public List<int>? VendorMaterialOptionIds { get; set; }
     }
 
     public class UpdateProductDto
@@ -34,7 +40,9 @@ namespace Graduation_Application.DTOs.ProductDTO
         public string NameEn { get; set; } = string.Empty;
         public string DescriptionAr { get; set; } = string.Empty;
         public string DescriptionEn { get; set; } = string.Empty;
+        public decimal? BasePrice { get; set; }
         public bool? IsActive { get; set; }
+        public List<int>? VendorMaterialOptionIds { get; set; }
     }
 
     public class ProductResponseDto
@@ -49,10 +57,10 @@ namespace Graduation_Application.DTOs.ProductDTO
         public string DescriptionEn { get; set; } = string.Empty;
         public bool IsActive { get; set; }
 
-        /// <summary>Lowest CurrentPrice across all active variants for this product (for display).</summary>
-        public decimal? MinPrice { get; set; }
+        public decimal BasePrice { get; set; }
+        public int WorkshopId { get; set; }
+        public bool IsHidden { get; set; }
 
-        /// <summary>Number of vendors currently listing this product.</summary>
-        public int VendorCount { get; set; }
+        public List<int> VendorMaterialOptionIds { get; set; } = new List<int>();
     }
 }

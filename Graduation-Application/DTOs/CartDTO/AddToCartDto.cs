@@ -9,7 +9,9 @@ namespace Graduation_Application.DTOs.CartDTO
     public class AddToCartDto
     {
         [Required]
-        public int ProductVariantId { get; set; }
+        public int ProductId { get; set; }
+
+        public List<int> SelectedOptionIds { get; set; } = new();
 
         [Required]
         [Range(1, int.MaxValue, ErrorMessage = "Quantity must be at least 1")]

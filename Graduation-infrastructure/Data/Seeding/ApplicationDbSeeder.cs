@@ -113,6 +113,8 @@ public class ApplicationDbSeeder
                         DescriptionAr = "وصف المنتج",
                         DescriptionEn = "Product description",
                         CategoryId = categoryId,
+                        WorkshopId = workshopId,
+                        BasePrice = 1000 + (i * 100),
                         IsActive = true,
                         CreatedAt = DateTime.Now,
                     }
@@ -120,33 +122,6 @@ public class ApplicationDbSeeder
             }
 
             context.Products.AddRange(products);
-            await context.SaveChangesAsync();
-
-            // Seed listings and variants for each product
-            foreach (var product in products)
-            {
-                var listing = new VendorProductListing
-                {
-                    ProductId = product.Id,
-                    WorkshopId = workshopId,
-                    BasePrice = 1000 + (product.Id * 100),
-                    IsAvailable = true,
-                    IsActive = true,
-                    CreatedAt = DateTime.UtcNow
-                };
-                context.VendorProductListings.Add(listing);
-                await context.SaveChangesAsync();
-
-                var variant = new ProductVariant
-                {
-                    ListingId = listing.Id,
-                    PriceDelta = 0m,
-                    CurrentPrice = listing.BasePrice,
-                    IsActive = true,
-                    CreatedAt = DateTime.UtcNow
-                };
-                context.ProductVariants.Add(variant);
-            }
             await context.SaveChangesAsync();
         }
     }

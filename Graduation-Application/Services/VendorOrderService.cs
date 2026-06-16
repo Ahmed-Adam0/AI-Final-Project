@@ -151,7 +151,7 @@ namespace Graduation_Application.Services
                 Items = order
                     .Items.Select(oi => new VendorOrderItemDto
                     {
-                        ProductId = oi.ProductVariant?.Listing?.ProductId ?? 0,
+                        ProductId = oi.ProductId ?? 0,
                         ProductName = oi.SnapshotProductNameEn,
                         UnitPrice = oi.SnapshotUnitPrice,
                         Quantity = oi.Quantity,

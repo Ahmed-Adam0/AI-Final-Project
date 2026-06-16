@@ -4,6 +4,7 @@ using Graduation_infrastructure.AppDbContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Graduation_infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260616104830_RemoveProductStatus_AddIsHidden")]
+    partial class RemoveProductStatus_AddIsHidden
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1149,21 +1152,6 @@ namespace Graduation_infrastructure.Migrations
                     b.ToTable("ProductImages");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.ProductMaterialOption", b =>
-                {
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("VendorMaterialOptionId")
-                        .HasColumnType("int");
-
-                    b.HasKey("ProductId", "VendorMaterialOptionId");
-
-                    b.HasIndex("VendorMaterialOptionId");
-
-                    b.ToTable("ProductMaterialOptions", (string)null);
-                });
-
             modelBuilder.Entity("Graduation_domain.Entities.ProductReport", b =>
                 {
                     b.Property<int>("Id")
@@ -1366,95 +1354,6 @@ namespace Graduation_infrastructure.Migrations
                     b.HasIndex("WorkshopId");
 
                     b.ToTable("VendorAccountStatusHistory");
-                });
-
-            modelBuilder.Entity("Graduation_domain.Entities.VendorMaterialGroup", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("NameAr")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("NameEn")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("WorkshopId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("WorkshopId");
-
-                    b.ToTable("VendorMaterialGroups", (string)null);
-                });
-
-            modelBuilder.Entity("Graduation_domain.Entities.VendorMaterialOption", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<decimal>("PriceDelta")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ValueAr")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("ValueEn")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<int>("VendorMaterialGroupId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("VendorMaterialGroupId");
-
-                    b.ToTable("VendorMaterialOptions", (string)null);
                 });
 
             modelBuilder.Entity("Graduation_domain.Entities.VendorVerificationHistory", b =>
@@ -1973,25 +1872,6 @@ namespace Graduation_infrastructure.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.ProductMaterialOption", b =>
-                {
-                    b.HasOne("Graduation_domain.Entities.Product", "Product")
-                        .WithMany("MaterialOptions")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Graduation_domain.Entities.VendorMaterialOption", "VendorMaterialOption")
-                        .WithMany("ProductMaterialOptions")
-                        .HasForeignKey("VendorMaterialOptionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-
-                    b.Navigation("VendorMaterialOption");
-                });
-
             modelBuilder.Entity("Graduation_domain.Entities.ProductReport", b =>
                 {
                     b.HasOne("Graduation_domain.Entities.Product", "Product")
@@ -2064,28 +1944,6 @@ namespace Graduation_infrastructure.Migrations
                     b.Navigation("PerformedByAdmin");
 
                     b.Navigation("Workshop");
-                });
-
-            modelBuilder.Entity("Graduation_domain.Entities.VendorMaterialGroup", b =>
-                {
-                    b.HasOne("Graduation_domain.Entities.Workshop", "Workshop")
-                        .WithMany("MaterialGroups")
-                        .HasForeignKey("WorkshopId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Workshop");
-                });
-
-            modelBuilder.Entity("Graduation_domain.Entities.VendorMaterialOption", b =>
-                {
-                    b.HasOne("Graduation_domain.Entities.VendorMaterialGroup", "Group")
-                        .WithMany("Options")
-                        .HasForeignKey("VendorMaterialGroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Group");
                 });
 
             modelBuilder.Entity("Graduation_domain.Entities.VendorVerificationHistory", b =>
@@ -2229,8 +2087,6 @@ namespace Graduation_infrastructure.Migrations
                     b.Navigation("Attributes");
 
                     b.Navigation("Images");
-
-                    b.Navigation("MaterialOptions");
                 });
 
             modelBuilder.Entity("Graduation_domain.Entities.ProductAttribute", b =>
@@ -2238,21 +2094,9 @@ namespace Graduation_infrastructure.Migrations
                     b.Navigation("Values");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.VendorMaterialGroup", b =>
-                {
-                    b.Navigation("Options");
-                });
-
-            modelBuilder.Entity("Graduation_domain.Entities.VendorMaterialOption", b =>
-                {
-                    b.Navigation("ProductMaterialOptions");
-                });
-
             modelBuilder.Entity("Graduation_domain.Entities.Workshop", b =>
                 {
                     b.Navigation("AccountStatusHistory");
-
-                    b.Navigation("MaterialGroups");
 
                     b.Navigation("Products");
 
