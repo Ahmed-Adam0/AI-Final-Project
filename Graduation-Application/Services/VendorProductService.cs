@@ -126,6 +126,9 @@ namespace Graduation_Application.Services
                 .Include(p => p.Attributes)
                     .ThenInclude(a => a.Values)
                 .Include(p => p.Images)
+                .Include(p => p.MaterialOptions)
+                    .ThenInclude(mo => mo.VendorMaterialOption)
+                        .ThenInclude(o => o.Group)
                 .FirstOrDefaultAsync();
 
             if (product == null)

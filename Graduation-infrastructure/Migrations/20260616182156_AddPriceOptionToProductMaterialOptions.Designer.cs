@@ -4,6 +4,7 @@ using Graduation_infrastructure.AppDbContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Graduation_infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260616182156_AddPriceOptionToProductMaterialOptions")]
+    partial class AddPriceOptionToProductMaterialOptions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1160,7 +1163,7 @@ namespace Graduation_infrastructure.Migrations
                     b.Property<decimal>("PriceOption")
                         .HasColumnType("decimal(18,2)");
 
-                    b.HasKey("ProductId", "VendorMaterialOptionId", "PriceOption");
+                    b.HasKey("ProductId", "VendorMaterialOptionId");
 
                     b.HasIndex("VendorMaterialOptionId");
 

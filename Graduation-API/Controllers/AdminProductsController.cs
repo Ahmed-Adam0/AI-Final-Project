@@ -50,5 +50,38 @@ namespace Graduation_API.Controllers
             }
         }
 
+        [HttpPatch("{id}/hide")]
+        public async Task<IActionResult> HideProduct(int id)
+        {
+            try
+            {
+                var success = await _adminProductService.HideProductAsync(id);
+                if (!success)
+                    return NotFound(new { message = "Product not found" });
+
+                return Ok(new { id = id, isHidden = true });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpPatch("{id}/unhide")]
+        public async Task<IActionResult> UnhideProduct(int id)
+        {
+            try
+            {
+                var success = await _adminProductService.UnhideProductAsync(id);
+                if (!success)
+                    return NotFound(new { message = "Product not found" });
+
+                return Ok(new { id = id, isHidden = false });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
     }
 }

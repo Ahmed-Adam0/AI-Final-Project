@@ -7,5 +7,7 @@ namespace Graduation_domain.Entities
 
         public int VendorMaterialOptionId { get; set; }
         public VendorMaterialOption VendorMaterialOption { get; set; } = null!;
+
+        public decimal PriceOption { get; set; }
     }
 }
