@@ -35,5 +35,23 @@ namespace Graduation_API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        /// <summary>
+        /// Get category taxonomy tree (Categories -> SubCategories -> ProductTypes)
+        /// </summary>
+        /// <returns>Nested list of category taxonomy</returns>
+        [HttpGet("tree")]
+        public async Task<IActionResult> GetCategoryTree()
+        {
+            try
+            {
+                var tree = await _categoryService.GetCategoryTreeAsync();
+                return Ok(tree);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

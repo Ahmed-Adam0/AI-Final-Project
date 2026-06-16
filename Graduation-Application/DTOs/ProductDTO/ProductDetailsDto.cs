@@ -13,6 +13,12 @@ namespace Graduation_Application.DTOs.ProductDTO
         public string NameEn { get; set; } = string.Empty;
         public string DescriptionAr { get; set; } = string.Empty;
         public string DescriptionEn { get; set; } = string.Empty;
+        public int ProductTypeId { get; set; }
+        public string ProductTypeNameAr { get; set; } = string.Empty;
+        public string ProductTypeNameEn { get; set; } = string.Empty;
+        public int SubCategoryId { get; set; }
+        public string SubCategoryNameAr { get; set; } = string.Empty;
+        public string SubCategoryNameEn { get; set; } = string.Empty;
         public int CategoryId { get; set; }
         public string CategoryNameAr { get; set; } = string.Empty;
         public string CategoryNameEn { get; set; } = string.Empty;

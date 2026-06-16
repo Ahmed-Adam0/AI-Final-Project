@@ -47,6 +47,8 @@ namespace Graduation_API.Controllers
         public async Task<IActionResult> GetProducts(
             [FromQuery] string search = null,
             [FromQuery] int? categoryId = null,
+            [FromQuery] int? subCategoryId = null,
+            [FromQuery] int? productTypeId = null,
             [FromQuery] decimal? minPrice = null,
             [FromQuery] decimal? maxPrice = null,
             [FromQuery] string material = null,
@@ -61,6 +63,8 @@ namespace Graduation_API.Controllers
                 {
                     Search = search,
                     CategoryId = categoryId,
+                    SubCategoryId = subCategoryId,
+                    ProductTypeId = productTypeId,
                     MinPrice = minPrice,
                     MaxPrice = maxPrice,
                     Material = material,

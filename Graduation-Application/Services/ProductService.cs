@@ -23,6 +23,7 @@ namespace Graduation_Application.Services
         private readonly IGenaricRepositories<ProductAttribute> _attributeRepository;
         private readonly IGenaricRepositories<ProductAttributeValue> _attributeValueRepository;
         private readonly IGenaricRepositories<ProductMaterialOption> _productMaterialOptionRepository;
+        private readonly IGenaricRepositories<ProductType> _productTypeRepository;
 
         public ProductService(
             IGenaricRepositories<Product> productRepository,
@@ -31,7 +32,8 @@ namespace Graduation_Application.Services
             IGenaricRepositories<Workshop> workshopRepository,
             IGenaricRepositories<ProductAttribute> attributeRepository,
             IGenaricRepositories<ProductAttributeValue> attributeValueRepository,
-            IGenaricRepositories<ProductMaterialOption> productMaterialOptionRepository)
+            IGenaricRepositories<ProductMaterialOption> productMaterialOptionRepository,
+            IGenaricRepositories<ProductType> productTypeRepository)
         {
             _productRepository = productRepository;
             _categoryRepository = categoryRepository;
@@ -40,6 +42,7 @@ namespace Graduation_Application.Services
             _attributeRepository = attributeRepository;
             _attributeValueRepository = attributeValueRepository;
             _productMaterialOptionRepository = productMaterialOptionRepository;
+            _productTypeRepository = productTypeRepository;
         }
 
         public async Task<PaginatedResult<ProductDto>> GetProductsAsync(ProductFilterDto filter)
@@ -50,7 +53,9 @@ namespace Graduation_Application.Services
 
             // Start with base query (AsNoTracking for performance)
             IQueryable<Product> query = _productRepository.GetAllAsNoTracking()
-                .Include(p => p.Category)
+                .Include(p => p.ProductType)
+                    .ThenInclude(pt => pt.SubCategory)
+                        .ThenInclude(sc => sc.Category)
                 .Include(p => p.Workshop)
                 .Include(p => p.Images);
 
@@ -70,10 +75,20 @@ namespace Graduation_Application.Services
                 );
             }
 
-            // Apply Category Filter
+            // Apply Category Filters (3-tier)
             if (filter.CategoryId.HasValue && filter.CategoryId > 0)
             {
-                query = query.Where(p => p.CategoryId == filter.CategoryId.Value);
+                query = query.Where(p => p.ProductType.SubCategory.CategoryId == filter.CategoryId.Value);
+            }
+
+            if (filter.SubCategoryId.HasValue && filter.SubCategoryId > 0)
+            {
+                query = query.Where(p => p.ProductType.SubCategoryId == filter.SubCategoryId.Value);
+            }
+
+            if (filter.ProductTypeId.HasValue && filter.ProductTypeId > 0)
+            {
+                query = query.Where(p => p.ProductTypeId == filter.ProductTypeId.Value);
             }
 
             // Apply Workshop Filter
@@ -129,7 +144,9 @@ namespace Graduation_Application.Services
         {
             var product = await _productRepository
                 .GetAllAsNoTracking()
-                .Include(p => p.Category)
+                .Include(p => p.ProductType)
+                    .ThenInclude(pt => pt.SubCategory)
+                        .ThenInclude(sc => sc.Category)
                 .Include(p => p.Workshop)
                 .Include(p => p.Attributes)
                     .ThenInclude(a => a.Values)
@@ -154,14 +171,14 @@ namespace Graduation_Application.Services
             if (workshop == null)
                 throw new ArgumentException("Workshop not found for vendor.");
 
-            var categoryExists = await _categoryRepository.AnyAsync(c => c.Id == createProductDto.CategoryId);
-            if (!categoryExists)
-                throw new ArgumentException($"Category with ID {createProductDto.CategoryId} does not exist.");
+            var productTypeExists = await _productTypeRepository.AnyAsync(pt => pt.Id == createProductDto.ProductTypeId);
+            if (!productTypeExists)
+                throw new ArgumentException($"ProductType with ID {createProductDto.ProductTypeId} does not exist.");
 
             // Create the base product (vendor-owned)
             var product = new Product
             {
-                CategoryId = createProductDto.CategoryId,
+                ProductTypeId = createProductDto.ProductTypeId,
                 NameAr = createProductDto.NameAr,
                 NameEn = createProductDto.NameEn,
                 DescriptionAr = createProductDto.DescriptionAr,
@@ -189,12 +206,16 @@ namespace Graduation_Application.Services
             EnsureProductOwnership(product, userId);
 
 
-            // Validate Category exists
-            var categoryExists = await _categoryRepository.AnyAsync(c => c.Id == updateProductDto.CategoryId);
-            if (!categoryExists)
-                throw new ArgumentException($"Category with ID {updateProductDto.CategoryId} does not exist.");
+            // Validate ProductType exists
+            if (updateProductDto.ProductTypeId.HasValue)
+            {
+                var productTypeExists = await _productTypeRepository.AnyAsync(pt => pt.Id == updateProductDto.ProductTypeId.Value);
+                if (!productTypeExists)
+                    throw new ArgumentException($"ProductType with ID {updateProductDto.ProductTypeId.Value} does not exist.");
 
-            product.CategoryId = updateProductDto.CategoryId;
+                product.ProductTypeId = updateProductDto.ProductTypeId.Value;
+            }
+
             product.NameAr = updateProductDto.NameAr;
             product.NameEn = updateProductDto.NameEn;
             product.DescriptionAr = updateProductDto.DescriptionAr;

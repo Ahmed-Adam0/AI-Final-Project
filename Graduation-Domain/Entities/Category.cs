@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Graduation_domain.Entities
@@ -10,5 +11,7 @@ namespace Graduation_domain.Entities
         [Required(ErrorMessage = "NameEn is required")]
         public string NameEn { get; set; }
         public string ImageUrl { get; set; }
+
+        public List<SubCategory> SubCategories { get; set; } = [];
     }
 }

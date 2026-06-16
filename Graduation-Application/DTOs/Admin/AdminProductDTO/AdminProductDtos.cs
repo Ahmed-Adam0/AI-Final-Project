@@ -37,9 +37,16 @@ namespace Graduation_Application.DTOs.Admin.AdminProductDTO
         public DateTime CreatedAt { get; set; }
 
         // Category Info
+        // Category Info
+        public int ProductTypeId { get; set; }
+        public string ProductTypeNameAr { get; set; } = string.Empty;
+        public string ProductTypeNameEn { get; set; } = string.Empty;
+        public int SubCategoryId { get; set; }
+        public string SubCategoryNameAr { get; set; } = string.Empty;
+        public string SubCategoryNameEn { get; set; } = string.Empty;
         public int CategoryId { get; set; }
-        public string CategoryNameAr { get; set; }
-        public string CategoryNameEn { get; set; }
+        public string CategoryNameAr { get; set; } = string.Empty;
+        public string CategoryNameEn { get; set; } = string.Empty;
 
         // Vendor Info (from ApplicationUser)
         public string VendorId { get; set; }
@@ -76,6 +83,8 @@ namespace Graduation_Application.DTOs.Admin.AdminProductDTO
     {
         public string Search { get; set; }
         public int? CategoryId { get; set; }
+        public int? SubCategoryId { get; set; }
+        public int? ProductTypeId { get; set; }
         public string VendorId { get; set; }
         public bool? IsHidden { get; set; }
         public int PageNumber { get; set; } = 1;

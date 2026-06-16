@@ -38,7 +38,9 @@ namespace Graduation_Application.Services
             // Start query: get products owned by this vendor via their VendorProductListings
             IQueryable<Product> query = _productRepository.GetAllAsNoTracking()
                 .Where(p => p.Workshop != null && p.Workshop.UserId == userId)
-                .Include(p => p.Category)
+                .Include(p => p.ProductType)
+                    .ThenInclude(pt => pt.SubCategory)
+                        .ThenInclude(sc => sc.Category)
                 .Include(p => p.Workshop)
                 .Include(p => p.Images);
 
@@ -58,10 +60,20 @@ namespace Graduation_Application.Services
                 );
             }
 
-            // Apply category filter
+            // Apply category filters (3-tier)
             if (filter.CategoryId.HasValue && filter.CategoryId > 0)
             {
-                query = query.Where(p => p.CategoryId == filter.CategoryId.Value);
+                query = query.Where(p => p.ProductType.SubCategory.CategoryId == filter.CategoryId.Value);
+            }
+
+            if (filter.SubCategoryId.HasValue && filter.SubCategoryId > 0)
+            {
+                query = query.Where(p => p.ProductType.SubCategoryId == filter.SubCategoryId.Value);
+            }
+
+            if (filter.ProductTypeId.HasValue && filter.ProductTypeId > 0)
+            {
+                query = query.Where(p => p.ProductTypeId == filter.ProductTypeId.Value);
             }
 
             // Apply price range filter (against minimum variant price across listings)
@@ -107,7 +119,9 @@ namespace Graduation_Application.Services
                 .Where(p => p.Id == productId
                     && p.Workshop != null && p.Workshop.UserId == userId
                     && p.IsActive)
-                .Include(p => p.Category)
+                .Include(p => p.ProductType)
+                    .ThenInclude(pt => pt.SubCategory)
+                        .ThenInclude(sc => sc.Category)
                 .Include(p => p.Workshop)
                 .Include(p => p.Attributes)
                     .ThenInclude(a => a.Values)
@@ -212,7 +226,9 @@ namespace Graduation_Application.Services
         {
             var products = await _productRepository.GetAllAsNoTracking()
                 .Where(p => p.Workshop != null && p.Workshop.UserId == userId && p.IsActive)
-                .Include(p => p.Category)
+                .Include(p => p.ProductType)
+                    .ThenInclude(pt => pt.SubCategory)
+                        .ThenInclude(sc => sc.Category)
                 .Include(p => p.Workshop)
                 .Include(p => p.Images)
                 .ToListAsync();

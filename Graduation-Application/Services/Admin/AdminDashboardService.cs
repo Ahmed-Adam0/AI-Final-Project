@@ -557,8 +557,11 @@ namespace Graduation_Application.Services.Admin
                     .ToListAsync(),
                 TopCategories = await _productRepository
                     .GetAllAsNoTracking()
-                    .Include(p => p.Category)
-                    .GroupBy(p => p.Category.NameEn)
+                    .Include(p => p.ProductType)
+                        .ThenInclude(pt => pt.SubCategory)
+                            .ThenInclude(sc => sc.Category)
+                    .GroupBy(p => p.ProductType != null && p.ProductType.SubCategory != null && p.ProductType.SubCategory.Category != null 
+                        ? p.ProductType.SubCategory.Category.NameEn : "Unknown")
                     .Select(g => new AdminRankingItemDto
                     {
                         Rank = 0,

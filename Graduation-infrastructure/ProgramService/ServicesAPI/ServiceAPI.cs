@@ -98,6 +98,8 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IVendorService, VendorService>();
             services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<ISubCategoryService, SubCategoryService>();
+            services.AddScoped<IProductTypeService, ProductTypeService>();
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<IVendorProductService, VendorProductService>();
             services.AddScoped<IVendorMaterialService, VendorMaterialService>();

@@ -17,8 +17,8 @@ namespace Graduation_domain.Entities
     {
         public bool IsHidden { get; set; } = false;
 
-        public int CategoryId { get; set; }
-        public Category Category { get; set; } = null!;
+        public int ProductTypeId { get; set; }
+        public ProductType ProductType { get; set; } = null!;
 
         public string NameAr { get; set; } = string.Empty;
         public string NameEn { get; set; } = string.Empty;

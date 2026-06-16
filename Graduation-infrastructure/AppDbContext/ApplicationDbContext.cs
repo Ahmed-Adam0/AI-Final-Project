@@ -12,6 +12,8 @@ namespace Graduation_infrastructure.AppDbContext
         public DbSet<Workshop> Workshops { get; set; }
         public DbSet<WorkshopAddress> WorkshopAddresses { get; set; }
         public DbSet<Category> Categories { get; set; }
+        public DbSet<SubCategory> SubCategories { get; set; }
+        public DbSet<ProductType> ProductTypes { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<ProductImage> ProductImages { get; set; }
         public DbSet<Address> Addresses { get; set; }
@@ -50,11 +52,12 @@ namespace Graduation_infrastructure.AppDbContext
             base.OnModelCreating(builder);
 
             // ── Product (Vendor-owned) ────────────────────────────────────
-            builder.Entity<Product>(entity =>
+             builder.Entity<Product>(entity =>
             {
-                entity.HasOne(p => p.Category)
-                      .WithMany()
-                      .HasForeignKey(p => p.CategoryId);
+                entity.HasOne(p => p.ProductType)
+                      .WithMany(pt => pt.Products)
+                      .HasForeignKey(p => p.ProductTypeId)
+                      .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(p => p.Workshop)
                       .WithMany(w => w.Products)
@@ -64,6 +67,34 @@ namespace Graduation_infrastructure.AppDbContext
                 entity.Property(e => e.BasePrice)
                       .HasColumnType("decimal(18,2)")
                       .IsRequired();
+            });
+
+            // ── SubCategory ─────────────────────────────────────────────────
+            builder.Entity<SubCategory>(entity =>
+            {
+                entity.ToTable("SubCategories");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.NameAr).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.NameEn).HasMaxLength(100).IsRequired();
+
+                entity.HasOne(e => e.Category)
+                      .WithMany(c => c.SubCategories)
+                      .HasForeignKey(e => e.CategoryId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ── ProductType ─────────────────────────────────────────────────
+            builder.Entity<ProductType>(entity =>
+            {
+                entity.ToTable("ProductTypes");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.NameAr).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.NameEn).HasMaxLength(100).IsRequired();
+
+                entity.HasOne(e => e.SubCategory)
+                      .WithMany(sc => sc.ProductTypes)
+                      .HasForeignKey(e => e.SubCategoryId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             builder

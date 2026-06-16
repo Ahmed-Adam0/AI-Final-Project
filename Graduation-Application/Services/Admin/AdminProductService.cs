@@ -46,7 +46,9 @@ namespace Graduation_Application.Services.Admin
 
             IQueryable<Product> query = _productRepository
                 .GetAllAsNoTracking()
-                .Include(p => p.Category)
+                .Include(p => p.ProductType)
+                    .ThenInclude(pt => pt.SubCategory)
+                        .ThenInclude(sc => sc.Category)
                 .Include(p => p.Workshop)
                     .ThenInclude(w => w.User)
                 .Include(p => p.Images);
@@ -61,10 +63,20 @@ namespace Graduation_Application.Services.Admin
                 );
             }
 
-            // Filter by category
+            // Filter by category (3-tier)
             if (filter.CategoryId.HasValue && filter.CategoryId > 0)
             {
-                query = query.Where(p => p.CategoryId == filter.CategoryId.Value);
+                query = query.Where(p => p.ProductType.SubCategory.CategoryId == filter.CategoryId.Value);
+            }
+
+            if (filter.SubCategoryId.HasValue && filter.SubCategoryId > 0)
+            {
+                query = query.Where(p => p.ProductType.SubCategoryId == filter.SubCategoryId.Value);
+            }
+
+            if (filter.ProductTypeId.HasValue && filter.ProductTypeId > 0)
+            {
+                query = query.Where(p => p.ProductTypeId == filter.ProductTypeId.Value);
             }
 
             // Filter by vendor (workshopId via product)
@@ -98,7 +110,8 @@ namespace Graduation_Application.Services.Admin
                         Id = p.Id,
                         NameAr = p.NameAr,
                         NameEn = p.NameEn,
-                        CategoryName = p.Category != null ? p.Category.NameEn : string.Empty,
+                        CategoryName = p.ProductType != null && p.ProductType.SubCategory != null && p.ProductType.SubCategory.Category != null 
+                            ? p.ProductType.SubCategory.Category.NameEn : string.Empty,
                         VendorName = p.Workshop?.User?.FullName ?? "N/A",
                         Price = minPrice,
                         IsHidden = p.IsHidden,
@@ -121,7 +134,9 @@ namespace Graduation_Application.Services.Admin
         {
             var product = await _productRepository
                 .GetAllAsNoTracking()
-                .Include(p => p.Category)
+                .Include(p => p.ProductType)
+                    .ThenInclude(pt => pt.SubCategory)
+                        .ThenInclude(sc => sc.Category)
                 .Include(p => p.Workshop)
                     .ThenInclude(w => w.User)
                 .Include(p => p.Images)
@@ -150,9 +165,15 @@ namespace Graduation_Application.Services.Admin
                 IsHidden = product.IsHidden,
                 IsActive = product.IsActive,
                 CreatedAt = product.CreatedAt,
-                CategoryId = product.CategoryId,
-                CategoryNameAr = product.Category?.NameAr ?? string.Empty,
-                CategoryNameEn = product.Category?.NameEn ?? string.Empty,
+                ProductTypeId = product.ProductTypeId,
+                ProductTypeNameAr = product.ProductType?.NameAr ?? string.Empty,
+                ProductTypeNameEn = product.ProductType?.NameEn ?? string.Empty,
+                SubCategoryId = product.ProductType != null ? product.ProductType.SubCategoryId : 0,
+                SubCategoryNameAr = product.ProductType?.SubCategory?.NameAr ?? string.Empty,
+                SubCategoryNameEn = product.ProductType?.SubCategory?.NameEn ?? string.Empty,
+                CategoryId = product.ProductType != null && product.ProductType.SubCategory != null ? product.ProductType.SubCategory.CategoryId : 0,
+                CategoryNameAr = product.ProductType?.SubCategory?.Category?.NameAr ?? string.Empty,
+                CategoryNameEn = product.ProductType?.SubCategory?.Category?.NameEn ?? string.Empty,
                 VendorId = product.Workshop?.UserId ?? string.Empty,
                 VendorName = product.Workshop?.User?.FullName ?? "N/A",
                 VendorEmail = product.Workshop?.User?.Email ?? "N/A",
