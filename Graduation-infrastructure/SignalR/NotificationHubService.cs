@@ -1,5 +1,5 @@
-using System;
 using System.Threading.Tasks;
+using Graduation_Application.DTOs.NotificationDTO;
 using Graduation_Application.IServices;
 using Microsoft.AspNetCore.SignalR;
 
@@ -14,13 +14,15 @@ namespace Graduation_infrastructure.SignalR
             _hubContext = hubContext;
         }
 
-        public async Task SendAsync(string userId, string title, string message)
+        public async Task SendAsync(InternalNotificationDto notification)
         {
-            await _hubContext.Clients.Group(userId).SendAsync("ReceiveNotification", new
+            await _hubContext.Clients.Group(notification.UserId).SendAsync("ReceiveNotification", new
             {
-                title,
-                message,
-                createdAt = DateTime.UtcNow
+                id = notification.Id,
+                title = notification.Title,
+                message = notification.Message,
+                isRead = notification.IsRead,
+                createdAt = notification.CreatedAt
             });
         }
     }
