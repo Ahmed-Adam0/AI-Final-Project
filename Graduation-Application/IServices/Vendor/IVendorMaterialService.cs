@@ -8,6 +8,7 @@ namespace Graduation_Application.IServices.Vendor
     {
         Task<VendorMaterialGroupDto> CreateGroupAsync(int workshopId, CreateVendorMaterialGroupDto dto);
         Task<VendorMaterialOptionDto> AddOptionAsync(int workshopId, int groupId, CreateVendorMaterialOptionDto dto);
+        Task<VendorMaterialOptionDto> UpdateOptionAsync(int workshopId, int optionId, UpdateVendorMaterialOptionDto dto);
         Task<List<VendorMaterialGroupDto>> GetVendorMaterialsAsync(int workshopId);
         Task DeleteGroupAsync(int workshopId, int groupId);
         Task DeleteOptionAsync(int workshopId, int optionId);

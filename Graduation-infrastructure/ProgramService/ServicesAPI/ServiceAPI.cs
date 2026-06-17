@@ -127,12 +127,14 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             services.AddScoped<IPaymentWebhookLogRepository, PaymentWebhookLogRepository>();
             services.AddScoped<IPaymentService, PaymentService>();
             services.AddScoped<IChatService, ChatService>();
+            services.AddScoped<ISpeechToTextService, ElevenLabsSpeechToTextService>();
+            services.AddScoped<IVoiceChatService, VoiceChatService>();
             services.AddScoped<IAdminAuditLogsService, AdminAuditLogsService>();
             services.AddScoped<ILanguageUserService, LanguageUserService>();
             services.AddHttpClient();
             services.AddHttpClient("N8NChatClient", client =>
             {
-                client.Timeout = TimeSpan.FromSeconds(30);
+                client.Timeout = TimeSpan.FromSeconds(120); // Increased timeout to prevent timeouts during complex AI voice operations
             });
             services.AddHttpContextAccessor();
             // Add CORS policy for development / frontend
@@ -191,6 +193,7 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
 
             services.Configure<PaymobSettings>(configuration.GetSection("Paymob"));
             services.Configure<N8NOptions>(configuration.GetSection("N8N"));
+            services.Configure<ElevenLabsOptions>(configuration.GetSection("ElevenLabs"));
             services.AddScoped<IPaymentGateway, PaymobService>();
             services.AddScoped<IPaymobHmacValidator, PaymobHmacValidator>();
             services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepository>();

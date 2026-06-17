@@ -14,11 +14,17 @@ namespace Graduation_API.Controllers
     public class ChatController : ControllerBase
     {
         private readonly IChatService _chatService;
+        private readonly IVoiceChatService _voiceChatService;
         private readonly ILogger<ChatController> _logger;
 
-        public ChatController(IChatService chatService, ILogger<ChatController> logger)
+        public ChatController(
+            IChatService chatService,
+            IVoiceChatService voiceChatService,
+            ILogger<ChatController> logger
+        )
         {
             _chatService = chatService;
+            _voiceChatService = voiceChatService;
             _logger = logger;
         }
 
@@ -87,6 +93,79 @@ namespace Graduation_API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error while processing chat request.");
+                return StatusCode(
+                    500,
+                    new { Success = false, Message = "An unexpected error occurred." }
+                );
+            }
+        }
+
+        [HttpPost("voice")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> SendVoiceMessageAsync(
+            IFormFile audioFile,
+            [FromForm] string userId,
+            [FromForm] string? conversationId,
+            CancellationToken cancellationToken
+        )
+        {
+            try
+            {
+                var result = await _voiceChatService.ProcessVoiceMessageAsync(
+                    audioFile,
+                    userId,
+                    conversationId,
+                    cancellationToken
+                );
+
+                return Ok(
+                    new
+                    {
+                        Success = true,
+                        Message = "Response received successfully",
+                        Data = result,
+                    }
+                );
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Invalid voice chat request payload.");
+                return BadRequest(new { Success = false, Message = ex.Message });
+            }
+            catch (ApplicationException ex)
+            {
+                _logger.LogWarning(ex, "Unprocessable entity in voice chat request.");
+                return StatusCode(422, new { Success = false, Message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogError(ex, "Service failure while processing voice chat request.");
+                // We're returning 502 Bad Gateway if n8n fails, or 500 if speech provider fails.
+                // The VoiceChatService throws InvalidOperationException for both, but ideally we'd separate them.
+                // For now, mapping InvalidOperationException to 502 as per original setup for n8n failure.
+                return StatusCode(502, new { Success = false, Message = ex.Message });
+            }
+            catch (TimeoutException ex)
+            {
+                _logger.LogError(ex, "Timeout while processing voice chat request.");
+                return StatusCode(504, new { Success = false, Message = ex.Message });
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, "Network failure while processing voice chat request.");
+                return StatusCode(503, new { Success = false, Message = ex.Message });
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                _logger.LogWarning("Voice chat request cancelled by client.");
+                return StatusCode(
+                    408,
+                    new { Success = false, Message = "The request was cancelled." }
+                );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error while processing voice chat request.");
                 return StatusCode(
                     500,
                     new { Success = false, Message = "An unexpected error occurred." }

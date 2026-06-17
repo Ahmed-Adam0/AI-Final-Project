@@ -14,13 +14,16 @@ namespace Graduation_Application.Services.Vendor
     {
         private readonly IGenaricRepositories<VendorMaterialGroup> _vendorMaterialGroupRepository;
         private readonly IGenaricRepositories<VendorMaterialOption> _vendorMaterialOptionRepository;
+        private readonly IGenaricRepositories<ProductMaterialOption> _productMaterialOptionRepository;
 
         public VendorMaterialService(
             IGenaricRepositories<VendorMaterialGroup> vendorMaterialGroupRepository,
-            IGenaricRepositories<VendorMaterialOption> vendorMaterialOptionRepository)
+            IGenaricRepositories<VendorMaterialOption> vendorMaterialOptionRepository,
+            IGenaricRepositories<ProductMaterialOption> productMaterialOptionRepository)
         {
             _vendorMaterialGroupRepository = vendorMaterialGroupRepository;
             _vendorMaterialOptionRepository = vendorMaterialOptionRepository;
+            _productMaterialOptionRepository = productMaterialOptionRepository;
         }
 
         public async Task<VendorMaterialGroupDto> CreateGroupAsync(int workshopId, CreateVendorMaterialGroupDto dto)
@@ -65,6 +68,58 @@ namespace Graduation_Application.Services.Vendor
             };
 
             await _vendorMaterialOptionRepository.AddAsync(option);
+            await _vendorMaterialOptionRepository.SaveChangesAsync();
+
+            return new VendorMaterialOptionDto
+            {
+                Id = option.Id,
+                VendorMaterialGroupId = option.VendorMaterialGroupId,
+                ValueAr = option.ValueAr,
+                ValueEn = option.ValueEn,
+                PriceDelta = option.PriceDelta
+            };
+        }
+
+        public async Task<VendorMaterialOptionDto> UpdateOptionAsync(int workshopId, int optionId, UpdateVendorMaterialOptionDto dto)
+        {
+            var option = await _vendorMaterialOptionRepository
+                .Where(o => o.Id == optionId && o.Group.WorkshopId == workshopId)
+                .Include(o => o.Group)
+                .FirstOrDefaultAsync();
+
+            if (option == null)
+            {
+                throw new Exception("Material option not found or you do not have permission.");
+            }
+
+            // Calculate percentage and update related ProductMaterialOption prices
+            if (option.PriceDelta != dto.PriceDelta)
+            {
+                if (option.PriceDelta == 0)
+                {
+                    throw new Exception("Cannot update percentage for an option with a base price of 0. Please update related products manually or provide a valid base price initially.");
+                }
+
+                decimal percentageChange = (dto.PriceDelta - option.PriceDelta) / option.PriceDelta;
+
+                var relatedOptions = await _productMaterialOptionRepository
+                    .Where(pmo => pmo.VendorMaterialOptionId == optionId)
+                    .ToListAsync();
+
+                foreach (var relatedOption in relatedOptions)
+                {
+                    relatedOption.PriceOption += (relatedOption.PriceOption * percentageChange);
+                    _productMaterialOptionRepository.Update(relatedOption);
+                }
+                
+                await _productMaterialOptionRepository.SaveChangesAsync();
+            }
+
+            option.ValueAr = dto.ValueAr;
+            option.ValueEn = dto.ValueEn;
+            option.PriceDelta = dto.PriceDelta;
+
+            _vendorMaterialOptionRepository.Update(option);
             await _vendorMaterialOptionRepository.SaveChangesAsync();
 
             return new VendorMaterialOptionDto
