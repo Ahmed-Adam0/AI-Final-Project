@@ -347,6 +347,8 @@ Creates a new material group (e.g., "Wood Type", "Fabric Color"). (Requires **Ve
 ### `POST /api/VendorMaterials/Groups/{groupId}/Options`
 Adds a specific option to a material group. (Requires **Vendor** role).
 
+> **Note:** The `priceDelta` value must be strictly greater than 0. 0 or negative values will be rejected.
+
 **Request Body:**
 ```json
 {
@@ -364,6 +366,31 @@ Adds a specific option to a material group. (Requires **Vendor** role).
   "valueAr": "خشب جوز فاخر",
   "valueEn": "Premium Walnut Finish",
   "priceDelta": 150.00
+}
+```
+
+### `PUT /api/VendorMaterials/Options/{optionId}`
+Updates an existing material option's details and dynamically applies the percentage change in `priceDelta` to all `ProductMaterialOption` records that utilize this option. (Requires **Vendor** role).
+
+> **Note:** The `priceDelta` value must be strictly greater than 0.
+
+**Request Body:**
+```json
+{
+  "valueAr": "خشب جوز فاخر (معدل)",
+  "valueEn": "Premium Walnut Finish (Updated)",
+  "priceDelta": 180.00
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "id": 305,
+  "vendorMaterialGroupId": 40,
+  "valueAr": "خشب جوز فاخر (معدل)",
+  "valueEn": "Premium Walnut Finish (Updated)",
+  "priceDelta": 180.00
 }
 ```
 
@@ -391,7 +418,7 @@ Retrieves all materials and options for the currently logged-in vendor's worksho
         "vendorMaterialGroupId": 40,
         "valueAr": "سنديان قياسي",
         "valueEn": "Standard Oak",
-        "priceDelta": 0
+        "priceDelta": 50.00
       }
     ]
   }
@@ -823,3 +850,58 @@ To ensure frontend logic aligns perfectly with the backend, adhere to these busi
 3. **Dynamic Pricing:** Always display the price dynamically based on `BasePrice + SUM(Option PriceDeltas)`.
 4. **Order Immutability:** When viewing order history, display the snapshot prices returned by the Order API; do not attempt to recalculate prices using current product data.
 5. **Categorization:** Force users/vendors to navigate the hierarchy: Category ➔ SubCategory ➔ ProductType.
+
+---
+
+## 11. CHAT APIs
+
+The Chat APIs integrate with the n8n AI Agent for chatbot functionality, supporting both text and voice messages.
+
+### 11.1 Send Text Message
+**Endpoint:** `POST /api/chat`
+**Purpose:** Sends a text message to the AI agent.
+
+**Request Body (JSON):**
+```json
+{
+  "userId": "string (required)",
+  "message": "string (required)",
+  "conversationId": "string (optional)"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Response received successfully",
+  "data": {
+    "reply": "Here are some recommended sofas..."
+  }
+}
+```
+
+### 11.2 Send Voice Message
+**Endpoint:** `POST /api/chat/voice`
+**Purpose:** Uploads an audio file, transcribes it using ElevenLabs Speech-to-Text, and forwards the transcribed text to the AI agent.
+
+**Request (multipart/form-data):**
+- `audioFile` (file, required): The voice message audio file (Max 10MB. Allowed: mp3, wav, ogg, m4a, aac, webm)
+- `userId` (string, required): The user's ID
+- `conversationId` (string, optional): The conversation ID
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Response received successfully",
+  "data": {
+    "reply": "Sure, let me find some options for you based on what you said..."
+  }
+}
+```
+
+**Possible Errors:**
+- `400 Bad Request`: Invalid payload, unsupported audio format, or file size exceeded.
+- `422 Unprocessable Entity`: The Speech-to-Text service returned an empty transcription (no speech detected).
+- `502 Bad Gateway`: The n8n webhook or Speech-to-Text provider failed.

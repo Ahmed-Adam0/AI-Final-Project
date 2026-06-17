@@ -17,19 +17,19 @@ namespace Graduation_Application.Services
         private readonly IGenaricRepositories<Cart> _cartRepository;
         private readonly IGenaricRepositories<CartItem> _cartItemRepository;
         private readonly IGenaricRepositories<Product> _productRepository;
-        private readonly IGenaricRepositories<VendorMaterialOption> _vendorMaterialOptionRepository;
+        private readonly IGenaricRepositories<ProductMaterialOption> _productMaterialOptionRepository;
 
         public CartService(
             IGenaricRepositories<Cart> cartRepository,
             IGenaricRepositories<CartItem> cartItemRepository,
             IGenaricRepositories<Product> productRepository,
-            IGenaricRepositories<VendorMaterialOption> vendorMaterialOptionRepository
+            IGenaricRepositories<ProductMaterialOption> productMaterialOptionRepository
         )
         {
             _cartRepository = cartRepository;
             _cartItemRepository = cartItemRepository;
             _productRepository = productRepository;
-            _vendorMaterialOptionRepository = vendorMaterialOptionRepository;
+            _productMaterialOptionRepository = productMaterialOptionRepository;
         }
 
         public async Task<CartResponseDto> GetCartAsync(string userId)
@@ -64,7 +64,9 @@ namespace Graduation_Application.Services
                 decimal delta = 0;
                 if (optionIds != null && optionIds.Any())
                 {
-                    delta = await _vendorMaterialOptionRepository.Where(o => optionIds.Contains(o.Id)).SumAsync(o => o.PriceDelta);
+                    delta = await _productMaterialOptionRepository
+                        .Where(o => o.ProductId == ci.ProductId && optionIds.Contains(o.VendorMaterialOptionId))
+                        .SumAsync(o => o.PriceOption);
                 }
 
                 cartDto.Items.Add(new CartItemResponseDto
@@ -117,9 +119,9 @@ namespace Graduation_Application.Services
             decimal totalDelta = 0;
             if (dto.SelectedOptionIds != null && dto.SelectedOptionIds.Any())
             {
-                totalDelta = await _vendorMaterialOptionRepository
-                    .Where(o => dto.SelectedOptionIds.Contains(o.Id))
-                    .SumAsync(o => o.PriceDelta);
+                totalDelta = await _productMaterialOptionRepository
+                    .Where(o => o.ProductId == dto.ProductId && dto.SelectedOptionIds.Contains(o.VendorMaterialOptionId))
+                    .SumAsync(o => o.PriceOption);
             }
 
             var existingItem = cart.Items.FirstOrDefault(ci => ci.ProductId == dto.ProductId && ci.SelectedOptionsJson == System.Text.Json.JsonSerializer.Serialize(dto.SelectedOptionIds));

@@ -25,6 +25,7 @@ namespace Graduation_Application.Services
         private readonly IPaymentGateway _paymentGateway;
         private readonly IPaymentTransactionRepository _paymentTransactionRepository;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IGenaricRepositories<VendorMaterialOption> _vendorMaterialOptionRepository;
 
         public OrderService(
             IGenaricRepositories<Order> orderRepository,
@@ -36,7 +37,8 @@ namespace Graduation_Application.Services
             IInternalNotificationService internalNotificationService,
             IPaymentGateway paymentGateway,
             IPaymentTransactionRepository paymentTransactionRepository,
-            UserManager<ApplicationUser> userManager
+            UserManager<ApplicationUser> userManager,
+            IGenaricRepositories<VendorMaterialOption> vendorMaterialOptionRepository
         )
         {
             _orderRepository = orderRepository;
@@ -49,6 +51,7 @@ namespace Graduation_Application.Services
             _paymentGateway = paymentGateway;
             _paymentTransactionRepository = paymentTransactionRepository;
             _userManager = userManager;
+            _vendorMaterialOptionRepository = vendorMaterialOptionRepository;
         }
 
         public async Task<List<OrderResponseDto>> GetAllOrdersAsync()
@@ -91,6 +94,51 @@ namespace Graduation_Application.Services
 
             var phoneNumber = request.PhoneNumber ?? user.FindFirst(ClaimTypes.MobilePhone)?.Value;
 
+            var allOptionIds = cart.Items
+                .Where(ci => !string.IsNullOrEmpty(ci.SelectedOptionsJson) && ci.SelectedOptionsJson != "null")
+                .SelectMany(ci => System.Text.Json.JsonSerializer.Deserialize<List<int>>(ci.SelectedOptionsJson) ?? new List<int>())
+                .Distinct()
+                .ToList();
+
+            var optionsData = await _vendorMaterialOptionRepository
+                .Where(o => allOptionIds.Contains(o.Id))
+                .Include(o => o.Group)
+                .ToListAsync();
+
+            var orderItems = new List<OrderItem>();
+            foreach (var ci in cart.Items)
+            {
+                var product = ci.Product;
+                var workshop = product?.Workshop;
+
+                var itemOptionIds = string.IsNullOrEmpty(ci.SelectedOptionsJson) || ci.SelectedOptionsJson == "null"
+                    ? new List<int>() 
+                    : System.Text.Json.JsonSerializer.Deserialize<List<int>>(ci.SelectedOptionsJson) ?? new List<int>();
+
+                var selectedAttributes = optionsData
+                    .Where(o => itemOptionIds.Contains(o.Id))
+                    .Select(o => new SnapshotAttributeDto
+                    {
+                        NameAr = o.Group?.NameAr ?? "",
+                        NameEn = o.Group?.NameEn ?? "",
+                        ValueAr = o.ValueAr,
+                        ValueEn = o.ValueEn
+                    }).ToList();
+
+                string attrsJson = System.Text.Json.JsonSerializer.Serialize(selectedAttributes);
+
+                orderItems.Add(new OrderItem
+                {
+                    ProductId = ci.ProductId,
+                    Quantity = ci.Quantity,
+                    SnapshotUnitPrice = ci.CachedPrice,
+                    SnapshotProductNameEn = product?.NameEn ?? string.Empty,
+                    SnapshotProductNameAr = product?.NameAr ?? string.Empty,
+                    SnapshotVendorName = workshop?.WorkshopNameEn ?? string.Empty,
+                    SnapshotAttributesJson = attrsJson,
+                });
+            }
+
             var order = new Order
             {
                 UserId = userId,
@@ -99,25 +147,7 @@ namespace Graduation_Application.Services
                 Address = request.Address,
                 PhoneNumber = phoneNumber,
                 Notes = request.Notes,
-                // Build immutable snapshot items from cart items
-                Items = cart.Items.Select(ci =>
-                {
-                    var product = ci.Product;
-                    var workshop = product?.Workshop;
-
-                    string attrsJson = "[]";
-
-                    return new OrderItem
-                    {
-                        ProductId = ci.ProductId,
-                        Quantity = ci.Quantity,
-                        SnapshotUnitPrice = ci.CachedPrice,
-                        SnapshotProductNameEn = product?.NameEn ?? string.Empty,
-                        SnapshotProductNameAr = product?.NameAr ?? string.Empty,
-                        SnapshotVendorName = workshop?.WorkshopNameEn ?? string.Empty,
-                        SnapshotAttributesJson = attrsJson,
-                    };
-                }).ToList(),
+                Items = orderItems,
                 StatusHistory = new List<OrderStatusHistory>
                 {
                     new OrderStatusHistory

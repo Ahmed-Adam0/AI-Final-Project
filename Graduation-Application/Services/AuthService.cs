@@ -76,10 +76,20 @@ namespace Graduation_Application.Services
                 var errors = string.Join(" ; ", userdb.Errors.Select(e => e.Description));
                 throw new Exception($"Failed to assign Vendor role: {errors}");
             }
-            // Generate token
-            var roles = await _userManager.GetRolesAsync(user);
+            // Send OTP for email confirmation
+            int expiry = int.Parse(_configuration["OtpSettings:ExpiryInMinutes"]!);
+            string otp = new Random().Next(100000, 999999).ToString();
 
-           // var token = _jwtTokenGenerator.GenerateToken(user, roles);
+            user.OtpEmail = otp;
+            user.OtpEmailExpiry = DateTime.UtcNow.AddMinutes(expiry);
+            await _userManager.UpdateAsync(user);
+            
+            // The SendEmailConfirmationOtpAsync might fail if the email is invalid,
+            // but the user is already created at this point.
+            await _emailService.SendEmailConfirmationOtpAsync(dto.Email, otp, expiry);
+
+            // Get roles for response mapping
+            var roles = await _userManager.GetRolesAsync(user);
 
             // Mapping → AuthResponseDto
             return (user, roles).Adapt<AuthResponseDto>();
