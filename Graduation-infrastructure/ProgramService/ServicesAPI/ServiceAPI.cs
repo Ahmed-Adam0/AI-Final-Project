@@ -128,6 +128,7 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             services.AddScoped<IPaymentService, PaymentService>();
             services.AddScoped<IChatService, ChatService>();
             services.AddScoped<IAdminAuditLogsService, AdminAuditLogsService>();
+            services.AddScoped<ILanguageUserService, LanguageUserService>();
             services.AddHttpClient();
             services.AddHttpClient("N8NChatClient", client =>
             {

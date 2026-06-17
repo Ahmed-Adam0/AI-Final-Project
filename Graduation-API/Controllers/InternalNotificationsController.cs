@@ -34,12 +34,6 @@ namespace Graduation_API.Controllers
             return userId;
         }
 
-        private string GetLanguage()
-        {
-            var lang = User.FindFirst("lang")?.Value;
-            return string.IsNullOrWhiteSpace(lang) ? "en" : lang;
-        }
-
         [HttpGet]
         public async Task<IActionResult> GetNotifications([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
@@ -49,8 +43,7 @@ namespace Graduation_API.Controllers
                     return BadRequest(new { Message = "Page and PageSize must be greater than 0" });
 
                 var userId = GetUserId();
-                var lang = GetLanguage();
-                var result = await _internalNotificationService.GetNotificationsAsync(userId, lang, page, pageSize);
+                var result = await _internalNotificationService.GetNotificationsAsync(userId, page, pageSize);
                 return Ok(result);
             }
             catch (UnauthorizedAccessException ex)

@@ -9,6 +9,7 @@ using Graduation_Application.IServices;
 using Graduation_domain.Enums;
 using Graduation_domain.Entities;
 using Mapster;
+using Microsoft.AspNetCore.Identity;
 
 namespace Graduation_Application.Services
 {
@@ -16,11 +17,16 @@ namespace Graduation_Application.Services
     {
         private readonly IInternalNotificationRepository _repository;
         private readonly INotificationHub _notificationHub;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public InternalNotificationService(IInternalNotificationRepository repository, INotificationHub notificationHub)
+        public InternalNotificationService(
+            IInternalNotificationRepository repository, 
+            INotificationHub notificationHub,
+            UserManager<ApplicationUser> userManager)
         {
             _repository = repository;
             _notificationHub = notificationHub;
+            _userManager = userManager;
         }
 
         private static readonly Dictionary<NotificationType, (string TitleAr, string TitleEn, string MessageAr, string MessageEn)> NotificationTemplates 
@@ -184,22 +190,39 @@ namespace Graduation_Application.Services
             await _repository.AddAsync(notification);
             await _repository.SaveChangesAsync();
 
-            var lang = "ar"; // default
-            var title = lang == "ar" ? titleAr : titleEn;
-            var message = lang == "ar" ? messageAr : messageEn;
-            await _notificationHub.SendAsync(userId, title, message);
+            var sender = await _userManager.FindByIdAsync(userId);
+            var resolvedLang = (sender == null || string.IsNullOrWhiteSpace(sender.PreferredLanguage))
+                ? "en"
+                : sender.PreferredLanguage;
+
+            var localizedDto = new InternalNotificationDto
+            {
+                Id = notification.Id,
+                UserId = notification.UserId,
+                Title = resolvedLang == "ar" ? notification.TitleAr : notification.TitleEn,
+                Message = resolvedLang == "ar" ? notification.MessageAr : notification.MessageEn,
+                IsRead = notification.IsRead,
+                CreatedAt = notification.CreatedAt
+            };
+
+            await _notificationHub.SendAsync(localizedDto);
         }
 
-        public async Task<PaginatedResult<InternalNotificationDto>> GetNotificationsAsync(string userId, string lang, int page, int pageSize)
+        public async Task<PaginatedResult<InternalNotificationDto>> GetNotificationsAsync(string userId, int page, int pageSize)
         {
+            var user = await _userManager.FindByIdAsync(userId);
+            var resolvedLang = (user == null || string.IsNullOrWhiteSpace(user.PreferredLanguage))
+                ? "en"
+                : user.PreferredLanguage;
+
             var totalCount = await _repository.GetTotalCountAsync(userId);
             var notifications = await _repository.GetByUserIdAsync(userId, page, pageSize);
 
             var dtos = notifications.Select(n =>
             {
                 var dto = n.Adapt<InternalNotificationDto>();
-                dto.Title = lang == "ar" ? n.TitleAr : n.TitleEn;
-                dto.Message = lang == "ar" ? n.MessageAr : n.MessageEn;
+                dto.Title = resolvedLang == "ar" ? n.TitleAr : n.TitleEn;
+                dto.Message = resolvedLang == "ar" ? n.MessageAr : n.MessageEn;
                 return dto;
             }).ToList();
 

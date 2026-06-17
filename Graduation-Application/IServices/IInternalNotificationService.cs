@@ -8,7 +8,7 @@ namespace Graduation_Application.IServices
     public interface IInternalNotificationService
     {
         Task CreateAsync(string userId, NotificationType type, string? messageParams = null);
-        Task<PaginatedResult<InternalNotificationDto>> GetNotificationsAsync(string userId, string lang, int page, int pageSize);
+        Task<PaginatedResult<InternalNotificationDto>> GetNotificationsAsync(string userId, int page, int pageSize);
         Task<int> GetUnreadCountAsync(string userId);
         Task MarkAsReadAsync(string userId, int notificationId);
         Task MarkAllAsReadAsync(string userId);
