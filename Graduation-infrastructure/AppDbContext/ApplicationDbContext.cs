@@ -163,7 +163,7 @@ namespace Graduation_infrastructure.AppDbContext
             builder.Entity<ProductMaterialOption>(entity =>
             {
                 entity.ToTable("ProductMaterialOptions");
-                entity.HasKey(e => new { e.ProductId, e.VendorMaterialOptionId, e.PriceOption });
+                entity.HasKey(e => e.Id);
 
                 entity.Property(e => e.PriceOption)
                       .HasColumnType("decimal(18,2)")

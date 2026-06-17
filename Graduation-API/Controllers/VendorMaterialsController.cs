@@ -80,6 +80,24 @@ namespace Graduation_API.Controllers
             }
         }
 
+        [HttpPut("Options/{optionId}")]
+        public async Task<IActionResult> UpdateOption(int optionId, [FromBody] UpdateVendorMaterialOptionDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var workshopId = GetWorkshopId();
+                var option = await _vendorMaterialService.UpdateOptionAsync(workshopId, optionId, dto);
+                return Ok(option);
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
         [HttpDelete("Groups/{groupId}")]
         public async Task<IActionResult> DeleteGroup(int groupId)
         {
