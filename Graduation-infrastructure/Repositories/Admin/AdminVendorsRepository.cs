@@ -215,21 +215,21 @@ namespace Graduation_infrastructure.Repositories.Admin
                     ? VendorVerificationStatus.inActive
                     : VendorVerificationStatus.Active;
 
-            var ordersQuery = _db.Orders.AsNoTracking().Where(o => o.WorkshopId == workshopId);
+            var ordersQuery = _db.VendorOrders.AsNoTracking().Where(vo => vo.WorkshopId == workshopId);
             var totalOrders = await ordersQuery.CountAsync();
-            var deliveredOrders = await ordersQuery.CountAsync(o => o.Status == "Delivered");
-            var pendingOrders = await ordersQuery.CountAsync(o => o.Status == "Pending");
-            var CancelledOrders = await ordersQuery.CountAsync(o => o.Status == "Cancelled");
-            var InProgressOrders = await ordersQuery.CountAsync(o => o.Status == "In Progress");
-            var ConfirmedOrders = await ordersQuery.CountAsync(o => o.Status == "Confirmed");
+            var deliveredOrders = await ordersQuery.CountAsync(o => o.Status == VendorOrderStatus.Delivered);
+            var pendingOrders = await ordersQuery.CountAsync(o => o.Status == VendorOrderStatus.Pending);
+            var CancelledOrders = await ordersQuery.CountAsync(o => o.Status == VendorOrderStatus.Cancelled);
+            var InProgressOrders = await ordersQuery.CountAsync(o => o.Status == VendorOrderStatus.Processing);
+            var ConfirmedOrders = 0;
             var ReadyforPickupOrders = await ordersQuery.CountAsync(o =>
-                o.Status == "Ready for Pickup"
+                o.Status == VendorOrderStatus.Shipped
             );
             Console.WriteLine($"ReadyforPickup: {ReadyforPickupOrders}");
             var totalRevenue = await ordersQuery.SumAsync(o => (decimal?)o.TotalPrice) ?? 0m;
             var deliveredRevenue =
                 await ordersQuery
-                    .Where(o => o.Status == "Delivered")
+                    .Where(o => o.Status == VendorOrderStatus.Delivered)
                     .SumAsync(o => (decimal?)o.TotalPrice)
                 ?? 0m;
 

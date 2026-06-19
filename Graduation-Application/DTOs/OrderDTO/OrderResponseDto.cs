@@ -14,7 +14,7 @@ namespace Graduation_Application.DTOs.OrderDTO
         public string? Notes { get; set; }
         public DateTime CreatedAt { get; set; }
         public List<OrderItemResponseDto> Items { get; set; }
-        public List<OrderStatusHistoryResponseDto> StatusHistory { get; set; }
+        public OrderStatusHistoryResponseDto? StatusHistory { get; set; }
         public string? PaymentUrl { get; set; }
         public string PaymentStatus { get; set; } = "Unpaid";
     }

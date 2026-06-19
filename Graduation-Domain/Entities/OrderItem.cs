@@ -17,8 +17,8 @@ namespace Graduation_domain.Entities
     public class OrderItem : BaseEntity<int>
     {
         [Required]
-        public int OrderId { get; set; }
-        public Order Order { get; set; } = null!;
+        public int VendorOrderId { get; set; }
+        public VendorOrder VendorOrder { get; set; } = null!;
 
         // ── Live soft-reference (nullable — variant may be deleted later) ─────────
         /// <summary>

@@ -16,9 +16,8 @@ namespace Graduation_Application.Services
     public class OrderService : IOrderService
     {
         private readonly IGenaricRepositories<Order> _orderRepository;
-        private readonly IGenaricRepositories<OrderItem> _orderItemRepository;
+        private readonly IGenaricRepositories<VendorOrder> _vendorOrderRepository;
         private readonly IGenaricRepositories<Cart> _cartRepository;
-        private readonly IGenaricRepositories<CartItem> _cartItemRepository;
         private readonly ICartService _cartService;
         private readonly INotificationService _notificationService;
         private readonly IInternalNotificationService _internalNotificationService;
@@ -26,25 +25,25 @@ namespace Graduation_Application.Services
         private readonly IPaymentTransactionRepository _paymentTransactionRepository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IGenaricRepositories<VendorMaterialOption> _vendorMaterialOptionRepository;
+        private readonly IEmailService _emailService;
 
         public OrderService(
             IGenaricRepositories<Order> orderRepository,
-            IGenaricRepositories<OrderItem> orderItemRepository,
+            IGenaricRepositories<VendorOrder> vendorOrderRepository,
             IGenaricRepositories<Cart> cartRepository,
-            IGenaricRepositories<CartItem> cartItemRepository,
             ICartService cartService,
             INotificationService notificationService,
             IInternalNotificationService internalNotificationService,
             IPaymentGateway paymentGateway,
             IPaymentTransactionRepository paymentTransactionRepository,
             UserManager<ApplicationUser> userManager,
-            IGenaricRepositories<VendorMaterialOption> vendorMaterialOptionRepository
+            IGenaricRepositories<VendorMaterialOption> vendorMaterialOptionRepository,
+            IEmailService emailService
         )
         {
             _orderRepository = orderRepository;
-            _orderItemRepository = orderItemRepository;
+            _vendorOrderRepository = vendorOrderRepository;
             _cartRepository = cartRepository;
-            _cartItemRepository = cartItemRepository;
             _cartService = cartService;
             _notificationService = notificationService;
             _internalNotificationService = internalNotificationService;
@@ -52,14 +51,17 @@ namespace Graduation_Application.Services
             _paymentTransactionRepository = paymentTransactionRepository;
             _userManager = userManager;
             _vendorMaterialOptionRepository = vendorMaterialOptionRepository;
+            _emailService = emailService;
         }
 
         public async Task<List<OrderResponseDto>> GetAllOrdersAsync()
         {
             var orders = await _orderRepository
                 .Where(o => o.Status != "Cancelled")
-                .Include(o => o.Items)
-                .Include(o => o.StatusHistory)
+                .Include(o => o.VendorOrders)
+                    .ThenInclude(vo => vo.Items)
+                .Include(o => o.VendorOrders)
+                    .ThenInclude(vo => vo.StatusHistory)
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
 
@@ -78,11 +80,13 @@ namespace Graduation_Application.Services
         )
         {
             // Read cart WITHOUT tracking to avoid EF tracking collisions
+            // Include User for workshops so we can retrieve vendor names/emails/phones
             var cart = await _cartRepository
                 .WhereAsNoTracking(c => c.UserId == userId)
                 .Include(c => c.Items)
                     .ThenInclude(ci => ci.Product)
                         .ThenInclude(p => p.Workshop)
+                            .ThenInclude(w => w.User)
                 .FirstOrDefaultAsync();
 
             if (cart == null || !cart.Items.Any())
@@ -90,7 +94,7 @@ namespace Graduation_Application.Services
                 throw new Exception("Cart is empty");
             }
 
-            decimal totalPrice = cart.Items.Sum(ci => ci.CachedPrice * ci.Quantity);
+            decimal totalOrderPrice = cart.Items.Sum(ci => ci.CachedPrice * ci.Quantity);
 
             var phoneNumber = request.PhoneNumber ?? user.FindFirst(ClaimTypes.MobilePhone)?.Value;
 
@@ -105,78 +109,105 @@ namespace Graduation_Application.Services
                 .Include(o => o.Group)
                 .ToListAsync();
 
-            var orderItems = new List<OrderItem>();
-            foreach (var ci in cart.Items)
+            // Group items in cart by vendor (WorkshopId)
+            var itemsByVendor = cart.Items
+                .GroupBy(ci => ci.Product?.WorkshopId ?? 0)
+                .ToList();
+
+            var vendorOrders = new List<VendorOrder>();
+
+            foreach (var vendorGroup in itemsByVendor)
             {
-                var product = ci.Product;
-                var workshop = product?.Workshop;
-
-                var itemOptionIds = string.IsNullOrEmpty(ci.SelectedOptionsJson) || ci.SelectedOptionsJson == "null"
-                    ? new List<int>() 
-                    : System.Text.Json.JsonSerializer.Deserialize<List<int>>(ci.SelectedOptionsJson) ?? new List<int>();
-
-                var selectedAttributes = optionsData
-                    .Where(o => itemOptionIds.Contains(o.Id))
-                    .Select(o => new SnapshotAttributeDto
-                    {
-                        NameAr = o.Group?.NameAr ?? "",
-                        NameEn = o.Group?.NameEn ?? "",
-                        ValueAr = o.ValueAr,
-                        ValueEn = o.ValueEn
-                    }).ToList();
-
-                string attrsJson = System.Text.Json.JsonSerializer.Serialize(selectedAttributes);
-
-                orderItems.Add(new OrderItem
+                var workshopId = vendorGroup.Key;
+                if (workshopId == 0)
                 {
-                    ProductId = ci.ProductId,
-                    Quantity = ci.Quantity,
-                    SnapshotUnitPrice = ci.CachedPrice,
-                    SnapshotProductNameEn = product?.NameEn ?? string.Empty,
-                    SnapshotProductNameAr = product?.NameAr ?? string.Empty,
-                    SnapshotVendorName = workshop?.WorkshopNameEn ?? string.Empty,
-                    SnapshotAttributesJson = attrsJson,
-                });
+                    throw new Exception("One of the products in the cart does not belong to a valid workshop.");
+                }
+
+                var sampleItem = vendorGroup.First();
+                var workshop = sampleItem.Product?.Workshop;
+
+                var vendorOrderItems = new List<OrderItem>();
+                foreach (var ci in vendorGroup)
+                {
+                    var product = ci.Product;
+
+                    var itemOptionIds = string.IsNullOrEmpty(ci.SelectedOptionsJson) || ci.SelectedOptionsJson == "null"
+                        ? new List<int>()
+                        : System.Text.Json.JsonSerializer.Deserialize<List<int>>(ci.SelectedOptionsJson) ?? new List<int>();
+
+                    var selectedAttributes = optionsData
+                        .Where(o => itemOptionIds.Contains(o.Id))
+                        .Select(o => new SnapshotAttributeDto
+                        {
+                            NameAr = o.Group?.NameAr ?? "",
+                            NameEn = o.Group?.NameEn ?? "",
+                            ValueAr = o.ValueAr,
+                            ValueEn = o.ValueEn
+                        }).ToList();
+
+                    string attrsJson = System.Text.Json.JsonSerializer.Serialize(selectedAttributes);
+
+                    vendorOrderItems.Add(new OrderItem
+                    {
+                        ProductId = ci.ProductId,
+                        Quantity = ci.Quantity,
+                        SnapshotUnitPrice = ci.CachedPrice,
+                        SnapshotProductNameEn = product?.NameEn ?? string.Empty,
+                        SnapshotProductNameAr = product?.NameAr ?? string.Empty,
+                        SnapshotVendorName = workshop?.WorkshopNameEn ?? string.Empty,
+                        SnapshotAttributesJson = attrsJson,
+                    });
+                }
+
+                decimal vendorTotalPrice = vendorGroup.Sum(ci => ci.CachedPrice * ci.Quantity);
+
+                var vendorOrder = new VendorOrder
+                {
+                    WorkshopId = workshopId,
+                    TotalPrice = vendorTotalPrice,
+                    Status = VendorOrderStatus.Pending,
+                    Items = vendorOrderItems,
+                    StatusHistory = new List<VendorOrderStatusHistory>
+                    {
+                        new VendorOrderStatusHistory
+                        {
+                            OldStatus = "",
+                            NewStatus = VendorOrderStatus.Pending.ToString()
+                        }
+                    }
+                };
+
+                vendorOrders.Add(vendorOrder);
             }
 
             var order = new Order
             {
                 UserId = userId,
-                TotalPrice = totalPrice,
+                TotalPrice = totalOrderPrice,
                 Status = "Pending",
                 Address = request.Address,
                 PhoneNumber = phoneNumber,
                 Notes = request.Notes,
-                Items = orderItems,
-                StatusHistory = new List<OrderStatusHistory>
-                {
-                    new OrderStatusHistory
-                    {
-                        OrderId = 0,
-                        OldStatus = "",
-                        NewStatus = "Pending",
-                    },
-                },
+                VendorOrders = vendorOrders
             };
 
-            // Add only the order (EF will track the order + its new items)
+            // Add the master order (EF Core will cascade add vendor orders & items)
             await _orderRepository.AddAsync(order);
             await _orderRepository.SaveChangesAsync();
 
-            // Clear the cart (this uses the cart service which will operate with its own tracked entities)
+            // Clear the cart
             await _cartService.ClearCartAsync(userId);
 
-            // Send internal notifications
+            // Fetch user info for payment gateway & notifications
+            var appUser = await _userManager.FindByIdAsync(userId);
+
+            // Send customer confirmation notifications
             await _internalNotificationService.CreateAsync(
                 userId,
                 NotificationType.OrderPending,
                 order.Id.ToString()
             );
-            // Notify vendor via the first order item's workshop
-            var firstItem = order.Items.FirstOrDefault();
-            // Vendor notification deferred — workshop ID would need to come from the variant's listing
-            // This is a known limitation: vendor notifications require loading variant data post-save
-            // TODO: load variant listing asynchronously if needed
 
             await _notificationService.SendOrderConfirmationAsync(
                 userId,
@@ -184,33 +215,50 @@ namespace Graduation_Application.Services
                 order.TotalPrice
             );
 
-            // Fetch user info for payment gateway
-            var appUser = await _userManager.FindByIdAsync(userId);
+            // Notify each vendor individually
+            foreach (var vendorOrder in order.VendorOrders)
+            {
+                // Reload workshop details including user if not fully tracked
+                var workshop = vendorOrder.Workshop;
+                if (workshop == null)
+                {
+                    // Fallback load workshop
+                    var cartGroup = itemsByVendor.FirstOrDefault(g => g.Key == vendorOrder.WorkshopId);
+                    workshop = cartGroup?.First().Product?.Workshop;
+                }
+
+                if (workshop != null)
+                {
+                    var vendorUserId = workshop.UserId;
+
+                    // Send internal notification to the vendor
+                    await _internalNotificationService.CreateAsync(
+                        vendorUserId,
+                        NotificationType.NewOrder,
+                        vendorOrder.Id.ToString()
+                    );
+
+                    // Send email notification to the vendor
+                    if (workshop.User != null && !string.IsNullOrWhiteSpace(workshop.User.Email))
+                    {
+                        await _emailService.SendNewOrderVendorEmailAsync(workshop.User.Email, vendorOrder.Id);
+                    }
+                }
+            }
+
             string firstName = "Customer";
             string lastName = "User";
             if (appUser != null && !string.IsNullOrWhiteSpace(appUser.FullName))
             {
-                var nameParts = appUser
-                    .FullName.Trim()
-                    .Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
-                if (nameParts.Length > 0)
-                {
-                    firstName = nameParts[0];
-                }
-                if (nameParts.Length > 1)
-                {
-                    lastName = nameParts[1];
-                }
+                var nameParts = appUser.FullName.Trim().Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+                if (nameParts.Length > 0) firstName = nameParts[0];
+                if (nameParts.Length > 1) lastName = nameParts[1];
             }
 
             string email = appUser?.Email ?? "customer@example.com";
             string phone = !string.IsNullOrWhiteSpace(phoneNumber)
                 ? phoneNumber
-                : (
-                    !string.IsNullOrWhiteSpace(appUser?.PhoneNumber)
-                        ? appUser.PhoneNumber
-                        : "01000000000"
-                );
+                : (appUser?.PhoneNumber ?? "01000000000");
 
             var paymentUrl = await _paymentGateway.CreatePaymentUrlAsync(
                 order.Id,
@@ -231,8 +279,10 @@ namespace Graduation_Application.Services
         {
             var order = await _orderRepository
                 .Where(o => o.Id == orderId)
-                .Include(o => o.Items)
-                .Include(o => o.StatusHistory)
+                .Include(o => o.VendorOrders)
+                    .ThenInclude(vo => vo.Items)
+                .Include(o => o.VendorOrders)
+                    .ThenInclude(vo => vo.StatusHistory)
                 .FirstOrDefaultAsync();
 
             if (order == null)
@@ -247,8 +297,10 @@ namespace Graduation_Application.Services
         {
             var orders = await _orderRepository
                 .Where(o => o.UserId == userId)
-                .Include(o => o.Items)
-                .Include(o => o.StatusHistory)
+                .Include(o => o.VendorOrders)
+                    .ThenInclude(vo => vo.Items)
+                .Include(o => o.VendorOrders)
+                    .ThenInclude(vo => vo.StatusHistory)
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
 
@@ -264,8 +316,10 @@ namespace Graduation_Application.Services
         {
             var order = await _orderRepository
                 .Where(o => o.Id == orderId && o.UserId == userId)
-                .Include(o => o.StatusHistory)
-                .Include(o => o.Items)
+                .Include(o => o.VendorOrders)
+                    .ThenInclude(vo => vo.StatusHistory)
+                .Include(o => o.VendorOrders)
+                    .ThenInclude(vo => vo.Items)
                 .FirstOrDefaultAsync();
 
             if (order == null)
@@ -278,13 +332,30 @@ namespace Graduation_Application.Services
                 throw new Exception($"Cannot cancel order in '{order.Status}' status.");
             }
 
-            var oldStatus = order.Status;
-            order.Status = "Cancelled";
-            order.StatusHistory.Add(
-                new OrderStatusHistory { OldStatus = oldStatus, NewStatus = "Cancelled" }
-            );
+            // Check cancelable rules: block if any vendor order has shipped or delivered
+            if (order.VendorOrders.Any(vo => vo.Status == VendorOrderStatus.Shipped || vo.Status == VendorOrderStatus.Delivered))
+            {
+                throw new Exception("Cannot cancel order because some items have already been shipped or delivered. Please contact support.");
+            }
 
-            //_orderRepository.Update(order);
+            foreach (var vendorOrder in order.VendorOrders)
+            {
+                if (vendorOrder.Status != VendorOrderStatus.Cancelled)
+                {
+                    var oldVoStatus = vendorOrder.Status.ToString();
+                    vendorOrder.Status = VendorOrderStatus.Cancelled;
+                    vendorOrder.UpdatedAt = DateTime.UtcNow;
+                    vendorOrder.StatusHistory.Add(new VendorOrderStatusHistory
+                    {
+                        OldStatus = oldVoStatus,
+                        NewStatus = VendorOrderStatus.Cancelled.ToString()
+                    });
+                }
+            }
+
+            order.Status = "Cancelled";
+            order.UpdatedAt = DateTime.UtcNow;
+
             await _orderRepository.SaveChangesAsync();
 
             // Send internal notifications for cancellation
@@ -294,9 +365,24 @@ namespace Graduation_Application.Services
                 orderId.ToString()
             );
 
-            // Send notification to vendor
-            // Notify vendor of cancellation — deferred as vendor id requires loading variant listing
-            // TODO: load vendor via order item variant listing
+            // Notify vendors of cancellation
+            foreach (var vo in order.VendorOrders)
+            {
+                // Load workshop
+                var workshop = await _vendorOrderRepository
+                    .Where(v => v.Id == vo.Id)
+                    .Select(v => v.Workshop)
+                    .FirstOrDefaultAsync();
+
+                if (workshop != null)
+                {
+                    await _internalNotificationService.CreateAsync(
+                        workshop.UserId,
+                        NotificationType.VendorOrderCancelled,
+                        vo.Id.ToString()
+                    );
+                }
+            }
 
             await _notificationService.SendOrderCancellationAsync(userId, order.Id);
         }
@@ -319,7 +405,8 @@ namespace Graduation_Application.Services
 
             var order = await _orderRepository
                 .Where(o => o.Id == orderId)
-                .Include(o => o.StatusHistory)
+                .Include(o => o.VendorOrders)
+                    .ThenInclude(vo => vo.StatusHistory)
                 .FirstOrDefaultAsync();
 
             if (order == null)
@@ -327,26 +414,50 @@ namespace Graduation_Application.Services
                 throw new Exception("Order not found");
             }
 
-            if (!IsValidStatusTransition(order.Status, status))
+            order.Status = status;
+            order.UpdatedAt = DateTime.UtcNow;
+
+            // Propagate status change to VendorOrders if applicable
+            if (status == "Confirmed" || status == "In Progress")
             {
-                throw new Exception($"Cannot transition from {order.Status} to {status}");
+                foreach (var vo in order.VendorOrders)
+                {
+                    if (vo.Status == VendorOrderStatus.Pending)
+                      {
+                        var oldVoStatus = vo.Status.ToString();
+                        vo.Status = VendorOrderStatus.Processing;
+                        vo.UpdatedAt = DateTime.UtcNow;
+                        vo.StatusHistory.Add(new VendorOrderStatusHistory
+                        {
+                            OldStatus = oldVoStatus,
+                            NewStatus = VendorOrderStatus.Processing.ToString()
+                        });
+                    }
+                }
+            }
+            else if (status == "Cancelled")
+            {
+                foreach (var vo in order.VendorOrders)
+                {
+                    if (vo.Status != VendorOrderStatus.Delivered && vo.Status != VendorOrderStatus.Cancelled)
+                    {
+                        var oldVoStatus = vo.Status.ToString();
+                        vo.Status = VendorOrderStatus.Cancelled;
+                        vo.UpdatedAt = DateTime.UtcNow;
+                        vo.StatusHistory.Add(new VendorOrderStatusHistory
+                        {
+                            OldStatus = oldVoStatus,
+                            NewStatus = VendorOrderStatus.Cancelled.ToString()
+                        });
+                    }
+                }
             }
 
-            var oldStatus = order.Status;
-            order.Status = status;
-            order.StatusHistory.Add(
-                new OrderStatusHistory { OldStatus = oldStatus, NewStatus = status }
-            );
-
-            //_orderRepository.Update(order);
             await _orderRepository.SaveChangesAsync();
 
             // Send internal notifications based on status
             switch (status)
             {
-                //case "Pending":
-                //    await _internalNotificationService.CreateAsync(order.UserId, NotificationType.OrderPending, orderId.ToString());
-                //    break;
                 case "Confirmed":
                     await _internalNotificationService.CreateAsync(
                         order.UserId,
@@ -380,34 +491,6 @@ namespace Graduation_Application.Services
             await _notificationService.SendOrderStatusUpdateAsync(order.UserId, order.Id, status);
         }
 
-        private bool IsValidStatusTransition(string fromStatus, string toStatus)
-        {
-            var validTransitions = new Dictionary<string, List<string>>
-            {
-                {
-                    "Pending",
-                    new List<string> { "Confirmed", "Cancelled" }
-                },
-                {
-                    "Confirmed",
-                    new List<string> { "In Progress", "Cancelled" }
-                },
-                {
-                    "In Progress",
-                    new List<string> { "Ready for Pickup", "Cancelled" }
-                },
-                {
-                    "Ready for Pickup",
-                    new List<string> { "Delivered", "Cancelled" }
-                },
-                { "Delivered", new List<string>() },
-                { "Cancelled", new List<string>() },
-            };
-
-            return validTransitions.ContainsKey(fromStatus)
-                && validTransitions[fromStatus].Contains(toStatus);
-        }
-
         public async Task<OrderResponseDto> UpdateOrderItemsAsync(
             int orderId,
             string userId,
@@ -416,8 +499,8 @@ namespace Graduation_Application.Services
         {
             var order = await _orderRepository
                 .Where(o => o.Id == orderId && o.UserId == userId)
-                .Include(o => o.Items)
-                .Include(o => o.StatusHistory)
+                .Include(o => o.VendorOrders)
+                    .ThenInclude(vo => vo.Items)
                 .FirstOrDefaultAsync();
 
             if (order == null)
@@ -439,7 +522,10 @@ namespace Graduation_Application.Services
 
             foreach (var itemDto in dto.Items)
             {
-                var orderItem = order.Items.FirstOrDefault(oi => oi.ProductId == itemDto.ProductId);
+                var orderItem = order.VendorOrders
+                    .SelectMany(vo => vo.Items ?? new List<OrderItem>())
+                    .FirstOrDefault(oi => oi.ProductId == itemDto.ProductId);
+
                 if (orderItem == null)
                 {
                     throw new Exception(
@@ -454,11 +540,19 @@ namespace Graduation_Application.Services
                 }
             }
 
-            order.TotalPrice = order.Items.Sum(oi => oi.SnapshotUnitPrice * oi.Quantity);
+            // Recalculate vendor orders total prices
+            foreach (var vo in order.VendorOrders)
+            {
+                vo.TotalPrice = vo.Items.Sum(oi => oi.SnapshotUnitPrice * oi.Quantity);
+            }
+
+            // Recalculate Master Order total price
+            order.TotalPrice = order.VendorOrders.Sum(vo => vo.TotalPrice);
+            order.UpdatedAt = DateTime.UtcNow;
 
             await _orderRepository.SaveChangesAsync();
 
-            return await MapToDtoAsync(order);
+            return await GetOrderByIdAsync(order.Id);
         }
 
         private async Task<OrderResponseDto> MapToDtoAsync(Order order)
@@ -477,33 +571,38 @@ namespace Graduation_Application.Services
                 Address = order.Address,
                 PhoneNumber = order.PhoneNumber,
                 Notes = order.Notes,
-                Items = order.Items.Select(oi => new OrderItemResponseDto
-                    {
-                        Id = oi.Id,
-                        ProductId = oi.ProductId,
-                        ProductNameEn = oi.SnapshotProductNameEn,
-                        ProductNameAr = oi.SnapshotProductNameAr,
-                        VendorName = oi.SnapshotVendorName,
-                        UnitPrice = oi.SnapshotUnitPrice,
-                        Quantity = oi.Quantity,
-                        Attributes = string.IsNullOrEmpty(oi.SnapshotAttributesJson)
-                            ? new List<SnapshotAttributeDto>()
-                            : System.Text.Json.JsonSerializer.Deserialize<List<SnapshotAttributeDto>>(oi.SnapshotAttributesJson)
-                                ?? new List<SnapshotAttributeDto>(),
-                    })
-                    .ToList(),
-                StatusHistory =
-                    order.StatusHistory != null
-                        ? order
-                            .StatusHistory.Select(sh => new OrderStatusHistoryResponseDto
-                            {
-                                Id = sh.Id,
-                                OldStatus = sh.OldStatus,
-                                NewStatus = sh.NewStatus,
-                                CreatedAt = sh.CreatedAt,
-                            })
-                            .ToList()
-                        : new List<OrderStatusHistoryResponseDto>(),
+                Items = order.VendorOrders != null
+                    ? order.VendorOrders
+                        .SelectMany(vo => vo.Items ?? new List<OrderItem>())
+                        .Select(oi => new OrderItemResponseDto
+                        {
+                            Id = oi.Id,
+                            ProductId = oi.ProductId,
+                            ProductNameEn = oi.SnapshotProductNameEn,
+                            ProductNameAr = oi.SnapshotProductNameAr,
+                            Status = oi.VendorOrder?.Status.ToString() ?? VendorOrderStatus.Pending.ToString(),
+                            UnitPrice = oi.SnapshotUnitPrice,
+                            Quantity = oi.Quantity,
+                            Attributes = string.IsNullOrEmpty(oi.SnapshotAttributesJson)
+                                ? new List<SnapshotAttributeDto>()
+                                : System.Text.Json.JsonSerializer.Deserialize<List<SnapshotAttributeDto>>(oi.SnapshotAttributesJson)
+                                    ?? new List<SnapshotAttributeDto>(),
+                        })
+                        .ToList()
+                    : new List<OrderItemResponseDto>(),
+                StatusHistory = order.VendorOrders != null && order.VendorOrders.Any()
+                    ? order.VendorOrders
+                        .SelectMany(vo => vo.StatusHistory ?? new List<VendorOrderStatusHistory>())
+                        .OrderByDescending(sh => sh.CreatedAt)
+                        .Select(sh => new OrderStatusHistoryResponseDto
+                        {
+                            Id = sh.Id,
+                            OldStatus = sh.OldStatus,
+                            NewStatus = sh.NewStatus,
+                            CreatedAt = sh.CreatedAt,
+                        })
+                        .FirstOrDefault()
+                    : null,
                 PaymentStatus = paymentTransaction?.Status.ToString() ?? "Unpaid",
             };
         }

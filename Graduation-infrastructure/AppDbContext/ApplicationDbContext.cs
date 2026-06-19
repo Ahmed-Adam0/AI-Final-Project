@@ -24,7 +24,8 @@ namespace Graduation_infrastructure.AppDbContext
         public DbSet<ReviewModerationLog> ReviewModerationLogs { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
-        public DbSet<OrderStatusHistory> OrderStatusHistory { get; set; }
+        public DbSet<VendorOrder> VendorOrders { get; set; }
+        public DbSet<VendorOrderStatusHistory> VendorOrderStatusHistories { get; set; }
         public DbSet<FinalResultImage> FinalResultImages { get; set; }
         public DbSet<Discount> Discounts { get; set; }
         public DbSet<Notification> Notifications { get; set; }
@@ -205,9 +206,9 @@ namespace Graduation_infrastructure.AppDbContext
                 entity.Property(e => e.SnapshotVendorName).HasMaxLength(200).IsRequired();
                 entity.Property(e => e.SnapshotAttributesJson).HasColumnType("nvarchar(max)");
 
-                entity.HasOne(e => e.Order)
-                      .WithMany(o => o.Items)
-                      .HasForeignKey(e => e.OrderId)
+                entity.HasOne(e => e.VendorOrder)
+                      .WithMany(vo => vo.Items)
+                      .HasForeignKey(e => e.VendorOrderId)
                       .OnDelete(DeleteBehavior.Cascade);
 
                 // Soft-reference: if a product is deleted, preserve the snapshot (set null)
@@ -218,11 +219,30 @@ namespace Graduation_infrastructure.AppDbContext
                       .OnDelete(DeleteBehavior.SetNull);
             });
 
+            // ── VendorOrder Configuration ──────────────────────────────────────────
+            builder.Entity<VendorOrder>(entity =>
+            {
+                entity.ToTable("VendorOrders");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.TotalPrice).HasColumnType("decimal(18,2)").IsRequired();
+                entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(20).IsRequired();
+
+                entity.HasOne(e => e.MasterOrder)
+                      .WithMany(o => o.VendorOrders)
+                      .HasForeignKey(e => e.MasterOrderId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.Workshop)
+                      .WithMany()
+                      .HasForeignKey(e => e.WorkshopId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
             builder
-                .Entity<OrderStatusHistory>()
-                .HasOne(h => h.Order)
-                .WithMany(o => o.StatusHistory)
-                .HasForeignKey(h => h.OrderId);
+                .Entity<VendorOrderStatusHistory>()
+                .HasOne(h => h.VendorOrder)
+                .WithMany(vo => vo.StatusHistory)
+                .HasForeignKey(h => h.VendorOrderId);
 
             builder
                 .Entity<Review>()

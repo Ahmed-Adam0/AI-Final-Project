@@ -6,6 +6,7 @@ using Graduation_Application.DTOs.Admin.AdminDashboardDTO;
 using Graduation_Application.IRepositories;
 using Graduation_Application.IServices.Admin;
 using Graduation_domain.Entities;
+using Graduation_domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Graduation_Application.Services.Admin
@@ -13,6 +14,7 @@ namespace Graduation_Application.Services.Admin
     public class AdminDashboardService : IAdminDashboardService
     {
         private readonly IGenaricRepositories<Order> _orderRepository;
+        private readonly IGenaricRepositories<VendorOrder> _vendorOrderRepository;
         private readonly IGenaricRepositories<Workshop> _workshopRepository;
         private readonly IGenaricRepositories<ApplicationUser> _userRepository;
         private readonly IGenaricRepositories<Review> _reviewRepository;
@@ -22,6 +24,7 @@ namespace Graduation_Application.Services.Admin
 
         public AdminDashboardService(
             IGenaricRepositories<Order> orderRepository,
+            IGenaricRepositories<VendorOrder> vendorOrderRepository,
             IGenaricRepositories<Workshop> workshopRepository,
             IGenaricRepositories<ApplicationUser> userRepository,
             IGenaricRepositories<Review> reviewRepository,
@@ -31,6 +34,7 @@ namespace Graduation_Application.Services.Admin
         )
         {
             _orderRepository = orderRepository;
+            _vendorOrderRepository = vendorOrderRepository;
             _workshopRepository = workshopRepository;
             _userRepository = userRepository;
             _reviewRepository = reviewRepository;
@@ -44,9 +48,12 @@ namespace Graduation_Application.Services.Admin
             IQueryable<Order> ordersQuery = _orderRepository
                 .GetAllAsNoTracking()
                 .Include(o => o.User)
-                .Include(o => o.Workshop)
-                .Include(o => o.Items)
-                .Include(o => o.StatusHistory)
+                .Include(o => o.VendorOrders)
+                    .ThenInclude(vo => vo.Workshop)
+                .Include(o => o.VendorOrders)
+                    .ThenInclude(vo => vo.Items)
+                .Include(o => o.VendorOrders)
+                    .ThenInclude(vo => vo.StatusHistory)
                 .AsQueryable();
             var orders = await ordersQuery
                 .OrderByDescending(o => o.CreatedAt)
@@ -89,14 +96,14 @@ namespace Graduation_Application.Services.Admin
                     Name = w.WorkshopNameEn,
                     NameAr = w.WorkshopNameAr,
                     Email = w.User.Email,
-                    OrdersCount = _orderRepository
+                    OrdersCount = _vendorOrderRepository
                         .GetAllAsNoTracking()
-                        .Count(o => o.WorkshopId == w.Id),
+                        .Count(vo => vo.WorkshopId == w.Id),
                     Revenue =
-                        _orderRepository
+                        _vendorOrderRepository
                             .GetAllAsNoTracking()
-                            .Where(o => o.WorkshopId == w.Id && o.Status == "Delivered")
-                            .Select(o => (decimal?)o.TotalPrice)
+                            .Where(vo => vo.WorkshopId == w.Id && vo.Status == VendorOrderStatus.Delivered)
+                            .Select(vo => (decimal?)vo.TotalPrice)
                             .Sum()
                         ?? 0m,
                 })
@@ -216,8 +223,8 @@ namespace Graduation_Application.Services.Admin
                         Id = o.Id,
                         OrderNumber = $"ORD-{o.Id:D5}",
                         CustomerName = o.User?.FullName ?? o.UserId,
-                        VendorName = o.Workshop?.WorkshopNameEn ?? "N/A",
-                        VendorNameAr = o.Workshop?.WorkshopNameAr ?? "غير متاح",
+                        VendorName = o.VendorOrders != null ? string.Join(", ", o.VendorOrders.Select(vo => vo.Workshop?.WorkshopNameEn).Where(name => !string.IsNullOrEmpty(name))) : "N/A",
+                        VendorNameAr = o.VendorOrders != null ? string.Join("، ", o.VendorOrders.Select(vo => vo.Workshop?.WorkshopNameAr).Where(name => !string.IsNullOrEmpty(name))) : "غير متاح",
                         TotalAmount = o.TotalPrice,
                         Status = o.Status,
                         CreatedAt = o.CreatedAt,
@@ -268,8 +275,10 @@ namespace Graduation_Application.Services.Admin
             IQueryable<Order> query = _orderRepository
                 .GetAllAsNoTracking()
                 .Include(o => o.User)
-                .Include(o => o.Workshop)
-                .Include(o => o.Items)
+                .Include(o => o.VendorOrders)
+                    .ThenInclude(vo => vo.Workshop)
+                .Include(o => o.VendorOrders)
+                    .ThenInclude(vo => vo.Items)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(filter.Search))
@@ -334,8 +343,8 @@ namespace Graduation_Application.Services.Admin
                         Id = o.Id,
                         OrderNumber = $"ORD-{o.Id:D5}",
                         CustomerName = o.User?.FullName ?? o.UserId,
-                        VendorName = o.Workshop?.WorkshopNameEn ?? "N/A",
-                        VendorNameAr = o.Workshop?.WorkshopNameAr ?? "غير متاح",
+                        VendorName = o.VendorOrders != null ? string.Join(", ", o.VendorOrders.Select(vo => vo.Workshop?.WorkshopNameEn).Where(name => !string.IsNullOrEmpty(name))) : "N/A",
+                        VendorNameAr = o.VendorOrders != null ? string.Join("، ", o.VendorOrders.Select(vo => vo.Workshop?.WorkshopNameAr).Where(name => !string.IsNullOrEmpty(name))) : "غير متاح",
                         TotalAmount = o.TotalPrice,
                         Status = o.Status,
                         PaymentStatus =
@@ -375,9 +384,13 @@ namespace Graduation_Application.Services.Admin
             var order = await _orderRepository
                 .GetAllAsNoTracking()
                 .Include(o => o.User)
-                .Include(o => o.Workshop)
-                .Include(o => o.Items)
-                .Include(o => o.StatusHistory)
+                .Include(o => o.VendorOrders)
+                    .ThenInclude(vo => vo.Workshop)
+                        .ThenInclude(w => w.User)
+                .Include(o => o.VendorOrders)
+                    .ThenInclude(vo => vo.Items)
+                .Include(o => o.VendorOrders)
+                    .ThenInclude(vo => vo.StatusHistory)
                 .FirstOrDefaultAsync(o => o.Id == orderId);
 
             if (order == null)
@@ -390,7 +403,7 @@ namespace Graduation_Application.Services.Admin
                 .GetAllAsNoTracking()
                 .FirstOrDefaultAsync(pt => pt.LocalOrderId == orderId);
 
-            var subtotal = order.Items?.Sum(x => x.SnapshotUnitPrice * x.Quantity) ?? 0m;
+            var subtotal = order.VendorOrders?.SelectMany(vo => vo.Items ?? new List<OrderItem>()).Sum(x => x.SnapshotUnitPrice * x.Quantity) ?? 0m;
 
             return new AdminOrderDetailsDto
             {
@@ -415,15 +428,16 @@ namespace Graduation_Application.Services.Admin
                 },
                 Vendor = new AdminOrderVendorDto
                 {
-                    Name = order.Workshop?.WorkshopNameEn ?? "N/A",
-                    NameAr = order.Workshop?.WorkshopNameAr ?? "غير متاح",
-                    Email = order.Workshop?.User?.Email,
-                    Phone = order.Workshop?.User?.PhoneNumber,
+                    Name = order.VendorOrders != null ? string.Join(", ", order.VendorOrders.Select(vo => vo.Workshop?.WorkshopNameEn).Where(name => !string.IsNullOrEmpty(name))) : "N/A",
+                    NameAr = order.VendorOrders != null ? string.Join("، ", order.VendorOrders.Select(vo => vo.Workshop?.WorkshopNameAr).Where(name => !string.IsNullOrEmpty(name))) : "غير متاح",
+                    Email = order.VendorOrders != null ? string.Join(", ", order.VendorOrders.Select(vo => vo.Workshop?.User?.Email).Where(email => !string.IsNullOrEmpty(email))) : "",
+                    Phone = order.VendorOrders != null ? string.Join(", ", order.VendorOrders.Select(vo => vo.Workshop?.User?.PhoneNumber).Where(phone => !string.IsNullOrEmpty(phone))) : "",
                     RevenueShare = 0m,
                 },
-                Items =
-                    order
-                        .Items?.Select(i => new AdminOrderItemDto
+                Items = order.VendorOrders != null
+                    ? order.VendorOrders
+                        .SelectMany(vo => vo.Items ?? new List<OrderItem>())
+                        .Select(i => new AdminOrderItemDto
                         {
                             Id = i.Id,
                             ProductName = i.SnapshotProductNameEn ?? "Unknown",
@@ -432,10 +446,11 @@ namespace Graduation_Application.Services.Admin
                             LineTotal = i.SnapshotUnitPrice * i.Quantity,
                         })
                         .ToList()
-                    ?? new List<AdminOrderItemDto>(),
-                Timeline =
-                    order
-                        .StatusHistory?.OrderBy(x => x.CreatedAt)
+                    : new List<AdminOrderItemDto>(),
+                Timeline = order.VendorOrders != null
+                    ? order.VendorOrders
+                        .SelectMany(vo => vo.StatusHistory ?? new List<VendorOrderStatusHistory>())
+                        .OrderBy(x => x.CreatedAt)
                         .Select(x => new AdminOrderTimelineItemDto
                         {
                             Title = x.NewStatus,
@@ -444,7 +459,7 @@ namespace Graduation_Application.Services.Admin
                             StatusClass = "bg-primary",
                         })
                         .ToList()
-                    ?? new List<AdminOrderTimelineItemDto>(),
+                    : new List<AdminOrderTimelineItemDto>(),
             };
         }
 
@@ -542,15 +557,15 @@ namespace Graduation_Application.Services.Admin
                         Rank = 0,
                         Name = w.WorkshopNameEn,
                         Revenue =
-                            _orderRepository
+                            _vendorOrderRepository
                                 .GetAllAsNoTracking()
-                                .Where(o => o.WorkshopId == w.Id && o.Status == "Delivered")
-                                .Select(o => (decimal?)o.TotalPrice)
+                                .Where(vo => vo.WorkshopId == w.Id && vo.Status == VendorOrderStatus.Delivered)
+                                .Select(vo => (decimal?)vo.TotalPrice)
                                 .Sum()
                             ?? 0m,
-                        OrdersCount = _orderRepository
+                        OrdersCount = _vendorOrderRepository
                             .GetAllAsNoTracking()
-                            .Count(o => o.WorkshopId == w.Id),
+                            .Count(vo => vo.WorkshopId == w.Id),
                     })
                     .OrderByDescending(x => x.Revenue)
                     .Take(5)
