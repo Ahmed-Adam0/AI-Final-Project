@@ -535,5 +535,74 @@ namespace Graduation_Application.ExternalServices.EmailServices
                 System.Console.Error.WriteLine($"Exception while sending email via SendGrid: {ex.Message}");
             }
         }
+        //for smtp email
+        //private async Task SendEmailAsync(
+        //    string toEmail,
+        //    string subject,
+        //    string plainTextContent,
+        //    string htmlContent
+        //)
+        //{
+        //    var emailAddress = _configuration["EmailSettings:Email"];
+        //    var displayName = _configuration["EmailSettings:DisplayName"];
+        //    var password = _configuration["EmailSettings:Password"];
+        //    var host = _configuration["EmailSettings:Host"];
+        //    var port = int.Parse(_configuration["EmailSettings:Port"]!);
+        //
+        //    if (string.IsNullOrWhiteSpace(emailAddress))
+        //        throw new Exception("Email address is not configured");
+        //
+        //    if (string.IsNullOrWhiteSpace(password))
+        //        throw new Exception("Email password is not configured");
+        //
+        //    var email = new MimeMessage();
+        //
+        //    email.From.Add(
+        //        new MailboxAddress(
+        //            displayName,
+        //            emailAddress));
+        //
+        //    email.To.Add(
+        //        MailboxAddress.Parse(
+        //            toEmail));
+        //
+        //    email.Subject = subject;
+        //
+        //    var bodyBuilder = new BodyBuilder
+        //    {
+        //        TextBody = plainTextContent,
+        //        HtmlBody = htmlContent
+        //    };
+        //
+        //    email.Body = bodyBuilder.ToMessageBody();
+        //
+        //    using var smtp = new SmtpClient();
+        //
+        //    try
+        //    {
+        //        await smtp.ConnectAsync(
+        //            host,
+        //            port,
+        //            SecureSocketOptions.StartTls);
+        //
+        //        await smtp.AuthenticateAsync(
+        //            emailAddress,
+        //            password);
+        //
+        //        await smtp.SendAsync(email);
+        //
+        //        await smtp.DisconnectAsync(true);
+        //
+        //        Console.WriteLine(
+        //            $"Email sent successfully to {toEmail}");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.Error.WriteLine(
+        //            $"Email sending failed: {ex.Message}");
+        //
+        //        throw;
+        //    }
+        //}
     }
 }
