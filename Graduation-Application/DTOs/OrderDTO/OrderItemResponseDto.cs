@@ -17,7 +17,7 @@ namespace Graduation_Application.DTOs.OrderDTO
         // ── Snapshot fields (what was true at purchase time) ──────────────────
         public string ProductNameAr { get; set; } = string.Empty;
         public string ProductNameEn { get; set; } = string.Empty;
-        public string VendorName { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
         public decimal UnitPrice { get; set; }
         public int Quantity { get; set; }
         public decimal TotalPrice => UnitPrice * Quantity;

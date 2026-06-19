@@ -13,18 +13,21 @@ namespace Graduation_Application.Services
 {
     public class VendorOrderService : IVendorOrderService
     {
+        private readonly IGenaricRepositories<VendorOrder> _vendorOrderRepository;
         private readonly IGenaricRepositories<Order> _orderRepository;
         private readonly IGenaricRepositories<Workshop> _workshopRepository;
         private readonly INotificationService _notificationService;
         private readonly IInternalNotificationService _internalNotificationService;
 
         public VendorOrderService(
+            IGenaricRepositories<VendorOrder> vendorOrderRepository,
             IGenaricRepositories<Order> orderRepository,
             IGenaricRepositories<Workshop> workshopRepository,
             INotificationService notificationService,
             IInternalNotificationService internalNotificationService
         )
         {
+            _vendorOrderRepository = vendorOrderRepository;
             _orderRepository = orderRepository;
             _workshopRepository = workshopRepository;
             _notificationService = notificationService;
@@ -37,32 +40,40 @@ namespace Graduation_Application.Services
             int TotalCount
         )> GetVendorOrdersAsync(int workshopId, VendorOrdersFilterDto filter)
         {
-            var query = _orderRepository.Where(o => o.WorkshopId == workshopId).AsNoTracking();
+            var query = _vendorOrderRepository
+                .Where(vo => vo.WorkshopId == workshopId)
+                .Include(vo => vo.MasterOrder)
+                    .ThenInclude(mo => mo.User)
+                .Include(vo => vo.Items)
+                .Include(vo => vo.StatusHistory)
+                .AsNoTracking();
 
             // Status Filter
             if (!string.IsNullOrWhiteSpace(filter.Status))
             {
-                query = query.Where(o => o.Status == filter.Status);
+                if (Enum.TryParse<VendorOrderStatus>(filter.Status, true, out var statusEnum))
+                {
+                    query = query.Where(vo => vo.Status == statusEnum);
+                }
             }
 
             // Date Range Filter
             if (filter.StartDate.HasValue)
             {
-                query = query.Where(o => o.CreatedAt >= filter.StartDate.Value.Date);
+                query = query.Where(vo => vo.CreatedAt >= filter.StartDate.Value.Date);
             }
 
             if (filter.EndDate.HasValue)
             {
                 var endDate = filter.EndDate.Value.Date.AddDays(1);
-
-                query = query.Where(o => o.CreatedAt < endDate);
+                query = query.Where(vo => vo.CreatedAt < endDate);
             }
 
             // Customer Name Filter
             if (!string.IsNullOrWhiteSpace(filter.CustomerName))
             {
-                query = query.Where(o =>
-                    EF.Functions.Like(o.User.FullName, $"%{filter.CustomerName}%")
+                query = query.Where(vo =>
+                    EF.Functions.Like(vo.MasterOrder.User.FullName, $"%{filter.CustomerName}%")
                 );
             }
 
@@ -74,26 +85,26 @@ namespace Graduation_Application.Services
             {
                 case "totalprice":
                     query = filter.SortDescending
-                        ? query.OrderByDescending(o => o.TotalPrice)
-                        : query.OrderBy(o => o.TotalPrice);
+                        ? query.OrderByDescending(vo => vo.TotalPrice)
+                        : query.OrderBy(vo => vo.TotalPrice);
                     break;
 
                 case "status":
                     query = filter.SortDescending
-                        ? query.OrderByDescending(o => o.Status)
-                        : query.OrderBy(o => o.Status);
+                        ? query.OrderByDescending(vo => vo.Status)
+                        : query.OrderBy(vo => vo.Status);
                     break;
 
                 case "customername":
                     query = filter.SortDescending
-                        ? query.OrderByDescending(o => o.User.FullName)
-                        : query.OrderBy(o => o.User.FullName);
+                        ? query.OrderByDescending(vo => vo.MasterOrder.User.FullName)
+                        : query.OrderBy(vo => vo.MasterOrder.User.FullName);
                     break;
 
                 default:
                     query = filter.SortDescending
-                        ? query.OrderByDescending(o => o.CreatedAt)
-                        : query.OrderBy(o => o.CreatedAt);
+                        ? query.OrderByDescending(vo => vo.CreatedAt)
+                        : query.OrderBy(vo => vo.CreatedAt);
                     break;
             }
 
@@ -101,17 +112,36 @@ namespace Graduation_Application.Services
             var orders = await query
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
-                .Select(o => new VendorOrderDashboardDto
+                .Select(vo => new VendorOrderDashboardDto
                 {
-                    Id = o.Id,
-                    CustomerName = o.User.FullName,
-                    TotalPrice = o.TotalPrice,
-                    Status = o.Status,
-                    CreatedAt = o.CreatedAt,
-                    UpdatedAt = o.UpdatedAt,
-                    ItemCount = o.Items.Count(),
-                    CustomerPhone = o.PhoneNumber,
-                    Address = o.Address,
+                    Id = vo.Id,
+                    MasterOrderId = vo.MasterOrderId,
+                    CustomerName = "Customer",
+                    CustomerPhone = "",
+                    TotalPrice = vo.Items.Sum(oi => oi.SnapshotUnitPrice * oi.Quantity),
+                    Status = vo.Status.ToString(),
+                    Address = "",
+                    Notes = "",
+                    CreatedAt = vo.CreatedAt,
+                    UpdatedAt = vo.UpdatedAt,
+                    ItemCount = vo.Items.Sum(oi => oi.Quantity),
+                    Items = vo.Items.Select(oi => new VendorOrderItemDto
+                    {
+                        ProductId = oi.ProductId ?? 0,
+                        ProductName = oi.SnapshotProductNameEn,
+                        UnitPrice = oi.SnapshotUnitPrice,
+                        Quantity = oi.Quantity,
+                        Total = oi.SnapshotUnitPrice * oi.Quantity,
+                    }).ToList(),
+                    StatusHistory = vo.StatusHistory.Select(sh => new OrderStatusHistoryResponseDto
+                    {
+                        Id = sh.Id,
+                        OldStatus = sh.OldStatus,
+                        NewStatus = sh.NewStatus,
+                        CreatedAt = sh.CreatedAt,
+                    })
+                    .OrderByDescending(s => s.CreatedAt)
+                    .FirstOrDefault(),
                 })
                 .ToListAsync();
 
@@ -124,50 +154,49 @@ namespace Graduation_Application.Services
             int workshopId
         )
         {
-            var order = await _orderRepository
-                .Where(o => o.Id == orderId && o.WorkshopId == workshopId)
-                .Include(o => o.User)
-                .Include(o => o.Items)
-                .Include(o => o.StatusHistory)
+            var vo = await _vendorOrderRepository
+                .Where(v => v.Id == orderId && v.WorkshopId == workshopId)
+                .Include(v => v.MasterOrder)
+                    .ThenInclude(mo => mo.User)
+                .Include(v => v.Items)
+                .Include(v => v.StatusHistory)
                 .FirstOrDefaultAsync();
 
-            if (order == null)
+            if (vo == null)
             {
                 throw new Exception("Order not found or unauthorized");
             }
 
             return new VendorOrderDetailsDto
             {
-                Id = order.Id,
-                UserId = order.UserId,
-                CustomerName = order.User.FullName,
-                CustomerPhone = order.PhoneNumber,
-                TotalPrice = order.TotalPrice,
-                Status = order.Status,
-                Address = order.Address,
-                Notes = order.Notes,
-                CreatedAt = order.CreatedAt,
-                UpdatedAt = order.UpdatedAt,
-                Items = order
-                    .Items.Select(oi => new VendorOrderItemDto
-                    {
-                        ProductId = oi.ProductId ?? 0,
-                        ProductName = oi.SnapshotProductNameEn,
-                        UnitPrice = oi.SnapshotUnitPrice,
-                        Quantity = oi.Quantity,
-                        Total = oi.SnapshotUnitPrice * oi.Quantity,
-                    })
-                    .ToList(),
-                StatusHistory = order
-                    .StatusHistory.Select(sh => new OrderStatusHistoryResponseDto
-                    {
-                        Id = sh.Id,
-                        OldStatus = sh.OldStatus,
-                        NewStatus = sh.NewStatus,
-                        CreatedAt = sh.CreatedAt,
-                    })
-                    .OrderByDescending(s => s.CreatedAt)
-                    .ToList(),
+                Id = vo.Id,
+                MasterOrderId = vo.MasterOrderId,
+                UserId = "",
+                CustomerName = "Customer",
+                CustomerPhone = "",
+                TotalPrice = vo.Items.Sum(oi => oi.SnapshotUnitPrice * oi.Quantity),
+                Status = vo.Status.ToString(),
+                Address = "",
+                Notes = "",
+                CreatedAt = vo.CreatedAt,
+                UpdatedAt = vo.UpdatedAt,
+                Items = vo.Items.Select(oi => new VendorOrderItemDto
+                {
+                    ProductId = oi.ProductId ?? 0,
+                    ProductName = oi.SnapshotProductNameEn,
+                    UnitPrice = oi.SnapshotUnitPrice,
+                    Quantity = oi.Quantity,
+                    Total = oi.SnapshotUnitPrice * oi.Quantity,
+                }).ToList(),
+                StatusHistory = vo.StatusHistory.Select(sh => new OrderStatusHistoryResponseDto
+                {
+                    Id = sh.Id,
+                    OldStatus = sh.OldStatus,
+                    NewStatus = sh.NewStatus,
+                    CreatedAt = sh.CreatedAt,
+                })
+                .OrderByDescending(s => s.CreatedAt)
+                .FirstOrDefault(),
             };
         }
 
@@ -178,90 +207,93 @@ namespace Graduation_Application.Services
             string newStatus
         )
         {
-            var validStatuses = new[]
-            {
-                "Pending",
-                "Confirmed",
-                "In Progress",
-                "Ready for Pickup",
-                "Delivered",
-                "Cancelled",
-            };
-
-            if (!validStatuses.Contains(newStatus))
+            if (!Enum.TryParse<VendorOrderStatus>(newStatus, true, out var statusEnum))
             {
                 throw new Exception("Invalid status");
             }
 
-            var order = await _orderRepository
-                .Where(o => o.Id == orderId && o.WorkshopId == workshopId)
-                .Include(o => o.StatusHistory)
+            var vendorOrder = await _vendorOrderRepository
+                .Where(vo => vo.Id == orderId && vo.WorkshopId == workshopId)
+                .Include(vo => vo.StatusHistory)
+                .Include(vo => vo.MasterOrder)
+                    .ThenInclude(mo => mo.VendorOrders)
                 .FirstOrDefaultAsync();
 
-            if (order == null)
+            if (vendorOrder == null)
             {
                 throw new Exception("Order not found or unauthorized");
             }
 
-            // Validate status transition
-            if (!IsValidStatusTransition(order.Status, newStatus))
+            // Validate state transition
+            if (!IsValidStatusTransition(vendorOrder.Status, statusEnum))
             {
-                throw new Exception($"Cannot transition from {order.Status} to {newStatus}");
+                throw new Exception($"Cannot transition from {vendorOrder.Status} to {newStatus}");
             }
 
-            var oldStatus = order.Status;
-            order.Status = newStatus;
-            order.UpdatedAt = DateTime.UtcNow;
+            var oldStatusStr = vendorOrder.Status.ToString();
+            vendorOrder.Status = statusEnum;
+            vendorOrder.UpdatedAt = DateTime.UtcNow;
 
             // Add to status history
-            order.StatusHistory.Add(
-                new OrderStatusHistory
+            vendorOrder.StatusHistory.Add(
+                new VendorOrderStatusHistory
                 {
-                    OrderId = orderId,
-                    OldStatus = oldStatus,
+                    VendorOrderId = orderId,
+                    OldStatus = oldStatusStr,
                     NewStatus = newStatus,
                 }
             );
 
-            order.UpdatedAt = DateTime.UtcNow;
-            _orderRepository.Update(order);
-            await _orderRepository.SaveChangesAsync();
+            // Recalculate parent Master Order status
+            var allVendorStatuses = vendorOrder.MasterOrder.VendorOrders
+                .Select(v => v.Id == orderId ? statusEnum : v.Status)
+                .ToList();
+
+            var derivedStatus = CalculateMasterOrderStatus(allVendorStatuses);
+            vendorOrder.MasterOrder.Status = derivedStatus;
+            vendorOrder.MasterOrder.UpdatedAt = DateTime.UtcNow;
+
+            await _vendorOrderRepository.SaveChangesAsync();
 
             // Send internal notifications based on status
             switch (newStatus)
             {
-                case "Confirmed":
+                case "Processing":
                     await _internalNotificationService.CreateAsync(
-                        order.UserId,
-                        NotificationType.OrderConfirmed,
-                        orderId.ToString()
-                    );
-                    break;
-                case "In Progress":
-                    await _internalNotificationService.CreateAsync(
-                        order.UserId,
+                        vendorOrder.MasterOrder.UserId,
                         NotificationType.OrderInProgress,
-                        orderId.ToString()
+                        vendorOrder.MasterOrderId.ToString()
                     );
                     break;
-                case "Ready for Pickup":
+                case "Shipped":
                     await _internalNotificationService.CreateAsync(
-                        order.UserId,
-                        NotificationType.OrderReadyForPickup,
-                        orderId.ToString()
+                        vendorOrder.MasterOrder.UserId,
+                        NotificationType.OrderReadyForPickup, // mapped to shipped/pickup
+                        vendorOrder.MasterOrderId.ToString()
                     );
                     break;
                 case "Delivered":
                     await _internalNotificationService.CreateAsync(
-                        order.UserId,
+                        vendorOrder.MasterOrder.UserId,
                         NotificationType.OrderDelivered,
-                        orderId.ToString()
+                        vendorOrder.MasterOrderId.ToString()
+                    );
+                    break;
+                case "Cancelled":
+                    await _internalNotificationService.CreateAsync(
+                        vendorOrder.MasterOrder.UserId,
+                        NotificationType.OrderCancelled,
+                        vendorOrder.MasterOrderId.ToString()
                     );
                     break;
             }
 
             // Send notification to customer
-            await _notificationService.SendOrderStatusUpdateAsync(order.UserId, orderId, newStatus);
+            await _notificationService.SendOrderStatusUpdateAsync(
+                vendorOrder.MasterOrder.UserId, 
+                vendorOrder.MasterOrderId, 
+                derivedStatus
+            );
         }
 
         // 4. Get Revenue Statistics
@@ -279,36 +311,36 @@ namespace Graduation_Application.Services
             startDate ??= monthStart;
             endDate ??= now;
 
-            var allOrdersInRangeQuery = _orderRepository
-                .Where(o =>
-                    o.WorkshopId == workshopId && o.CreatedAt >= startDate && o.CreatedAt <= endDate
+            var allOrdersInRangeQuery = _vendorOrderRepository
+                .Where(vo =>
+                    vo.WorkshopId == workshopId && vo.CreatedAt >= startDate && vo.CreatedAt <= endDate
                 )
                 .AsQueryable();
 
-            var deliveredInRangeQuery = allOrdersInRangeQuery.Where(o => o.Status == "Delivered");
+            var deliveredInRangeQuery = allOrdersInRangeQuery.Where(vo => vo.Status == VendorOrderStatus.Delivered);
 
-            var deliveredAllTimeQuery = _orderRepository
-                .Where(o => o.WorkshopId == workshopId && o.Status == "Delivered")
+            var deliveredAllTimeQuery = _vendorOrderRepository
+                .Where(vo => vo.WorkshopId == workshopId && vo.Status == VendorOrderStatus.Delivered)
                 .AsQueryable();
 
-            var totalRevenue = await deliveredInRangeQuery.SumAsync(o => o.TotalPrice);
+            var totalRevenue = await deliveredInRangeQuery.SumAsync(vo => vo.TotalPrice);
 
             var monthlyRevenue = await deliveredAllTimeQuery
-                .Where(o => o.CreatedAt >= monthStart && o.CreatedAt <= now)
-                .SumAsync(o => o.TotalPrice);
+                .Where(vo => vo.CreatedAt >= monthStart && vo.CreatedAt <= now)
+                .SumAsync(vo => vo.TotalPrice);
 
             var weeklyRevenue = await deliveredAllTimeQuery
-                .Where(o => o.CreatedAt >= weekStart && o.CreatedAt <= now)
-                .SumAsync(o => o.TotalPrice);
+                .Where(vo => vo.CreatedAt >= weekStart && vo.CreatedAt <= now)
+                .SumAsync(vo => vo.TotalPrice);
 
             var dailyRevenue = await deliveredAllTimeQuery
-                .Where(o => o.CreatedAt >= dayStart && o.CreatedAt <= now)
-                .SumAsync(o => o.TotalPrice);
+                .Where(vo => vo.CreatedAt >= dayStart && vo.CreatedAt <= now)
+                .SumAsync(vo => vo.TotalPrice);
 
             var completedOrdersCount = await deliveredInRangeQuery.CountAsync();
 
             var dailyBreakdown = await deliveredInRangeQuery
-                .GroupBy(o => o.CreatedAt.Date)
+                .GroupBy(vo => vo.CreatedAt.Date)
                 .Select(g => new DailyRevenueDto
                 {
                     Date = g.Key,
@@ -319,13 +351,13 @@ namespace Graduation_Application.Services
                 .ToListAsync();
 
             var ordersByStatus = await allOrdersInRangeQuery
-                .GroupBy(o => o.Status)
-                .Select(g => new OrdersByStatusDto { Status = g.Key, Count = g.Count() })
+                .GroupBy(vo => vo.Status)
+                .Select(g => new OrdersByStatusDto { Status = g.Key.ToString(), Count = g.Count() })
                 .OrderByDescending(x => x.Count)
                 .ToListAsync();
 
             var monthlyBreakdown = await deliveredInRangeQuery
-                .GroupBy(o => new { o.CreatedAt.Year, o.CreatedAt.Month })
+                .GroupBy(vo => new { vo.CreatedAt.Year, vo.CreatedAt.Month })
                 .Select(g => new MonthlyRevenueDto
                 {
                     Year = g.Key.Year,
@@ -359,26 +391,24 @@ namespace Graduation_Application.Services
             startDate ??= DateTime.UtcNow.AddMonths(-1);
             endDate ??= DateTime.UtcNow;
 
-            var query = _orderRepository.Where(o => o.WorkshopId == workshopId).AsQueryable();
+            var query = _vendorOrderRepository.Where(vo => vo.WorkshopId == workshopId).AsQueryable();
 
             var ordersInRange = await query
-                .Where(o => o.CreatedAt >= startDate && o.CreatedAt <= endDate)
-                .Include(o => o.StatusHistory)
+                .Where(vo => vo.CreatedAt >= startDate && vo.CreatedAt <= endDate)
+                .Include(vo => vo.StatusHistory)
                 .ToListAsync();
 
             var totalOrders = ordersInRange.Count;
-            var completedOrders = ordersInRange.Count(o => o.Status == "Delivered");
-            var cancelledOrders = ordersInRange.Count(o => o.Status == "Cancelled");
-            var pendingOrders = ordersInRange.Count(o => o.Status == "Pending");
-            var inProgressOrders = ordersInRange.Count(o =>
-                o.Status == "Confirmed"
-                || o.Status == "In Progress"
-                || o.Status == "Ready for Pickup"
+            var completedOrders = ordersInRange.Count(vo => vo.Status == VendorOrderStatus.Delivered);
+            var cancelledOrders = ordersInRange.Count(vo => vo.Status == VendorOrderStatus.Cancelled);
+            var pendingOrders = ordersInRange.Count(vo => vo.Status == VendorOrderStatus.Pending);
+            var inProgressOrders = ordersInRange.Count(vo =>
+                vo.Status == VendorOrderStatus.Processing || vo.Status == VendorOrderStatus.Shipped
             );
 
             var totalRevenue = ordersInRange
-                .Where(o => o.Status == "Delivered")
-                .Sum(o => o.TotalPrice);
+                .Where(vo => vo.Status == VendorOrderStatus.Delivered)
+                .Sum(vo => vo.TotalPrice);
 
             var averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
@@ -405,29 +435,29 @@ namespace Graduation_Application.Services
             var monthStart = new DateTime(now.Year, now.Month, 1);
             var lastMonthStart = monthStart.AddMonths(-1);
 
-            var query = _orderRepository.Where(o => o.WorkshopId == workshopId);
+            var query = _vendorOrderRepository.Where(vo => vo.WorkshopId == workshopId);
 
             var currentMonthOrders = await query
-                .Where(o => o.CreatedAt >= monthStart && o.CreatedAt <= now)
+                .Where(vo => vo.CreatedAt >= monthStart && vo.CreatedAt <= now)
                 .ToListAsync();
 
             var lastMonthOrders = await query
-                .Where(o => o.CreatedAt >= lastMonthStart && o.CreatedAt < monthStart)
+                .Where(vo => vo.CreatedAt >= lastMonthStart && vo.CreatedAt < monthStart)
                 .ToListAsync();
 
             var totalOrders = await query.CountAsync();
             var activeOrders = await query
-                .Where(o => o.Status != "Delivered" && o.Status != "Cancelled")
+                .Where(vo => vo.Status != VendorOrderStatus.Delivered && vo.Status != VendorOrderStatus.Cancelled)
                 .CountAsync();
-            var completedOrders = await query.Where(o => o.Status == "Delivered").CountAsync();
+            var completedOrders = await query.Where(vo => vo.Status == VendorOrderStatus.Delivered).CountAsync();
 
             var currentRevenue = currentMonthOrders
-                .Where(o => o.Status == "Delivered")
-                .Sum(o => o.TotalPrice);
+                .Where(vo => vo.Status == VendorOrderStatus.Delivered)
+                .Sum(vo => vo.TotalPrice);
 
             var lastRevenue = lastMonthOrders
-                .Where(o => o.Status == "Delivered")
-                .Sum(o => o.TotalPrice);
+                .Where(vo => vo.Status == VendorOrderStatus.Delivered)
+                .Sum(vo => vo.TotalPrice);
 
             var orderGrowth =
                 lastRevenue > 0 ? ((currentRevenue - lastRevenue) / lastRevenue) * 100 : 0;
@@ -435,7 +465,7 @@ namespace Graduation_Application.Services
             var allOrders = await query.ToListAsync();
             var averageOrderValue =
                 allOrders.Count > 0
-                    ? allOrders.Where(o => o.Status == "Delivered").Sum(o => o.TotalPrice)
+                    ? allOrders.Where(vo => vo.Status == VendorOrderStatus.Delivered).Sum(vo => vo.TotalPrice)
                         / allOrders.Count
                     : 0;
 
@@ -459,18 +489,19 @@ namespace Graduation_Application.Services
             DateTime endDate
         )
         {
-            var orders = await _orderRepository
-                .Where(o =>
-                    o.WorkshopId == workshopId
-                    && o.CreatedAt >= startDate
-                    && o.CreatedAt <= endDate.AddDays(1)
+            var orders = await _vendorOrderRepository
+                .Where(vo =>
+                    vo.WorkshopId == workshopId
+                    && vo.CreatedAt >= startDate
+                    && vo.CreatedAt <= endDate.AddDays(1)
                 )
-                .Include(o => o.User)
+                .Include(vo => vo.MasterOrder)
+                    .ThenInclude(mo => mo.User)
                 .ToListAsync();
 
-            var completedOrders = orders.Count(o => o.Status == "Delivered");
-            var cancelledOrders = orders.Count(o => o.Status == "Cancelled");
-            var totalRevenue = orders.Where(o => o.Status == "Delivered").Sum(o => o.TotalPrice);
+            var completedOrders = orders.Count(vo => vo.Status == VendorOrderStatus.Delivered);
+            var cancelledOrders = orders.Count(vo => vo.Status == VendorOrderStatus.Cancelled);
+            var totalRevenue = orders.Where(vo => vo.Status == VendorOrderStatus.Delivered).Sum(vo => vo.TotalPrice);
 
             return new VendorActivityReportDto
             {
@@ -482,61 +513,80 @@ namespace Graduation_Application.Services
                 TotalRevenue = totalRevenue,
                 AverageOrderValue = orders.Count > 0 ? totalRevenue / orders.Count : 0,
                 Orders = orders
-                    .Select(o => new OrderActivityDto
+                    .Select(vo => new OrderActivityDto
                     {
-                        OrderId = o.Id,
-                        CustomerName = o.User.FullName,
-                        Status = o.Status,
-                        Amount = o.TotalPrice,
-                        CreatedAt = o.CreatedAt,
+                        OrderId = vo.Id,
+                        CustomerName = "Customer",
+                        Status = vo.Status.ToString(),
+                        Amount = vo.TotalPrice,
+                        CreatedAt = vo.CreatedAt,
                     })
                     .ToList(),
             };
         }
 
         // Helper methods
-        private bool IsValidStatusTransition(string fromStatus, string toStatus)
+        private bool IsValidStatusTransition(VendorOrderStatus fromStatus, VendorOrderStatus toStatus)
         {
-            var validTransitions = new Dictionary<string, List<string>>
+            var validTransitions = new Dictionary<VendorOrderStatus, List<VendorOrderStatus>>
             {
                 {
-                    "Pending",
-                    new List<string> { "Confirmed", "Cancelled" }
+                    VendorOrderStatus.Pending,
+                    new List<VendorOrderStatus> { VendorOrderStatus.Processing, VendorOrderStatus.Cancelled }
                 },
                 {
-                    "Confirmed",
-                    new List<string> { "In Progress", "Cancelled" }
+                    VendorOrderStatus.Processing,
+                    new List<VendorOrderStatus> { VendorOrderStatus.Shipped, VendorOrderStatus.Cancelled }
                 },
                 {
-                    "In Progress",
-                    new List<string> { "Ready for Pickup", "Cancelled" }
+                    VendorOrderStatus.Shipped,
+                    new List<VendorOrderStatus> { VendorOrderStatus.Delivered }
                 },
-                {
-                    "Ready for Pickup",
-                    new List<string> { "Delivered", "Cancelled" }
-                },
-                { "Delivered", new List<string>() },
-                { "Cancelled", new List<string>() },
+                { VendorOrderStatus.Delivered, new List<VendorOrderStatus>() },
+                { VendorOrderStatus.Cancelled, new List<VendorOrderStatus>() },
             };
 
             return validTransitions.ContainsKey(fromStatus)
                 && validTransitions[fromStatus].Contains(toStatus);
         }
 
-        private double CalculateAverageCompletionTime(List<Order> orders)
+        private string CalculateMasterOrderStatus(List<VendorOrderStatus> statuses)
+        {
+            if (!statuses.Any()) return "Pending";
+
+            if (statuses.All(s => s == VendorOrderStatus.Cancelled))
+                return "Cancelled";
+
+            if (statuses.All(s => s == VendorOrderStatus.Delivered))
+                return "Completed";
+
+            var activeStatuses = statuses.Where(s => s != VendorOrderStatus.Cancelled).ToList();
+            if (activeStatuses.Any() && activeStatuses.All(s => s == VendorOrderStatus.Delivered))
+                return "Completed";
+
+            if (statuses.Any(s => s == VendorOrderStatus.Delivered))
+                return "PartiallyDelivered";
+
+            if (statuses.Any(s => s == VendorOrderStatus.Processing || s == VendorOrderStatus.Shipped))
+                return "Processing";
+
+            return "Pending";
+        }
+
+        private double CalculateAverageCompletionTime(List<VendorOrder> orders)
         {
             var completedOrders = orders
-                .Where(o => o.Status == "Delivered" && o.StatusHistory.Any())
+                .Where(vo => vo.Status == VendorOrderStatus.Delivered && vo.StatusHistory.Any())
                 .ToList();
 
             if (!completedOrders.Any())
                 return 0;
 
-            var totalHours = completedOrders.Sum(o =>
+            var totalHours = completedOrders.Sum(vo =>
             {
-                var createdAt = o.CreatedAt;
-                var deliveredAt = o
-                    .StatusHistory.Where(sh => sh.NewStatus == "Delivered")
+                var createdAt = vo.CreatedAt;
+                var deliveredAt = vo
+                    .StatusHistory.Where(sh => sh.NewStatus == VendorOrderStatus.Delivered.ToString())
                     .Select(sh => sh.CreatedAt)
                     .FirstOrDefault();
 
@@ -552,9 +602,10 @@ namespace Graduation_Application.Services
         private async Task<int> GetNewCustomersCountAsync(int workshopId)
         {
             var monthStart = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
-            var userIds = await _orderRepository
-                .Where(o => o.WorkshopId == workshopId && o.CreatedAt >= monthStart)
-                .Select(o => o.UserId)
+            var userIds = await _vendorOrderRepository
+                .Where(vo => vo.WorkshopId == workshopId && vo.CreatedAt >= monthStart)
+                .Include(vo => vo.MasterOrder)
+                .Select(vo => vo.MasterOrder.UserId)
                 .Distinct()
                 .CountAsync();
 

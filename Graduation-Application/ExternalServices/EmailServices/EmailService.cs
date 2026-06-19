@@ -292,6 +292,83 @@ namespace Graduation_Application.ExternalServices.EmailServices
             await SendEmailAsync(toEmail, subject, plainTextContent, htmlContent);
         }
 
+        public async Task SendNewOrderVendorEmailAsync(string toEmail, int vendorOrderId)
+        {
+            var subject = "لديك طلب جديد في FurniMind";
+            var plainTextContent = $"لديك طلب جديد رقم #{vendorOrderId} بانتظار موافقتك وتجهيزه.";
+            var htmlContent =
+                $@"
+                <html dir=""rtl"">
+                <body style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #F7F4EB; direction: rtl; margin: 0; padding: 0;"">
+                    <div dir=""rtl"" style=""background-color: #F7F4EB; padding: 35px 15px; text-align: right; direction: rtl;"">
+                        <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 1px solid #E6DED4;"">
+                            <!-- Logo Header -->
+                            <tr>
+                                <td style=""padding: 25px 30px; text-align: center; background-color: #2B1A0A; border-bottom: 3px solid #C5A059;"">
+                                    <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""margin: 0 auto; direction: ltr;"">
+                                        <tr>
+                                            <td style=""padding-right: 12px; vertical-align: middle;"">
+                                                <table border=""0"" cellpadding=""0"" cellspacing=""0"" style=""width: 26px; height: 26px;"">
+                                                    <tr>
+                                                        <td colspan=""5"" style=""height: 5px; background-color: #C5A059; border-radius: 3px 3px 0 0; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                    </tr>
+                                                    <tr height=""2""><td colspan=""5"" style=""font-size: 1px; line-height: 1px;"">&nbsp;</td></tr>
+                                                    <tr>
+                                                        <td valign=""top"" style=""width: 5px; height: 19px; background-color: #C5A059; border-radius: 0 0 2px 2px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                        <td style=""width: 4px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                        <td valign=""bottom"" style=""width: 5px; height: 14px; background-color: #A38042; border-radius: 2px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                        <td style=""width: 4px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                        <td valign=""bottom"" style=""width: 5px; height: 9px; background-color: #6D522B; border-radius: 2px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                            <td style=""vertical-align: middle; line-height: 1;"">
+                                                <span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #ffffff; letter-spacing: 0.5px;"">Furni</span><span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #C5A059; letter-spacing: 0.5px;"">Mind</span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            
+                            <!-- Card Body -->
+                            <tr>
+                                <td style=""padding: 30px 30px 20px 30px; background-color: #ffffff;"">
+                                    <h2 style=""color: #2B1A0A; font-size: 24px; margin-top: 0; margin-bottom: 10px; font-weight: 700; text-align: center;"">طلب بائع جديد</h2>
+                                    <div style=""width: 80px; height: 2px; background-color: #E6DED4; margin: 0 auto 20px auto;""></div>
+                                    
+                                    <p style=""color: #4A3F35; font-size: 15px; line-height: 1.6; text-align: right; margin-bottom: 20px; direction: rtl;"">
+                                        مرحبًا،<br/>
+                                        لقد تلقيت طلبًا جديدًا من أحد العملاء في <strong>FurniMind</strong>. يرجى الدخول إلى لوحة التحكم الخاصة بك للقبول والبدء بالتجهيز:
+                                    </p>
+                                    
+                                    <!-- Order Detail Card -->
+                                    <table border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""background-color: #FAF9F6; border-radius: 10px; border: 1px solid #E6DED4; margin: 25px 0;"">
+                                        <tr>
+                                            <td style=""padding: 20px; text-align: center;"">
+                                                <span style=""color: #8C7E72; font-size: 14px; display: block; margin-bottom: 5px;"">رقم طلب البائع الخاص بك</span>
+                                                <span style=""color: #2B1A0A; font-size: 26px; font-weight: bold;"">#{vendorOrderId}</span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    
+                                    <p style=""color: #4A3F35; font-size: 15px; line-height: 1.6; text-align: right; margin-bottom: 15px;"">يرجى الالتزام بمواعيد التجهيز المحددة وجودة التصنيع المطلوبة.</p>
+                                </td>
+                            </tr>
+                            
+                            <!-- Footer -->
+                            <tr>
+                                <td style=""padding: 20px; background-color: #FAF9F6; border-top: 1px solid #F3ECE3; text-align: center;"">
+                                    <p style=""color: #8C7E72; font-size: 12px; text-align: center; margin: 0; font-weight: 500;"">© 2026 FurniMind جميع الحقوق محفوظة.</p>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </body>
+                </html>";
+
+            await SendEmailAsync(toEmail, subject, plainTextContent, htmlContent);
+        }
+
         public async Task SendOrderStatusChangedEmailAsync(
             string toEmail,
             int orderId,
