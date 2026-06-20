@@ -1,20 +1,19 @@
-using Microsoft.AspNetCore.Mvc;
-using Graduation_Application.DTOs.ProductDTO;
-using Graduation_Application.IServices;
 using System;
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using System.IdentityModel.Tokens.Jwt;
+using Graduation_Application.DTOs.ProductDTO;
+using Graduation_Application.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Graduation_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-
     public class ProductsController : ControllerBase
     {
         private readonly IProductService _productService;
@@ -22,9 +21,10 @@ namespace Graduation_API.Controllers
         private readonly IWebHostEnvironment _webHostEnvironment;
 
         public ProductsController(
-            IProductService productService, 
+            IProductService productService,
             IVendorProductService vendorProductService,
-            IWebHostEnvironment webHostEnvironment)
+            IWebHostEnvironment webHostEnvironment
+        )
         {
             _productService = productService;
             _vendorProductService = vendorProductService;
@@ -55,7 +55,8 @@ namespace Graduation_API.Controllers
             [FromQuery] int? workshopId = null,
             [FromQuery] bool? isActive = null,
             [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 10)
+            [FromQuery] int pageSize = 10
+        )
         {
             try
             {
@@ -71,7 +72,7 @@ namespace Graduation_API.Controllers
                     WorkshopId = workshopId,
                     IsActive = isActive,
                     PageNumber = pageNumber,
-                    PageSize = pageSize
+                    PageSize = pageSize,
                 };
 
                 var result = await _productService.GetProductsAsync(filter);
@@ -80,6 +81,88 @@ namespace Graduation_API.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get products formatted for Vector Database embedding ingestion
+        /// </summary>
+        /// <param name="pageNumber">Page number (default: 1)</param>
+        /// <param name="pageSize">Page size (default: 100)</param>
+        /// <returns>Paginated list of product embeddings</returns>
+        [HttpGet("embedding")]
+        public async Task<IActionResult> GetProductsForEmbedding(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 100
+        )
+        {
+            try
+            {
+                var result = await _productService.GetProductsForEmbeddingAsync(
+                    pageNumber,
+                    pageSize
+                );
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Push all products to the RAG webhook
+        /// </summary>
+        [HttpPost("sync-webhook")]
+        public async Task<IActionResult> SyncToWebhook()
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                string webhookUrl =
+                    "https://main-production-aa56.up.railway.app/webhook/25fbe542-da87-4604-bfa6-ca1fa5f41f4e";
+
+                int pageNumber = 1;
+                int pageSize = 150;
+                int totalSent = 0;
+
+                while (true)
+                {
+                    var result = await _productService.GetProductsForEmbeddingAsync(
+                        pageNumber,
+                        pageSize
+                    );
+                    if (result.Items == null || !result.Items.Any())
+                        break;
+
+                    foreach (var item in result.Items)
+                    {
+                        var response = await client.PostAsJsonAsync(
+                            webhookUrl,
+                            new { text = item.Text }
+                        );
+                        if (response.IsSuccessStatusCode)
+                        {
+                            totalSent++;
+                        }
+
+                        // Wait 5 seconds between each request
+                        await Task.Delay(5000);
+                    }
+
+                    if (pageNumber >= result.TotalPages)
+                        break;
+
+                    pageNumber++;
+                }
+
+                return Ok(
+                    new { message = $"Successfully synced {totalSent} products to the webhook." }
+                );
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
             }
         }
 
@@ -148,7 +231,10 @@ namespace Graduation_API.Controllers
         /// <returns>Updated product details</returns>
         [HttpPut("{id}")]
         [Authorize(Roles = "Vendor")]
-        public async Task<IActionResult> UpdateProduct(int id, [FromBody] UpdateProductDto updateProductDto)
+        public async Task<IActionResult> UpdateProduct(
+            int id,
+            [FromBody] UpdateProductDto updateProductDto
+        )
         {
             try
             {
@@ -218,7 +304,11 @@ namespace Graduation_API.Controllers
         /// </summary>
         [HttpPost("{productId}/images")]
         [Authorize(Roles = "Vendor")]
-        public async Task<IActionResult> UploadImage(int productId, IFormFile file, [FromQuery] bool isPrimary = false)
+        public async Task<IActionResult> UploadImage(
+            int productId,
+            IFormFile file,
+            [FromQuery] bool isPrimary = false
+        )
         {
             try
             {
@@ -233,7 +323,12 @@ namespace Graduation_API.Controllers
                     return Unauthorized(new { message = "User ID not found in token" });
 
                 var imageUrl = await SaveImageAsync(file);
-                var result = await _productService.AddProductImageAsync(productId, userId, imageUrl, isPrimary);
+                var result = await _productService.AddProductImageAsync(
+                    productId,
+                    userId,
+                    imageUrl,
+                    isPrimary
+                );
 
                 return Ok(result);
             }
@@ -270,7 +365,11 @@ namespace Graduation_API.Controllers
                 var productDetails = await _productService.GetProductDetailsAsync(productId);
                 var imageDto = productDetails?.Images?.Find(img => img.Id == imageId);
 
-                var result = await _productService.RemoveProductImageAsync(productId, userId, imageId);
+                var result = await _productService.RemoveProductImageAsync(
+                    productId,
+                    userId,
+                    imageId
+                );
                 if (!result)
                     return NotFound(new { message = "Image not found for this product" });
 
@@ -314,7 +413,12 @@ namespace Graduation_API.Controllers
                 var oldImageDto = productDetails?.Images?.Find(img => img.Id == imageId);
 
                 var newImageUrl = await SaveImageAsync(file);
-                var result = await _productService.ReplaceProductImageAsync(productId, userId, imageId, newImageUrl);
+                var result = await _productService.ReplaceProductImageAsync(
+                    productId,
+                    userId,
+                    imageId,
+                    newImageUrl
+                );
 
                 if (oldImageDto != null)
                 {
@@ -377,7 +481,9 @@ namespace Graduation_API.Controllers
 
         private async Task<string> SaveImageAsync(IFormFile file)
         {
-            var webRootPath = _webHostEnvironment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var webRootPath =
+                _webHostEnvironment.WebRootPath
+                ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
             var productsFolder = Path.Combine(webRootPath, "images", "products");
 
             if (!Directory.Exists(productsFolder))
@@ -400,9 +506,12 @@ namespace Graduation_API.Controllers
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(imageUrl)) return;
+                if (string.IsNullOrWhiteSpace(imageUrl))
+                    return;
 
-                var webRootPath = _webHostEnvironment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                var webRootPath =
+                    _webHostEnvironment.WebRootPath
+                    ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
                 var relativePath = imageUrl.TrimStart('/');
                 var physicalPath = Path.Combine(webRootPath, relativePath);
 
@@ -458,7 +567,10 @@ namespace Graduation_API.Controllers
         /// </summary>
         [HttpGet("my-products")]
         [Authorize(Roles = "Vendor")]
-        public async Task<IActionResult> GetMyProducts([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetMyProducts(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10
+        )
         {
             try
             {
@@ -470,7 +582,7 @@ namespace Graduation_API.Controllers
                 {
                     PageNumber = pageNumber,
                     PageSize = pageSize,
-                    IsActive = null // Show all products (active and inactive)
+                    IsActive = null, // Show all products (active and inactive)
                 };
 
                 var result = await _vendorProductService.GetVendorProductsAsync(userId, filter);
@@ -519,7 +631,10 @@ namespace Graduation_API.Controllers
                 if (string.IsNullOrEmpty(userId))
                     return Unauthorized(new { message = "User ID not found in token" });
 
-                var products = await _vendorProductService.GetVendorTopProductsAsync(userId, topCount);
+                var products = await _vendorProductService.GetVendorTopProductsAsync(
+                    userId,
+                    topCount
+                );
                 return Ok(products);
             }
             catch (Exception ex)
@@ -557,12 +672,14 @@ namespace Graduation_API.Controllers
             }
         }
 
-
         // ==================== ATTRIBUTE MANAGEMENT ENDPOINTS ====================
 
         [HttpPost("{productId}/attributes")]
         [Authorize(Roles = "Vendor")]
-        public async Task<IActionResult> AddProductAttribute(int productId, [FromBody] CreateProductAttributeDto dto)
+        public async Task<IActionResult> AddProductAttribute(
+            int productId,
+            [FromBody] CreateProductAttributeDto dto
+        )
         {
             try
             {
@@ -570,24 +687,51 @@ namespace Graduation_API.Controllers
                 var result = await _productService.AddProductAttributeAsync(productId, userId, dto);
                 return Ok(result);
             }
-            catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
-            catch (UnauthorizedAccessException ex) { return StatusCode(403, new { message = ex.Message }); }
-            catch (Exception ex) { return StatusCode(500, new { message = ex.Message }); }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         [HttpPut("{productId}/attributes/{attributeId}")]
         [Authorize(Roles = "Vendor")]
-        public async Task<IActionResult> UpdateProductAttribute(int productId, int attributeId, [FromBody] UpdateProductAttributeDto dto)
+        public async Task<IActionResult> UpdateProductAttribute(
+            int productId,
+            int attributeId,
+            [FromBody] UpdateProductAttributeDto dto
+        )
         {
             try
             {
                 var userId = GetCurrentUserId();
-                var result = await _productService.UpdateProductAttributeAsync(productId, attributeId, userId, dto);
+                var result = await _productService.UpdateProductAttributeAsync(
+                    productId,
+                    attributeId,
+                    userId,
+                    dto
+                );
                 return Ok(result);
             }
-            catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
-            catch (UnauthorizedAccessException ex) { return StatusCode(403, new { message = ex.Message }); }
-            catch (Exception ex) { return StatusCode(500, new { message = ex.Message }); }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         [HttpDelete("{productId}/attributes/{attributeId}")]
@@ -597,57 +741,122 @@ namespace Graduation_API.Controllers
             try
             {
                 var userId = GetCurrentUserId();
-                var result = await _productService.DeleteProductAttributeAsync(productId, attributeId, userId);
-                if (!result) return NotFound(new { message = "Attribute not found" });
+                var result = await _productService.DeleteProductAttributeAsync(
+                    productId,
+                    attributeId,
+                    userId
+                );
+                if (!result)
+                    return NotFound(new { message = "Attribute not found" });
                 return Ok(new { message = "Attribute deleted successfully" });
             }
-            catch (UnauthorizedAccessException ex) { return StatusCode(403, new { message = ex.Message }); }
-            catch (Exception ex) { return StatusCode(500, new { message = ex.Message }); }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         [HttpPost("{productId}/attributes/{attributeId}/values")]
         [Authorize(Roles = "Vendor")]
-        public async Task<IActionResult> AddAttributeValue(int productId, int attributeId, [FromBody] CreateProductAttributeValueDto dto)
+        public async Task<IActionResult> AddAttributeValue(
+            int productId,
+            int attributeId,
+            [FromBody] CreateProductAttributeValueDto dto
+        )
         {
             try
             {
                 var userId = GetCurrentUserId();
-                var result = await _productService.AddAttributeValueAsync(productId, attributeId, userId, dto);
+                var result = await _productService.AddAttributeValueAsync(
+                    productId,
+                    attributeId,
+                    userId,
+                    dto
+                );
                 return Ok(result);
             }
-            catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
-            catch (UnauthorizedAccessException ex) { return StatusCode(403, new { message = ex.Message }); }
-            catch (Exception ex) { return StatusCode(500, new { message = ex.Message }); }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         [HttpPut("{productId}/attributes/{attributeId}/values/{valueId}")]
         [Authorize(Roles = "Vendor")]
-        public async Task<IActionResult> UpdateAttributeValue(int productId, int attributeId, int valueId, [FromBody] UpdateProductAttributeValueDto dto)
+        public async Task<IActionResult> UpdateAttributeValue(
+            int productId,
+            int attributeId,
+            int valueId,
+            [FromBody] UpdateProductAttributeValueDto dto
+        )
         {
             try
             {
                 var userId = GetCurrentUserId();
-                var result = await _productService.UpdateAttributeValueAsync(productId, attributeId, valueId, userId, dto);
+                var result = await _productService.UpdateAttributeValueAsync(
+                    productId,
+                    attributeId,
+                    valueId,
+                    userId,
+                    dto
+                );
                 return Ok(result);
             }
-            catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
-            catch (UnauthorizedAccessException ex) { return StatusCode(403, new { message = ex.Message }); }
-            catch (Exception ex) { return StatusCode(500, new { message = ex.Message }); }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         [HttpDelete("{productId}/attributes/{attributeId}/values/{valueId}")]
         [Authorize(Roles = "Vendor")]
-        public async Task<IActionResult> DeleteAttributeValue(int productId, int attributeId, int valueId)
+        public async Task<IActionResult> DeleteAttributeValue(
+            int productId,
+            int attributeId,
+            int valueId
+        )
         {
             try
             {
                 var userId = GetCurrentUserId();
-                var result = await _productService.DeleteAttributeValueAsync(productId, attributeId, valueId, userId);
-                if (!result) return NotFound(new { message = "Value not found" });
+                var result = await _productService.DeleteAttributeValueAsync(
+                    productId,
+                    attributeId,
+                    valueId,
+                    userId
+                );
+                if (!result)
+                    return NotFound(new { message = "Value not found" });
                 return Ok(new { message = "Value deleted successfully" });
             }
-            catch (UnauthorizedAccessException ex) { return StatusCode(403, new { message = ex.Message }); }
-            catch (Exception ex) { return StatusCode(500, new { message = ex.Message }); }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
     }
 }

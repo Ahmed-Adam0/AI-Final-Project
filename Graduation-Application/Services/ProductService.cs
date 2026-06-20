@@ -162,6 +162,42 @@ namespace Graduation_Application.Services
             return product.Adapt<ProductDetailsDto>();
         }
 
+        public async Task<PaginatedResult<ProductEmbeddingDto>> GetProductsForEmbeddingAsync(int pageNumber, int pageSize)
+        {
+            pageNumber = pageNumber <= 0 ? 1 : pageNumber;
+            pageSize = pageSize <= 0 ? 100 : pageSize;
+
+            IQueryable<Product> query = _productRepository.GetAllAsNoTracking();
+
+            int totalCount = await query.CountAsync();
+
+            var products = await query
+                .OrderBy(p => p.Id)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(p => new ProductEmbeddingDto
+                {
+                    Text = $"Id: {p.Id} | NameAr: {p.NameAr} | NameEn: {p.NameEn} | DescriptionAr: {p.DescriptionAr} | DescriptionEn: {p.DescriptionEn} | Price: {p.BasePrice} | CategoryNameAr: {p.ProductType.SubCategory.Category.NameAr} | CategoryNameEn: {p.ProductType.SubCategory.Category.NameEn} | SubCategoryNameAr: {p.ProductType.SubCategory.NameAr} | SubCategoryNameEn: {p.ProductType.SubCategory.NameEn} | VendorNameAr: {p.Workshop.WorkshopNameAr} | VendorNameEn: {p.Workshop.WorkshopNameEn}"
+                })
+                .ToListAsync();
+
+            return new PaginatedResult<ProductEmbeddingDto>(
+                products,
+                totalCount,
+                pageNumber,
+                pageSize
+            );
+        }
+
+        public async Task<string> GetProductEmbeddingTextAsync(int id)
+        {
+            var text = await _productRepository.GetAllAsNoTracking()
+                .Where(p => p.Id == id)
+                .Select(p => $"Id: {p.Id} | NameAr: {p.NameAr} | NameEn: {p.NameEn} | DescriptionAr: {p.DescriptionAr} | DescriptionEn: {p.DescriptionEn} | Price: {p.BasePrice} | CategoryNameAr: {p.ProductType.SubCategory.Category.NameAr} | CategoryNameEn: {p.ProductType.SubCategory.Category.NameEn} | SubCategoryNameAr: {p.ProductType.SubCategory.NameAr} | SubCategoryNameEn: {p.ProductType.SubCategory.NameEn} | VendorNameAr: {p.Workshop.WorkshopNameAr} | VendorNameEn: {p.Workshop.WorkshopNameEn}")
+                .FirstOrDefaultAsync();
+            return text;
+        }
+
         public async Task<ProductResponseDto> CreateProductAsync(string userId, CreateProductDto createProductDto)
         {
             if (string.IsNullOrWhiteSpace(userId))
@@ -200,6 +236,24 @@ namespace Graduation_Application.Services
 
             await _productRepository.AddAsync(product);
             await _productRepository.SaveChangesAsync();
+
+            try
+            {
+                var text = await GetProductEmbeddingTextAsync(product.Id);
+                if (!string.IsNullOrEmpty(text))
+                {
+                    using var client = new System.Net.Http.HttpClient();
+                    string webhookUrl = "https://main-production-aa56.up.railway.app/webhook/25fbe542-da87-4604-bfa6-ca1fa5f41f4e";
+                    
+                    var jsonPayload = System.Text.Json.JsonSerializer.Serialize(new { text = text });
+                    var content = new System.Net.Http.StringContent(jsonPayload, System.Text.Encoding.UTF8, "application/json");
+                    await client.PostAsync(webhookUrl, content);
+                }
+            }
+            catch
+            {
+                // Ignore webhook failures so it doesn't break product creation
+            }
 
             return product.Adapt<ProductResponseDto>();
         }
