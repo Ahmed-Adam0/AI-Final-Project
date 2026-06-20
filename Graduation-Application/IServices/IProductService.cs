@@ -12,6 +12,8 @@ namespace Graduation_Application.IServices
         // Read operations (existing)
         Task<PaginatedResult<ProductDto>> GetProductsAsync(ProductFilterDto filter);
         Task<ProductDetailsDto> GetProductDetailsAsync(int id);
+        Task<PaginatedResult<ProductEmbeddingDto>> GetProductsForEmbeddingAsync(int pageNumber, int pageSize);
+        Task<string> GetProductEmbeddingTextAsync(int id);
 
         // Write operations (vendor — ownership via UserId)
         Task<ProductResponseDto> CreateProductAsync(string userId, CreateProductDto createProductDto);
