@@ -54,6 +54,7 @@ namespace Graduation_API.Controllers
             [FromQuery] string material = null,
             [FromQuery] int? workshopId = null,
             [FromQuery] bool? isActive = null,
+            [FromQuery] string sortBy = null,
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10
         )
@@ -71,6 +72,7 @@ namespace Graduation_API.Controllers
                     Material = material,
                     WorkshopId = workshopId,
                     IsActive = isActive,
+                    SortBy = sortBy,
                     PageNumber = pageNumber,
                     PageSize = pageSize,
                 };
@@ -568,6 +570,12 @@ namespace Graduation_API.Controllers
         [HttpGet("my-products")]
         [Authorize(Roles = "Vendor")]
         public async Task<IActionResult> GetMyProducts(
+            [FromQuery] string search = null,
+            [FromQuery] int? categoryId = null,
+            [FromQuery] int? subCategoryId = null,
+            [FromQuery] int? productTypeId = null,
+            [FromQuery] bool? isActive = null,
+            [FromQuery] string sortBy = null,
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10
         )
@@ -580,13 +588,32 @@ namespace Graduation_API.Controllers
 
                 var filter = new ProductFilterDto
                 {
+                    Search = search,
+                    CategoryId = categoryId,
+                    SubCategoryId = subCategoryId,
+                    ProductTypeId = productTypeId,
+                    IsActive = isActive,
+                    SortBy = sortBy,
                     PageNumber = pageNumber,
                     PageSize = pageSize,
-                    IsActive = null, // Show all products (active and inactive)
                 };
 
                 var result = await _vendorProductService.GetVendorProductsAsync(userId, filter);
-                return Ok(result);
+                var stats = await _vendorProductService.GetVendorProductStatsAsync(userId);
+
+                return Ok(new 
+                {
+                    items = result.Items,
+                    totalCount = stats.TotalProducts,
+                    filteredCount = result.TotalCount,
+                    activeCount = stats.ActiveProducts,
+                    inactiveCount = stats.InactiveProducts,
+                    totalPages = result.TotalPages,
+                    pageNumber = result.PageNumber,
+                    pageSize = result.PageSize,
+                    hasPreviousPage = result.HasPreviousPage,
+                    hasNextPage = result.HasNextPage
+                });
             }
             catch (Exception ex)
             {

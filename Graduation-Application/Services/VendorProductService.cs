@@ -45,8 +45,10 @@ namespace Graduation_Application.Services
                 .Include(p => p.Images);
 
             // Apply status filter
-            bool activeFilter = filter.IsActive ?? true;
-            query = query.Where(p => p.IsActive == activeFilter);
+            if (filter.IsActive.HasValue)
+            {
+                query = query.Where(p => p.IsActive == filter.IsActive.Value);
+            }
 
             // Apply search filter
             if (!string.IsNullOrWhiteSpace(filter.Search))
@@ -87,12 +89,57 @@ namespace Graduation_Application.Services
                 query = query.Where(p => p.BasePrice <= filter.MaxPrice.Value);
             }
 
+            // Apply sorting
+            if (!string.IsNullOrWhiteSpace(filter.SortBy))
+            {
+                string sortTerm = filter.SortBy.ToLower().Trim();
+                switch (sortTerm)
+                {
+                    case "price_asc":
+                    case "priceasc":
+                    case "price: low to high":
+                    case "pricelowtohigh":
+                    case "lowtohigh":
+                        query = query.OrderBy(p => p.BasePrice);
+                        break;
+                    case "price_desc":
+                    case "pricedesc":
+                    case "price: high to low":
+                    case "pricehightolow":
+                    case "hightolow":
+                        query = query.OrderByDescending(p => p.BasePrice);
+                        break;
+                    case "name_az":
+                    case "nameaz":
+                    case "name: a-z":
+                    case "name":
+                    case "az":
+                        query = query.OrderBy(p => p.NameEn);
+                        break;
+                    case "rating":
+                    case "ratingdesc":
+                        query = query.OrderByDescending(p => _reviewRepository.GetAllAsNoTracking()
+                            .Where(r => r.ProductId == p.Id)
+                            .Select(r => (double?)r.Rating)
+                            .Average() ?? 0);
+                        break;
+                    case "newest":
+                    case "newestdesc":
+                    default:
+                        query = query.OrderByDescending(p => p.CreatedAt);
+                        break;
+                }
+            }
+            else
+            {
+                query = query.OrderByDescending(p => p.CreatedAt);
+            }
+
             // Get total count
             int totalCount = await query.CountAsync();
 
             // Apply pagination
             var products = await query
-                .OrderByDescending(p => p.CreatedAt)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
