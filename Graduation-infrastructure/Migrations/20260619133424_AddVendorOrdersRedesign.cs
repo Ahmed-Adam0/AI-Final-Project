@@ -122,7 +122,7 @@ namespace Graduation_infrastructure.Migrations
                         WHEN OrderStatus = 'Delivered' THEN 'Delivered'
                         WHEN OrderStatus = 'Cancelled' THEN 'Cancelled'
                         WHEN OrderStatus = 'Shipped' THEN 'Shipped'
-                        WHEN OrderStatus = 'Processing' OR OrderStatus = 'In Progress' THEN 'Processing'
+                        WHEN OrderStatus = 'Processing' OR OrderStatus = 'In Progress' THEN 'InProgress'
                         ELSE 'Pending'
                     END AS Status,
                     CreatedAt,

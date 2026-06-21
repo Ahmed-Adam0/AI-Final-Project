@@ -18,5 +18,7 @@ namespace Graduation_Application.IServices
         Task CancelOrderAsync(int orderId, string userId);
         Task<List<OrderResponseDto>> GetAllOrdersAsync();
         Task<OrderResponseDto> UpdateOrderItemsAsync(int orderId, string userId, UpdateOrderItemsDto dto);
+        Task ApproveVendorOrderScheduleAsync(int vendorOrderId, string userId);
+        Task RejectVendorOrderScheduleAsync(int vendorOrderId, string userId);
     }
 }

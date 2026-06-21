@@ -16,6 +16,7 @@ namespace Graduation_Application.DTOs.OrderDTO
         public string? Notes { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public DateTime? EstimatedDeliveryDate { get; set; }
         public List<VendorOrderItemDto> Items { get; set; }
         public OrderStatusHistoryResponseDto? StatusHistory { get; set; }
     }

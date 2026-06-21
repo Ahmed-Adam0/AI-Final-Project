@@ -196,6 +196,72 @@ namespace Graduation_API.Controllers
             }
         }
 
+        /// <summary>
+        /// Customer approves a vendor order delivery schedule proposal
+        /// </summary>
+        [HttpPut("vendor-orders/{vendorOrderId}/approve")]
+        public async Task<IActionResult> ApproveVendorOrderSchedule(int vendorOrderId)
+        {
+            try
+            {
+                var userId = GetUserId();
+                await _orderService.ApproveVendorOrderScheduleAsync(vendorOrderId, userId);
+
+                await _adminAuditLogsService.CreateLogAsync(
+                    userId,
+                    GetCurrentUserName(),
+                    GetCurrentUserRole(),
+                    "ApproveVendorOrderSchedule",
+                    "VendorOrder",
+                    vendorOrderId.ToString(),
+                    $"Customer approved delivery schedule for vendor order #{vendorOrderId}.",
+                    GetCurrentUserRoleAr(),
+                    "قبول مقترح تاريخ التوصيل",
+                    "طلب بائع",
+                    $"قام العميل بقبول مقترح تاريخ التوصيل لطلب البائع رقم {vendorOrderId}."
+                );
+
+                return Ok(new { Message = "Schedule approved successfully" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Customer rejects a vendor order delivery schedule proposal
+        /// </summary>
+        [HttpPut("vendor-orders/{vendorOrderId}/reject")]
+        public async Task<IActionResult> RejectVendorOrderSchedule(int vendorOrderId)
+        {
+            try
+            {
+                var userId = GetUserId();
+                await _orderService.RejectVendorOrderScheduleAsync(vendorOrderId, userId);
+
+                await _adminAuditLogsService.CreateLogAsync(
+                    userId,
+                    GetCurrentUserName(),
+                    GetCurrentUserRole(),
+                    "RejectVendorOrderSchedule",
+                    "VendorOrder",
+                    vendorOrderId.ToString(),
+                    $"Customer rejected delivery schedule. Vendor order #{vendorOrderId} cancelled.",
+                    GetCurrentUserRoleAr(),
+                    "رفض مقترح تاريخ التوصيل",
+                    "طلب بائع",
+                    $"قام العميل برفض مقترح تاريخ التوصيل مما أدى إلى إلغاء طلب البائع رقم {vendorOrderId}."
+                );
+
+                return Ok(new { Message = "Schedule rejected. Order cancelled." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
         private string GetCurrentUserName() =>
             User.FindFirstValue(ClaimTypes.Name)
             ?? User.FindFirstValue(ClaimTypes.Email)

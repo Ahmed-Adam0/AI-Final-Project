@@ -462,6 +462,113 @@ namespace Graduation_Application.ExternalServices.EmailServices
             await SendEmailAsync(toEmail, subject, plainTextContent, htmlContent);
         }
 
+        public async Task SendDeliveryDateProposedEmailAsync(string toEmail, int vendorOrderId, System.DateTime proposedDate)
+        {
+            var subject = "مقترح تاريخ التوصيل لطلبكم - FurniMind";
+            var plainTextContent = $"تم تقديم مقترح لتاريخ التوصيل لطلب البائع رقم #{vendorOrderId}. التاريخ المقترح: {proposedDate:yyyy-MM-dd}.";
+            var htmlContent =
+                $@"
+                <html dir=""rtl"">
+                <body style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #F7F4EB; direction: rtl; margin: 0; padding: 0;"">
+                    <div dir=""rtl"" style=""background-color: #F7F4EB; padding: 35px 15px; text-align: right; direction: rtl;"">
+                        <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 1px solid #E6DED4;"">
+                            <tr style=""background-color: #2B1A0A; text-align: center; border-bottom: 3px solid #C5A059;"">
+                                <td style=""padding: 25px 30px; color: #ffffff; font-size: 24px; font-weight: bold;"">مقترح تاريخ التوصيل</td>
+                            </tr>
+                            <tr>
+                                <td style=""padding: 30px; background-color: #ffffff;"">
+                                    <p>مرحبًا،</p>
+                                    <p>تم تقديم مقترح لتاريخ التوصيل لطلب البائع رقم <strong>#{vendorOrderId}</strong>:</p>
+                                    <table border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""background-color: #FAF9F6; border-radius: 10px; border: 1px solid #E6DED4; margin: 25px 0;"">
+                                        <tr>
+                                            <td style=""padding: 20px; text-align: center;"">
+                                                <span style=""color: #8C7E72; font-size: 14px; display: block; margin-bottom: 5px;"">التاريخ المقترح</span>
+                                                <span style=""color: #2B1A0A; font-size: 22px; font-weight: bold;"">{proposedDate:yyyy-MM-dd}</span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <p>يرجى الدخول إلى حسابك للمراجعة والقبول أو الرفض.</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style=""padding: 20px; background-color: #FAF9F6; border-top: 1px solid #F3ECE3; text-align: center;"">
+                                    <p style=""color: #8C7E72; font-size: 12px; margin: 0;"">© 2026 FurniMind جميع الحقوق محفوظة.</p>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </body>
+                </html>";
+
+            await SendEmailAsync(toEmail, subject, plainTextContent, htmlContent);
+        }
+
+        public async Task SendDeliveryDateApprovedEmailAsync(string toEmail, int vendorOrderId)
+        {
+            var subject = "قبول تاريخ التوصيل - FurniMind";
+            var plainTextContent = $"قام العميل بقبول تاريخ التوصيل المقترح لطلب البائع رقم #{vendorOrderId}.";
+            var htmlContent =
+                $@"
+                <html dir=""rtl"">
+                <body style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #F7F4EB; direction: rtl; margin: 0; padding: 0;"">
+                    <div dir=""rtl"" style=""background-color: #F7F4EB; padding: 35px 15px; text-align: right; direction: rtl;"">
+                        <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 1px solid #E6DED4;"">
+                            <tr style=""background-color: #2B1A0A; text-align: center; border-bottom: 3px solid #C5A059;"">
+                                <td style=""padding: 25px 30px; color: #ffffff; font-size: 24px; font-weight: bold;"">تم قبول تاريخ التوصيل</td>
+                            </tr>
+                            <tr>
+                                <td style=""padding: 30px; background-color: #ffffff;"">
+                                    <p>مرحبًا،</p>
+                                    <p>نود إعلامكم بأن العميل قد <strong>قبل</strong> تاريخ التوصيل المقترح لطلب البائع رقم <strong>#{vendorOrderId}</strong>.</p>
+                                    <p>يمكنكم الآن البدء في عملية التجهيز والتنفيذ.</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style=""padding: 20px; background-color: #FAF9F6; border-top: 1px solid #F3ECE3; text-align: center;"">
+                                    <p style=""color: #8C7E72; font-size: 12px; margin: 0;"">© 2026 FurniMind جميع الحقوق محفوظة.</p>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </body>
+                </html>";
+
+            await SendEmailAsync(toEmail, subject, plainTextContent, htmlContent);
+        }
+
+        public async Task SendDeliveryDateRejectedEmailAsync(string toEmail, int vendorOrderId)
+        {
+            var subject = "رفض تاريخ التوصيل المقترح - FurniMind";
+            var plainTextContent = $"قام العميل برفض تاريخ التوصيل المقترح لطلب البائع رقم #{vendorOrderId}. يرجى تقديم مقترح جديد.";
+            var htmlContent =
+                $@"
+                <html dir=""rtl"">
+                <body style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #F7F4EB; direction: rtl; margin: 0; padding: 0;"">
+                    <div dir=""rtl"" style=""background-color: #F7F4EB; padding: 35px 15px; text-align: right; direction: rtl;"">
+                        <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 1px solid #E6DED4;"">
+                            <tr style=""background-color: #FAF5F5; text-align: center; border-bottom: 3px solid #D9534F;"">
+                                <td style=""padding: 25px 30px; color: #D9534F; font-size: 24px; font-weight: bold;"">تم رفض تاريخ التوصيل</td>
+                            </tr>
+                            <tr>
+                                <td style=""padding: 30px; background-color: #ffffff;"">
+                                    <p>مرحبًا،</p>
+                                    <p>قام العميل <strong>برفض</strong> تاريخ التوصيل المقترح لطلب البائع رقم <strong>#{vendorOrderId}</strong>.</p>
+                                    <p>يرجى الدخول إلى حسابك وتقديم مقترح جديد لتاريخ التوصيل لتفادي تأخر الطلب.</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style=""padding: 20px; background-color: #FAF9F6; border-top: 1px solid #F3ECE3; text-align: center;"">
+                                    <p style=""color: #8C7E72; font-size: 12px; margin: 0;"">© 2026 FurniMind جميع الحقوق محفوظة.</p>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </body>
+                </html>";
+
+            await SendEmailAsync(toEmail, subject, plainTextContent, htmlContent);
+        }
+
         private async Task SendEmailAsync(
             string toEmail,
             string subject,

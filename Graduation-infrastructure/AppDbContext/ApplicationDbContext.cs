@@ -225,7 +225,7 @@ namespace Graduation_infrastructure.AppDbContext
                 entity.ToTable("VendorOrders");
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.TotalPrice).HasColumnType("decimal(18,2)").IsRequired();
-                entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(20).IsRequired();
+                entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(50).IsRequired();
 
                 entity.HasOne(e => e.MasterOrder)
                       .WithMany(o => o.VendorOrders)
