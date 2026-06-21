@@ -30,5 +30,6 @@ namespace Graduation_Application.IServices
             DateTime startDate,
             DateTime endDate
         );
+        Task ProposeDeliveryDateAsync(int orderId, int workshopId, ProposeDeliveryDateRequestDto dto);
     }
 }

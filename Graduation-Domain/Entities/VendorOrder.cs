@@ -21,6 +21,8 @@ namespace Graduation_domain.Entities
         [Required]
         public VendorOrderStatus Status { get; set; } = VendorOrderStatus.Pending;
 
+        public DateTime? EstimatedDeliveryDate { get; set; }
+
         public List<OrderItem> Items { get; set; } = [];
         public List<VendorOrderStatusHistory> StatusHistory { get; set; } = [];
     }

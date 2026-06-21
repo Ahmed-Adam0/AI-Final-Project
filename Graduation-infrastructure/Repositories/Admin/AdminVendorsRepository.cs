@@ -220,10 +220,10 @@ namespace Graduation_infrastructure.Repositories.Admin
             var deliveredOrders = await ordersQuery.CountAsync(o => o.Status == VendorOrderStatus.Delivered);
             var pendingOrders = await ordersQuery.CountAsync(o => o.Status == VendorOrderStatus.Pending);
             var CancelledOrders = await ordersQuery.CountAsync(o => o.Status == VendorOrderStatus.Cancelled);
-            var InProgressOrders = await ordersQuery.CountAsync(o => o.Status == VendorOrderStatus.Processing);
-            var ConfirmedOrders = 0;
+            var InProgressOrders = await ordersQuery.CountAsync(o => o.Status == VendorOrderStatus.InProgress);
+            var ConfirmedOrders = await ordersQuery.CountAsync(o => o.Status == VendorOrderStatus.Confirmed);
             var ReadyforPickupOrders = await ordersQuery.CountAsync(o =>
-                o.Status == VendorOrderStatus.Shipped
+                o.Status == VendorOrderStatus.ReadyForPickup
             );
             Console.WriteLine($"ReadyforPickup: {ReadyforPickupOrders}");
             var totalRevenue = await ordersQuery.SumAsync(o => (decimal?)o.TotalPrice) ?? 0m;

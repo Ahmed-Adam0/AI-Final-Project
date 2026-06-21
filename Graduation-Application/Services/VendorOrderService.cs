@@ -18,13 +18,15 @@ namespace Graduation_Application.Services
         private readonly IGenaricRepositories<Workshop> _workshopRepository;
         private readonly INotificationService _notificationService;
         private readonly IInternalNotificationService _internalNotificationService;
+        private readonly IEmailService _emailService;
 
         public VendorOrderService(
             IGenaricRepositories<VendorOrder> vendorOrderRepository,
             IGenaricRepositories<Order> orderRepository,
             IGenaricRepositories<Workshop> workshopRepository,
             INotificationService notificationService,
-            IInternalNotificationService internalNotificationService
+            IInternalNotificationService internalNotificationService,
+            IEmailService emailService
         )
         {
             _vendorOrderRepository = vendorOrderRepository;
@@ -32,6 +34,7 @@ namespace Graduation_Application.Services
             _workshopRepository = workshopRepository;
             _notificationService = notificationService;
             _internalNotificationService = internalNotificationService;
+            _emailService = emailService;
         }
 
         // 1. Get Vendor Orders with Filtering and Pagination
@@ -124,6 +127,7 @@ namespace Graduation_Application.Services
                     Notes = "",
                     CreatedAt = vo.CreatedAt,
                     UpdatedAt = vo.UpdatedAt,
+                    EstimatedDeliveryDate = vo.EstimatedDeliveryDate,
                     ItemCount = vo.Items.Sum(oi => oi.Quantity),
                     Items = vo.Items.Select(oi => new VendorOrderItemDto
                     {
@@ -180,6 +184,7 @@ namespace Graduation_Application.Services
                 Notes = "",
                 CreatedAt = vo.CreatedAt,
                 UpdatedAt = vo.UpdatedAt,
+                EstimatedDeliveryDate = vo.EstimatedDeliveryDate,
                 Items = vo.Items.Select(oi => new VendorOrderItemDto
                 {
                     ProductId = oi.ProductId ?? 0,
@@ -258,7 +263,7 @@ namespace Graduation_Application.Services
             // Send internal notifications based on status
             switch (newStatus)
             {
-                case "Processing":
+                case "InProgress":
                     await _internalNotificationService.CreateAsync(
                         vendorOrder.MasterOrder.UserId,
                         NotificationType.OrderInProgress,
@@ -403,7 +408,9 @@ namespace Graduation_Application.Services
             var cancelledOrders = ordersInRange.Count(vo => vo.Status == VendorOrderStatus.Cancelled);
             var pendingOrders = ordersInRange.Count(vo => vo.Status == VendorOrderStatus.Pending);
             var inProgressOrders = ordersInRange.Count(vo =>
-                vo.Status == VendorOrderStatus.Processing || vo.Status == VendorOrderStatus.Shipped
+                vo.Status == VendorOrderStatus.InProgress || 
+                vo.Status == VendorOrderStatus.Confirmed || 
+                vo.Status == VendorOrderStatus.ReadyForPickup
             );
 
             var totalRevenue = ordersInRange
@@ -532,14 +539,22 @@ namespace Graduation_Application.Services
             {
                 {
                     VendorOrderStatus.Pending,
-                    new List<VendorOrderStatus> { VendorOrderStatus.Processing, VendorOrderStatus.Cancelled }
+                    new List<VendorOrderStatus> { VendorOrderStatus.AwaitingCustomerApproval, VendorOrderStatus.Cancelled }
                 },
                 {
-                    VendorOrderStatus.Processing,
-                    new List<VendorOrderStatus> { VendorOrderStatus.Shipped, VendorOrderStatus.Cancelled }
+                    VendorOrderStatus.AwaitingCustomerApproval,
+                    new List<VendorOrderStatus> { VendorOrderStatus.Confirmed, VendorOrderStatus.Pending, VendorOrderStatus.Cancelled }
                 },
                 {
-                    VendorOrderStatus.Shipped,
+                    VendorOrderStatus.Confirmed,
+                    new List<VendorOrderStatus> { VendorOrderStatus.InProgress, VendorOrderStatus.Cancelled }
+                },
+                {
+                    VendorOrderStatus.InProgress,
+                    new List<VendorOrderStatus> { VendorOrderStatus.ReadyForPickup, VendorOrderStatus.Cancelled }
+                },
+                {
+                    VendorOrderStatus.ReadyForPickup,
                     new List<VendorOrderStatus> { VendorOrderStatus.Delivered }
                 },
                 { VendorOrderStatus.Delivered, new List<VendorOrderStatus>() },
@@ -557,17 +572,17 @@ namespace Graduation_Application.Services
             if (statuses.All(s => s == VendorOrderStatus.Cancelled))
                 return "Cancelled";
 
-            if (statuses.All(s => s == VendorOrderStatus.Delivered))
-                return "Completed";
-
-            var activeStatuses = statuses.Where(s => s != VendorOrderStatus.Cancelled).ToList();
-            if (activeStatuses.Any() && activeStatuses.All(s => s == VendorOrderStatus.Delivered))
+            var nonCancelled = statuses.Where(s => s != VendorOrderStatus.Cancelled).ToList();
+            if (nonCancelled.All(s => s == VendorOrderStatus.Delivered))
                 return "Completed";
 
             if (statuses.Any(s => s == VendorOrderStatus.Delivered))
                 return "PartiallyDelivered";
 
-            if (statuses.Any(s => s == VendorOrderStatus.Processing || s == VendorOrderStatus.Shipped))
+            if (statuses.Any(s => s == VendorOrderStatus.AwaitingCustomerApproval || 
+                                s == VendorOrderStatus.Confirmed || 
+                                s == VendorOrderStatus.InProgress || 
+                                s == VendorOrderStatus.ReadyForPickup))
                 return "Processing";
 
             return "Pending";
@@ -610,6 +625,66 @@ namespace Graduation_Application.Services
                 .CountAsync();
 
             return userIds;
+        }
+
+        public async Task ProposeDeliveryDateAsync(int orderId, int workshopId, ProposeDeliveryDateRequestDto dto)
+        {
+            var vendorOrder = await _vendorOrderRepository
+                .Where(vo => vo.Id == orderId && vo.WorkshopId == workshopId)
+                .Include(vo => vo.StatusHistory)
+                .Include(vo => vo.MasterOrder)
+                    .ThenInclude(mo => mo.VendorOrders)
+                .FirstOrDefaultAsync();
+
+            if (vendorOrder == null)
+            {
+                throw new Exception("Order not found or unauthorized");
+            }
+
+            if (vendorOrder.Status != VendorOrderStatus.Pending && vendorOrder.Status != VendorOrderStatus.AwaitingCustomerApproval)
+            {
+                throw new Exception($"Cannot propose delivery date when status is {vendorOrder.Status}");
+            }
+
+            var oldStatus = vendorOrder.Status.ToString();
+            vendorOrder.Status = VendorOrderStatus.AwaitingCustomerApproval;
+            vendorOrder.EstimatedDeliveryDate = dto.EstimatedDeliveryDate;
+            vendorOrder.UpdatedAt = DateTime.UtcNow;
+
+            vendorOrder.StatusHistory.Add(new VendorOrderStatusHistory
+            {
+                VendorOrderId = orderId,
+                OldStatus = oldStatus,
+                NewStatus = VendorOrderStatus.AwaitingCustomerApproval.ToString()
+            });
+
+            // Derive MasterOrder status
+            var allVendorStatuses = vendorOrder.MasterOrder.VendorOrders
+                .Select(v => v.Id == orderId ? VendorOrderStatus.AwaitingCustomerApproval : v.Status)
+                .ToList();
+            var derivedStatus = CalculateMasterOrderStatus(allVendorStatuses);
+            vendorOrder.MasterOrder.Status = derivedStatus;
+            vendorOrder.MasterOrder.UpdatedAt = DateTime.UtcNow;
+
+            await _vendorOrderRepository.SaveChangesAsync();
+
+            // Send internal notifications, email, and SignalR live update to customer
+            await _internalNotificationService.CreateAsync(
+                vendorOrder.MasterOrder.UserId,
+                NotificationType.DeliveryDateProposed,
+                orderId.ToString()
+            );
+
+            // Fetch customer email
+            var customer = await _orderRepository
+                .Where(o => o.Id == vendorOrder.MasterOrderId)
+                .Select(o => o.User)
+                .FirstOrDefaultAsync();
+
+            if (customer != null && !string.IsNullOrWhiteSpace(customer.Email))
+            {
+                await _emailService.SendDeliveryDateProposedEmailAsync(customer.Email, orderId, dto.EstimatedDeliveryDate);
+            }
         }
     }
 }

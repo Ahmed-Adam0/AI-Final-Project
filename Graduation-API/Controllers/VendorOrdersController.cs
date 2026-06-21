@@ -320,5 +320,52 @@ namespace Graduation_API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        /// <summary>
+        /// Propose a delivery date for a vendor order
+        /// </summary>
+        [HttpPut("orders/{orderId}/propose-date")]
+        public async Task<IActionResult> ProposeDeliveryDate(
+            int orderId,
+            [FromBody] ProposeDeliveryDateRequestDto request
+        )
+        {
+            try
+            {
+                if (request == null)
+                    return BadRequest(new { message = "Request body cannot be null" });
+
+                var workshopId = await GetVendorWorkshopIdAsync();
+                await _vendorOrderService.ProposeDeliveryDateAsync(orderId, workshopId, request);
+
+                await _adminAuditLogsService.CreateLogAsync(
+                    GetUserId(),
+                    GetCurrentUserName(),
+                    GetCurrentUserRole(),
+                    "ProposeDeliveryDate",
+                    "VendorOrder",
+                    orderId.ToString(),
+                    $"Vendor proposed delivery date of {request.EstimatedDeliveryDate:yyyy-MM-dd} for order #{orderId}.",
+                    GetCurrentUserRoleAr(),
+                    "مقترح تاريخ التوصيل",
+                    "طلب بائع",
+                    $"قام البائع بتقديم مقترح تاريخ توصيل {request.EstimatedDeliveryDate:yyyy-MM-dd} للطلب رقم {orderId}."
+                );
+
+                return Ok(new { message = "Delivery date proposed successfully" });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

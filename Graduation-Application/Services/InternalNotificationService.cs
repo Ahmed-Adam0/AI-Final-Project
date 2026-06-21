@@ -158,6 +158,33 @@ namespace Graduation_Application.Services
                         "The customer has cancelled order #{0}"
                     ) 
                 },
+                { 
+                    NotificationType.DeliveryDateProposed, 
+                    (
+                        "مقترح تاريخ التوصيل",
+                        "Delivery Date Propose",
+                        "تم تقديم مقترح تاريخ توصيل جديد لطلب البائع رقم {0}",
+                        "A new delivery date has been proposed for vendor order #{0}"
+                    ) 
+                },
+                { 
+                    NotificationType.DeliveryDateApproved, 
+                    (
+                        "قبول تاريخ التوصيل",
+                        "Delivery Date Approved",
+                        "تم قبول تاريخ التوصيل المقترح لطلب البائع رقم {0}",
+                        "The proposed delivery date for vendor order #{0} has been approved"
+                    ) 
+                },
+                { 
+                    NotificationType.DeliveryDateRejected, 
+                    (
+                        "رفض تاريخ التوصيل",
+                        "Delivery Date Rejected",
+                        "تم رفض تاريخ التوصيل المقترح لطلب البائع رقم {0}",
+                        "The proposed delivery date for vendor order #{0} has been rejected"
+                    ) 
+                },
             };
 
         public async Task CreateAsync(string userId, NotificationType type, string? messageParams = null)

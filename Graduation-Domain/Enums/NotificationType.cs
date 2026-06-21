@@ -18,6 +18,9 @@ namespace Graduation_domain.Enums
         VendorAccountSuspended,
         VendorAccountReactivated,
         VendorOrderCancelled,
+        DeliveryDateProposed,
+        DeliveryDateApproved,
+        DeliveryDateRejected
     }
 }
 

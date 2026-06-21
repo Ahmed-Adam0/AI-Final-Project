@@ -333,7 +333,7 @@ namespace Graduation_Application.Services
             }
 
             // Check cancelable rules: block if any vendor order has shipped or delivered
-            if (order.VendorOrders.Any(vo => vo.Status == VendorOrderStatus.Shipped || vo.Status == VendorOrderStatus.Delivered))
+            if (order.VendorOrders.Any(vo => vo.Status == VendorOrderStatus.ReadyForPickup || vo.Status == VendorOrderStatus.Delivered))
             {
                 throw new Exception("Cannot cancel order because some items have already been shipped or delivered. Please contact support.");
             }
@@ -418,19 +418,36 @@ namespace Graduation_Application.Services
             order.UpdatedAt = DateTime.UtcNow;
 
             // Propagate status change to VendorOrders if applicable
-            if (status == "Confirmed" || status == "In Progress")
+            if (status == "Confirmed")
             {
                 foreach (var vo in order.VendorOrders)
                 {
-                    if (vo.Status == VendorOrderStatus.Pending)
-                      {
+                    if (vo.Status == VendorOrderStatus.Pending || vo.Status == VendorOrderStatus.AwaitingCustomerApproval)
+                    {
                         var oldVoStatus = vo.Status.ToString();
-                        vo.Status = VendorOrderStatus.Processing;
+                        vo.Status = VendorOrderStatus.Confirmed;
                         vo.UpdatedAt = DateTime.UtcNow;
                         vo.StatusHistory.Add(new VendorOrderStatusHistory
                         {
                             OldStatus = oldVoStatus,
-                            NewStatus = VendorOrderStatus.Processing.ToString()
+                            NewStatus = VendorOrderStatus.Confirmed.ToString()
+                        });
+                    }
+                }
+            }
+            else if (status == "In Progress")
+            {
+                foreach (var vo in order.VendorOrders)
+                {
+                    if (vo.Status == VendorOrderStatus.Confirmed || vo.Status == VendorOrderStatus.Pending)
+                    {
+                        var oldVoStatus = vo.Status.ToString();
+                        vo.Status = VendorOrderStatus.InProgress;
+                        vo.UpdatedAt = DateTime.UtcNow;
+                        vo.StatusHistory.Add(new VendorOrderStatusHistory
+                        {
+                            OldStatus = oldVoStatus,
+                            NewStatus = VendorOrderStatus.InProgress.ToString()
                         });
                     }
                 }
@@ -571,25 +588,33 @@ namespace Graduation_Application.Services
                 Address = order.Address,
                 PhoneNumber = order.PhoneNumber,
                 Notes = order.Notes,
-                Items = order.VendorOrders != null
+                VendorOrders = order.VendorOrders != null
                     ? order.VendorOrders
-                        .SelectMany(vo => vo.Items ?? new List<OrderItem>())
-                        .Select(oi => new OrderItemResponseDto
+                        .Select(vo => new CustomerVendorOrderDto
                         {
-                            Id = oi.Id,
-                            ProductId = oi.ProductId,
-                            ProductNameEn = oi.SnapshotProductNameEn,
-                            ProductNameAr = oi.SnapshotProductNameAr,
-                            Status = oi.VendorOrder?.Status.ToString() ?? VendorOrderStatus.Pending.ToString(),
-                            UnitPrice = oi.SnapshotUnitPrice,
-                            Quantity = oi.Quantity,
-                            Attributes = string.IsNullOrEmpty(oi.SnapshotAttributesJson)
-                                ? new List<SnapshotAttributeDto>()
-                                : System.Text.Json.JsonSerializer.Deserialize<List<SnapshotAttributeDto>>(oi.SnapshotAttributesJson)
-                                    ?? new List<SnapshotAttributeDto>(),
-                        })
-                        .ToList()
-                    : new List<OrderItemResponseDto>(),
+                            Id = vo.Id,
+                            Status = vo.Status.ToString(),
+                            EstimatedDeliveryDate = vo.EstimatedDeliveryDate,
+                            CanApprove = vo.Status == VendorOrderStatus.AwaitingCustomerApproval,
+                            TotalPrice = vo.TotalPrice,
+                            Items = vo.Items != null
+                                ? vo.Items.Select(oi => new OrderItemResponseDto
+                                {
+                                    Id = oi.Id,
+                                    ProductId = oi.ProductId,
+                                    ProductNameEn = oi.SnapshotProductNameEn,
+                                    ProductNameAr = oi.SnapshotProductNameAr,
+                                    Status = vo.Status.ToString(),
+                                    UnitPrice = oi.SnapshotUnitPrice,
+                                    Quantity = oi.Quantity,
+                                    Attributes = string.IsNullOrEmpty(oi.SnapshotAttributesJson)
+                                        ? new List<SnapshotAttributeDto>()
+                                        : System.Text.Json.JsonSerializer.Deserialize<List<SnapshotAttributeDto>>(oi.SnapshotAttributesJson)
+                                            ?? new List<SnapshotAttributeDto>(),
+                                }).ToList()
+                                : new List<OrderItemResponseDto>()
+                        }).ToList()
+                    : new List<CustomerVendorOrderDto>(),
                 StatusHistory = order.VendorOrders != null && order.VendorOrders.Any()
                     ? order.VendorOrders
                         .SelectMany(vo => vo.StatusHistory ?? new List<VendorOrderStatusHistory>())
@@ -605,6 +630,151 @@ namespace Graduation_Application.Services
                     : null,
                 PaymentStatus = paymentTransaction?.Status.ToString() ?? "Unpaid",
             };
+        }
+
+        public async Task ApproveVendorOrderScheduleAsync(int vendorOrderId, string userId)
+        {
+            var vendorOrder = await _vendorOrderRepository
+                .Where(vo => vo.Id == vendorOrderId)
+                .Include(vo => vo.StatusHistory)
+                .Include(vo => vo.MasterOrder)
+                    .ThenInclude(mo => mo.VendorOrders)
+                .Include(vo => vo.Workshop)
+                    .ThenInclude(w => w.User)
+                .FirstOrDefaultAsync();
+
+            if (vendorOrder == null)
+            {
+                throw new Exception("Vendor order not found");
+            }
+
+            if (vendorOrder.MasterOrder.UserId != userId)
+            {
+                throw new UnauthorizedAccessException("You do not have permission to approve this schedule");
+            }
+
+            if (vendorOrder.Status != VendorOrderStatus.AwaitingCustomerApproval)
+            {
+                throw new Exception($"Cannot approve schedule when status is {vendorOrder.Status}");
+            }
+
+            var oldStatus = vendorOrder.Status.ToString();
+            vendorOrder.Status = VendorOrderStatus.Confirmed;
+            vendorOrder.UpdatedAt = DateTime.UtcNow;
+
+            vendorOrder.StatusHistory.Add(new VendorOrderStatusHistory
+            {
+                VendorOrderId = vendorOrderId,
+                OldStatus = oldStatus,
+                NewStatus = VendorOrderStatus.Confirmed.ToString()
+            });
+
+            // Derive MasterOrder status
+            var allVendorStatuses = vendorOrder.MasterOrder.VendorOrders
+                .Select(v => v.Id == vendorOrderId ? VendorOrderStatus.Confirmed : v.Status)
+                .ToList();
+            var derivedStatus = CalculateMasterOrderStatus(allVendorStatuses);
+            vendorOrder.MasterOrder.Status = derivedStatus;
+            vendorOrder.MasterOrder.UpdatedAt = DateTime.UtcNow;
+
+            await _vendorOrderRepository.SaveChangesAsync();
+
+            // Notify vendor
+            var vendorUserId = vendorOrder.Workshop.UserId;
+            await _internalNotificationService.CreateAsync(
+                vendorUserId,
+                NotificationType.DeliveryDateApproved,
+                vendorOrderId.ToString()
+            );
+
+            if (vendorOrder.Workshop.User != null && !string.IsNullOrWhiteSpace(vendorOrder.Workshop.User.Email))
+            {
+                await _emailService.SendDeliveryDateApprovedEmailAsync(vendorOrder.Workshop.User.Email, vendorOrderId);
+            }
+        }
+
+        public async Task RejectVendorOrderScheduleAsync(int vendorOrderId, string userId)
+        {
+            var vendorOrder = await _vendorOrderRepository
+                .Where(vo => vo.Id == vendorOrderId)
+                .Include(vo => vo.StatusHistory)
+                .Include(vo => vo.MasterOrder)
+                    .ThenInclude(mo => mo.VendorOrders)
+                .Include(vo => vo.Workshop)
+                    .ThenInclude(w => w.User)
+                .FirstOrDefaultAsync();
+
+            if (vendorOrder == null)
+            {
+                throw new Exception("Vendor order not found");
+            }
+
+            if (vendorOrder.MasterOrder.UserId != userId)
+            {
+                throw new UnauthorizedAccessException("You do not have permission to reject this schedule");
+            }
+
+            if (vendorOrder.Status != VendorOrderStatus.AwaitingCustomerApproval)
+            {
+                throw new Exception($"Cannot reject schedule when status is {vendorOrder.Status}");
+            }
+
+            var oldStatus = vendorOrder.Status.ToString();
+            vendorOrder.Status = VendorOrderStatus.Cancelled;
+            vendorOrder.UpdatedAt = DateTime.UtcNow;
+
+            vendorOrder.StatusHistory.Add(new VendorOrderStatusHistory
+            {
+                VendorOrderId = vendorOrderId,
+                OldStatus = oldStatus,
+                NewStatus = VendorOrderStatus.Cancelled.ToString()
+            });
+
+            // Derive MasterOrder status
+            var allVendorStatuses = vendorOrder.MasterOrder.VendorOrders
+                .Select(v => v.Id == vendorOrderId ? VendorOrderStatus.Cancelled : v.Status)
+                .ToList();
+            var derivedStatus = CalculateMasterOrderStatus(allVendorStatuses);
+            vendorOrder.MasterOrder.Status = derivedStatus;
+            vendorOrder.MasterOrder.UpdatedAt = DateTime.UtcNow;
+
+            await _vendorOrderRepository.SaveChangesAsync();
+
+            // Notify vendor
+            var vendorUserId = vendorOrder.Workshop.UserId;
+            await _internalNotificationService.CreateAsync(
+                vendorUserId,
+                NotificationType.DeliveryDateRejected,
+                vendorOrderId.ToString()
+            );
+
+            if (vendorOrder.Workshop.User != null && !string.IsNullOrWhiteSpace(vendorOrder.Workshop.User.Email))
+            {
+                await _emailService.SendDeliveryDateRejectedEmailAsync(vendorOrder.Workshop.User.Email, vendorOrderId);
+            }
+        }
+
+        private string CalculateMasterOrderStatus(List<VendorOrderStatus> statuses)
+        {
+            if (!statuses.Any()) return "Pending";
+
+            if (statuses.All(s => s == VendorOrderStatus.Cancelled))
+                return "Cancelled";
+
+            var nonCancelled = statuses.Where(s => s != VendorOrderStatus.Cancelled).ToList();
+            if (nonCancelled.All(s => s == VendorOrderStatus.Delivered))
+                return "Completed";
+
+            if (statuses.Any(s => s == VendorOrderStatus.Delivered))
+                return "PartiallyDelivered";
+
+            if (statuses.Any(s => s == VendorOrderStatus.AwaitingCustomerApproval || 
+                                s == VendorOrderStatus.Confirmed || 
+                                s == VendorOrderStatus.InProgress || 
+                                s == VendorOrderStatus.ReadyForPickup))
+                return "Processing";
+
+            return "Pending";
         }
     }
 }
