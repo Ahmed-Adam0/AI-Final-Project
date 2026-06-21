@@ -24,6 +24,7 @@ namespace Graduation_Application.Services
         private readonly IGenaricRepositories<ProductAttributeValue> _attributeValueRepository;
         private readonly IGenaricRepositories<ProductMaterialOption> _productMaterialOptionRepository;
         private readonly IGenaricRepositories<ProductType> _productTypeRepository;
+        private readonly IGenaricRepositories<Review> _reviewRepository;
 
         public ProductService(
             IGenaricRepositories<Product> productRepository,
@@ -33,7 +34,8 @@ namespace Graduation_Application.Services
             IGenaricRepositories<ProductAttribute> attributeRepository,
             IGenaricRepositories<ProductAttributeValue> attributeValueRepository,
             IGenaricRepositories<ProductMaterialOption> productMaterialOptionRepository,
-            IGenaricRepositories<ProductType> productTypeRepository)
+            IGenaricRepositories<ProductType> productTypeRepository,
+            IGenaricRepositories<Review> reviewRepository)
         {
             _productRepository = productRepository;
             _categoryRepository = categoryRepository;
@@ -43,6 +45,7 @@ namespace Graduation_Application.Services
             _attributeValueRepository = attributeValueRepository;
             _productMaterialOptionRepository = productMaterialOptionRepository;
             _productTypeRepository = productTypeRepository;
+            _reviewRepository = reviewRepository;
         }
 
         public async Task<PaginatedResult<ProductDto>> GetProductsAsync(ProductFilterDto filter)
@@ -118,12 +121,57 @@ namespace Graduation_Application.Services
                 );
             }
 
+            // Apply sorting
+            if (!string.IsNullOrWhiteSpace(filter.SortBy))
+            {
+                string sortTerm = filter.SortBy.ToLower().Trim();
+                switch (sortTerm)
+                {
+                    case "price_asc":
+                    case "priceasc":
+                    case "price: low to high":
+                    case "pricelowtohigh":
+                    case "lowtohigh":
+                        query = query.OrderBy(p => p.BasePrice);
+                        break;
+                    case "price_desc":
+                    case "pricedesc":
+                    case "price: high to low":
+                    case "pricehightolow":
+                    case "hightolow":
+                        query = query.OrderByDescending(p => p.BasePrice);
+                        break;
+                    case "name_az":
+                    case "nameaz":
+                    case "name: a-z":
+                    case "name":
+                    case "az":
+                        query = query.OrderBy(p => p.NameEn);
+                        break;
+                    case "rating":
+                    case "ratingdesc":
+                        query = query.OrderByDescending(p => _reviewRepository.GetAllAsNoTracking()
+                            .Where(r => r.ProductId == p.Id)
+                            .Select(r => (double?)r.Rating)
+                            .Average() ?? 0);
+                        break;
+                    case "newest":
+                    case "newestdesc":
+                    default:
+                        query = query.OrderByDescending(p => p.CreatedAt);
+                        break;
+                }
+            }
+            else
+            {
+                query = query.OrderByDescending(p => p.CreatedAt);
+            }
+
             // Get total count before pagination
             int totalCount = await query.CountAsync();
 
             // Apply Pagination (AFTER all filters, BEFORE execution)
             var products = await query
-                .OrderByDescending(p => p.CreatedAt)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -331,6 +379,31 @@ namespace Graduation_Application.Services
             _productRepository.Update(product);
             await _productRepository.SaveChangesAsync();
 
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                
+                // 1. Send delete request to remove the old embedding
+                string deleteWebhookUrl = "https://main-production-aa56.up.railway.app/webhook/fcaae4f1-d335-4338-827e-b5eb7dc0ee78";
+                var deletePayload = System.Text.Json.JsonSerializer.Serialize(new { id = product.Id });
+                var deleteContent = new System.Net.Http.StringContent(deletePayload, System.Text.Encoding.UTF8, "application/json");
+                await client.PostAsync(deleteWebhookUrl, deleteContent);
+
+                // 2. Send add request to insert the new updated embedding
+                var text = await GetProductEmbeddingTextAsync(product.Id);
+                if (!string.IsNullOrEmpty(text))
+                {
+                    string addWebhookUrl = "https://main-production-aa56.up.railway.app/webhook/25fbe542-da87-4604-bfa6-ca1fa5f41f4e";
+                    var addPayload = System.Text.Json.JsonSerializer.Serialize(new { text = text });
+                    var addContent = new System.Net.Http.StringContent(addPayload, System.Text.Encoding.UTF8, "application/json");
+                    await client.PostAsync(addWebhookUrl, addContent);
+                }
+            }
+            catch
+            {
+                // Ignore webhook failures so it doesn't break product update
+            }
+
             return product.Adapt<ProductResponseDto>();
         }
 
@@ -344,6 +417,20 @@ namespace Graduation_Application.Services
 
             _productRepository.Delete(product);
             await _productRepository.SaveChangesAsync();
+
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                string webhookUrl = "https://main-production-aa56.up.railway.app/webhook/fcaae4f1-d335-4338-827e-b5eb7dc0ee78";
+                
+                var jsonPayload = System.Text.Json.JsonSerializer.Serialize(new { id = productId });
+                var content = new System.Net.Http.StringContent(jsonPayload, System.Text.Encoding.UTF8, "application/json");
+                await client.PostAsync(webhookUrl, content);
+            }
+            catch
+            {
+                // Ignore webhook failures so it doesn't break product deletion
+            }
 
             return true;
         }

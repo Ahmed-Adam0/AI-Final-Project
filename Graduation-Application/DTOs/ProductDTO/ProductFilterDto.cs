@@ -15,6 +15,7 @@ namespace Graduation_Application.DTOs.ProductDTO
         public string Material { get; set; }
         public int? WorkshopId { get; set; }
         public bool? IsActive { get; set; }
+        public string? SortBy { get; set; }
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;
     }
