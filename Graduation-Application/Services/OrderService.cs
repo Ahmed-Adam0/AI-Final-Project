@@ -246,31 +246,8 @@ namespace Graduation_Application.Services
                 }
             }
 
-            string firstName = "Customer";
-            string lastName = "User";
-            if (appUser != null && !string.IsNullOrWhiteSpace(appUser.FullName))
-            {
-                var nameParts = appUser.FullName.Trim().Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
-                if (nameParts.Length > 0) firstName = nameParts[0];
-                if (nameParts.Length > 1) lastName = nameParts[1];
-            }
-
-            string email = appUser?.Email ?? "customer@example.com";
-            string phone = !string.IsNullOrWhiteSpace(phoneNumber)
-                ? phoneNumber
-                : (appUser?.PhoneNumber ?? "01000000000");
-
-            var paymentUrl = await _paymentGateway.CreatePaymentUrlAsync(
-                order.Id,
-                order.TotalPrice,
-                firstName,
-                lastName,
-                email,
-                phone
-            );
-
             var responseDto = await GetOrderByIdAsync(order.Id);
-            responseDto.PaymentUrl = paymentUrl;
+            responseDto.PaymentUrl = null;
 
             return responseDto;
         }
@@ -333,7 +310,7 @@ namespace Graduation_Application.Services
             }
 
             // Check cancelable rules: block if any vendor order has shipped or delivered
-            if (order.VendorOrders.Any(vo => vo.Status == VendorOrderStatus.ReadyForPickup || vo.Status == VendorOrderStatus.Delivered))
+            if (order.VendorOrders.Any(vo => vo.Status == VendorOrderStatus.Shipped || vo.Status == VendorOrderStatus.Delivered))
             {
                 throw new Exception("Cannot cancel order because some items have already been shipped or delivered. Please contact support.");
             }
@@ -659,19 +636,19 @@ namespace Graduation_Application.Services
             }
 
             var oldStatus = vendorOrder.Status.ToString();
-            vendorOrder.Status = VendorOrderStatus.Confirmed;
+            vendorOrder.Status = VendorOrderStatus.PendingPayment;
             vendorOrder.UpdatedAt = DateTime.UtcNow;
 
             vendorOrder.StatusHistory.Add(new VendorOrderStatusHistory
             {
                 VendorOrderId = vendorOrderId,
                 OldStatus = oldStatus,
-                NewStatus = VendorOrderStatus.Confirmed.ToString()
+                NewStatus = VendorOrderStatus.PendingPayment.ToString()
             });
 
             // Derive MasterOrder status
             var allVendorStatuses = vendorOrder.MasterOrder.VendorOrders
-                .Select(v => v.Id == vendorOrderId ? VendorOrderStatus.Confirmed : v.Status)
+                .Select(v => v.Id == vendorOrderId ? VendorOrderStatus.PendingPayment : v.Status)
                 .ToList();
             var derivedStatus = CalculateMasterOrderStatus(allVendorStatuses);
             vendorOrder.MasterOrder.Status = derivedStatus;
@@ -769,9 +746,10 @@ namespace Graduation_Application.Services
                 return "PartiallyDelivered";
 
             if (statuses.Any(s => s == VendorOrderStatus.AwaitingCustomerApproval || 
+                                s == VendorOrderStatus.PendingPayment ||
                                 s == VendorOrderStatus.Confirmed || 
                                 s == VendorOrderStatus.InProgress || 
-                                s == VendorOrderStatus.ReadyForPickup))
+                                s == VendorOrderStatus.Shipped))
                 return "Processing";
 
             return "Pending";

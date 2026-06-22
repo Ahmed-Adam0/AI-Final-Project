@@ -224,7 +224,7 @@ namespace Graduation_infrastructure.Repositories.Admin
             var InProgressOrders = await ordersQuery.CountAsync(o => o.Status == VendorOrderStatus.InProgress);
             var ConfirmedOrders = await ordersQuery.CountAsync(o => o.Status == VendorOrderStatus.Confirmed);
             var ReadyforPickupOrders = await ordersQuery.CountAsync(o =>
-                o.Status == VendorOrderStatus.ReadyForPickup
+                o.Status == VendorOrderStatus.Shipped
             );
             Console.WriteLine($"ReadyforPickup: {ReadyforPickupOrders}");
             var totalRevenue = await ordersQuery.SumAsync(o => (decimal?)o.TotalPrice) ?? 0m;

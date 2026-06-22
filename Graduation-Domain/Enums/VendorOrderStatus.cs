@@ -4,9 +4,9 @@ namespace Graduation_domain.Enums
     {
         Pending,
         AwaitingCustomerApproval,
+        PendingPayment,
         Confirmed,
         InProgress,
-        ReadyForPickup,
         Shipped,
         Delivered,
         Cancelled
