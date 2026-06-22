@@ -75,8 +75,7 @@ namespace Graduation_infrastructure.Services
                     .ThenInclude(mo => mo.VendorOrders)
                 .Include(vo => vo.Workshop)
                     .ThenInclude(w => w.User)
-                .Where(vo => vo.Status != VendorOrderStatus.Delivered 
-                          && vo.Status != VendorOrderStatus.Cancelled
+                .Where(vo => (vo.Status == VendorOrderStatus.Pending || vo.Status == VendorOrderStatus.AwaitingCustomerApproval)
                           && vo.CreatedAt <= thresholdTime)
                 .ToListAsync();
 
@@ -185,9 +184,10 @@ namespace Graduation_infrastructure.Services
                 return "PartiallyDelivered";
 
             if (statuses.Any(s => s == VendorOrderStatus.AwaitingCustomerApproval || 
+                                s == VendorOrderStatus.PendingPayment ||
                                 s == VendorOrderStatus.Confirmed || 
                                 s == VendorOrderStatus.InProgress || 
-                                s == VendorOrderStatus.ReadyForPickup))
+                                s == VendorOrderStatus.Shipped))
                 return "Processing";
 
             return "Pending";

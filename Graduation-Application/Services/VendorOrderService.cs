@@ -273,7 +273,7 @@ namespace Graduation_Application.Services
                 case "Shipped":
                     await _internalNotificationService.CreateAsync(
                         vendorOrder.MasterOrder.UserId,
-                        NotificationType.OrderReadyForPickup, // mapped to shipped/pickup
+                        NotificationType.OrderReadyForPickup,
                         vendorOrder.MasterOrderId.ToString()
                     );
                     break;
@@ -410,7 +410,7 @@ namespace Graduation_Application.Services
             var inProgressOrders = ordersInRange.Count(vo =>
                 vo.Status == VendorOrderStatus.InProgress || 
                 vo.Status == VendorOrderStatus.Confirmed || 
-                vo.Status == VendorOrderStatus.ReadyForPickup
+                vo.Status == VendorOrderStatus.Shipped
             );
 
             var totalRevenue = ordersInRange
@@ -543,7 +543,11 @@ namespace Graduation_Application.Services
                 },
                 {
                     VendorOrderStatus.AwaitingCustomerApproval,
-                    new List<VendorOrderStatus> { VendorOrderStatus.Confirmed, VendorOrderStatus.Pending, VendorOrderStatus.Cancelled }
+                    new List<VendorOrderStatus> { VendorOrderStatus.PendingPayment, VendorOrderStatus.Pending, VendorOrderStatus.Cancelled }
+                },
+                {
+                    VendorOrderStatus.PendingPayment,
+                    new List<VendorOrderStatus> { VendorOrderStatus.Confirmed, VendorOrderStatus.Cancelled }
                 },
                 {
                     VendorOrderStatus.Confirmed,
@@ -551,10 +555,10 @@ namespace Graduation_Application.Services
                 },
                 {
                     VendorOrderStatus.InProgress,
-                    new List<VendorOrderStatus> { VendorOrderStatus.ReadyForPickup, VendorOrderStatus.Cancelled }
+                    new List<VendorOrderStatus> { VendorOrderStatus.Shipped, VendorOrderStatus.Cancelled }
                 },
                 {
-                    VendorOrderStatus.ReadyForPickup,
+                    VendorOrderStatus.Shipped,
                     new List<VendorOrderStatus> { VendorOrderStatus.Delivered }
                 },
                 { VendorOrderStatus.Delivered, new List<VendorOrderStatus>() },
@@ -580,9 +584,10 @@ namespace Graduation_Application.Services
                 return "PartiallyDelivered";
 
             if (statuses.Any(s => s == VendorOrderStatus.AwaitingCustomerApproval || 
+                                s == VendorOrderStatus.PendingPayment ||
                                 s == VendorOrderStatus.Confirmed || 
                                 s == VendorOrderStatus.InProgress || 
-                                s == VendorOrderStatus.ReadyForPickup))
+                                s == VendorOrderStatus.Shipped))
                 return "Processing";
 
             if (statuses.Any(s => s == VendorOrderStatus.Confirmed))
@@ -632,6 +637,11 @@ namespace Graduation_Application.Services
 
         public async Task ProposeDeliveryDateAsync(int orderId, int workshopId, ProposeDeliveryDateRequestDto dto)
         {
+            if (dto.EstimatedDeliveryDate < DateTime.UtcNow.AddMinutes(-5))
+            {
+                throw new Exception("Estimated delivery date must be in the future (current time or later). / يجب أن يكون تاريخ التوصيل المتوقع في المستقبل (الوقت الحالي أو بعده).");
+            }
+
             var vendorOrder = await _vendorOrderRepository
                 .Where(vo => vo.Id == orderId && vo.WorkshopId == workshopId)
                 .Include(vo => vo.StatusHistory)

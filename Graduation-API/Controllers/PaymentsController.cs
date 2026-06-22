@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -7,8 +8,11 @@ using Graduation_Application.DTOs.PaymentDTO;
 using Graduation_Application.IRepositories;
 using Graduation_Application.IServices;
 using Graduation_domain.Entities;
+using Graduation_domain.Enums;
 using Graduation_Domain.Enums;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Graduation_API.Controllers
@@ -22,6 +26,7 @@ namespace Graduation_API.Controllers
         private readonly IPaymentWebhookLogRepository _webhookLogRepository;
         private readonly IOrderRepository _orderRepository;
         private readonly IPaymentTransactionRepository _paymentTransactionRepository;
+        private readonly IGenaricRepositories<VendorOrder> _vendorOrderRepository;
         private readonly IPaymentService _paymentService;
         private readonly ILogger<PaymentsController> _logger;
 
@@ -31,6 +36,7 @@ namespace Graduation_API.Controllers
             IPaymentWebhookLogRepository webhookLogRepository,
             IOrderRepository orderRepository,
             IPaymentTransactionRepository paymentTransactionRepository,
+            IGenaricRepositories<VendorOrder> vendorOrderRepository,
             IPaymentService paymentService,
             ILogger<PaymentsController> logger
         )
@@ -40,8 +46,75 @@ namespace Graduation_API.Controllers
             _webhookLogRepository = webhookLogRepository;
             _orderRepository = orderRepository;
             _paymentTransactionRepository = paymentTransactionRepository;
+            _vendorOrderRepository = vendorOrderRepository;
             _paymentService = paymentService;
             _logger = logger;
+        }
+
+        [Authorize]
+        [HttpPost("paymob/initiate-masterorder")]
+        public async Task<IActionResult> InitiateMasterOrderPayment(
+            [FromBody] PaymobMasterOrderPaymentRequest request
+        )
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var userId = GetUserId();
+
+                var order = await _orderRepository.GetByIdAsync(request.MasterOrderId);
+                if (order == null)
+                    return NotFound(new { Message = "Order not found" });
+
+                if (order.UserId != userId)
+                    return Forbid();
+
+                // Get all VendorOrders under this MasterOrder that are in PendingPayment status
+                var pendingPaymentVendorOrders = await _vendorOrderRepository
+                    .Where(vo => vo.MasterOrderId == request.MasterOrderId && vo.Status == VendorOrderStatus.PendingPayment)
+                    .ToListAsync();
+
+                if (!pendingPaymentVendorOrders.Any())
+                    return BadRequest(new { Message = "No approved vendor orders are pending payment for this master order." });
+
+                decimal totalAmount = pendingPaymentVendorOrders.Sum(vo => vo.TotalPrice);
+
+                var paymentUrl = await _paymentGateway.CreatePaymentUrlAsync(
+                    request.MasterOrderId,
+                    totalAmount,
+                    order.FirstName ?? string.Empty,
+                    order.LastName ?? string.Empty,
+                    order.Email ?? string.Empty,
+                    order.PhoneNumber ?? string.Empty
+                );
+
+                return Ok(new PaymobPaymentResponse { PaymentUrl = paymentUrl });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Payment initiation failed for master order {OrderId}",
+                    request.MasterOrderId
+                );
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+        private string GetUserId()
+        {
+            var userId =
+                User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                ?? User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value
+                ?? User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value
+                ?? User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+
+            if (string.IsNullOrWhiteSpace(userId))
+                throw new UnauthorizedAccessException("User ID not found");
+
+            return userId;
         }
 
         [HttpPost("paymob")]
