@@ -305,7 +305,8 @@
       "cancelled": "Cancelled",
       "inProgress": "In Progress",
       "confirmed": "Confirmed",
-      "readyForPickup": "Ready for Pickup",
+      "readyForPickup": "Shipped",
+      "awaitingApproval": "Awaiting Approval",
       "revenue": "Revenue",
       "deliveredRevenue": "Delivered revenue",
       "business": "Business",
@@ -339,7 +340,10 @@
       "confirmYes": "Yes",
       "confirmCancel": "Cancel",
       "currencyFormat": "EGP {0}",
-      "suspensionReason": "Suspension reason"
+      "suspensionReason": "Suspension reason",
+      "unsuspend": "Unsuspend",
+      "confirmUnsuspend": "Unsuspend vendor?",
+      "confirmUnsuspendText": "This will reactivate the vendor account and set the user as active."
     }
   },
   "shared": {

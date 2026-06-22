@@ -305,7 +305,8 @@
       "cancelled": "ملغاة",
       "inProgress": "جار التنفيذ",
       "confirmed": "مؤكد",
-      "readyForPickup": "جاهز للاستلام",
+      "readyForPickup": "قيد الشحن",
+      "awaitingApproval": "في انتظار الموافقة",
       "revenue": "الإيرادات",
       "deliveredRevenue": "إيرادات الطلبات المسلمة",
       "business": "بيانات النشاط",
@@ -339,7 +340,10 @@
       "confirmYes": "نعم",
       "confirmCancel": "إلغاء",
       "currencyFormat": "{0} ج.م",
-      "suspensionReason": "سبب التعليق"
+      "suspensionReason": "سبب التعليق",
+      "unsuspend": "إلغاء التعليق",
+      "confirmUnsuspend": "إلغاء تعليق المورد؟",
+      "confirmUnsuspendText": "سيتم إعادة تفعيل حساب المورد وتعيين المستخدم كنشط."
     }
   },
   "shared": {

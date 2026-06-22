@@ -119,7 +119,8 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                         CancelledOrders = dto.OrdersStats.CancelledOrders,
                         InProgressOrders = dto.OrdersStats.InProgressOrders,
                         ConfirmedOrders = dto.OrdersStats.ConfirmedOrders,
-                        ReadyforPickupOrders = dto.OrdersStats.ReadyforPickupOrders,
+                        ShippedOrders = dto.OrdersStats.ShippedOrders,
+                        AwaitingOrders = dto.OrdersStats.AwaitingOrders,
                     },
                     RevenueStats = new AdminVendorRevenueStatsViewModel
                     {
@@ -157,9 +158,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                         CanApprove =
                             dto.Verification.Status == VendorVerificationStatus.inActive
                             || dto.Verification.Status == VendorVerificationStatus.inActive,
-                        CanReject =
-                            dto.Verification.Status == VendorVerificationStatus.inActive
-                            || dto.Verification.Status == VendorVerificationStatus.Active,
+                        CanReject = dto.Verification.Status == VendorVerificationStatus.inActive,
                         CanSuspend = dto.Account.Status == VendorAccountStatus.Approved,
                         CanActivate = dto.Account.Status == VendorAccountStatus.Suspended,
                     },
