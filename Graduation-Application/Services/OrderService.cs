@@ -26,6 +26,7 @@ namespace Graduation_Application.Services
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IGenaricRepositories<VendorMaterialOption> _vendorMaterialOptionRepository;
         private readonly IEmailService _emailService;
+        private readonly IGenaricRepositories<Address> _addressRepository;
 
         public OrderService(
             IGenaricRepositories<Order> orderRepository,
@@ -38,7 +39,8 @@ namespace Graduation_Application.Services
             IPaymentTransactionRepository paymentTransactionRepository,
             UserManager<ApplicationUser> userManager,
             IGenaricRepositories<VendorMaterialOption> vendorMaterialOptionRepository,
-            IEmailService emailService
+            IEmailService emailService,
+            IGenaricRepositories<Address> addressRepository
         )
         {
             _orderRepository = orderRepository;
@@ -52,6 +54,7 @@ namespace Graduation_Application.Services
             _userManager = userManager;
             _vendorMaterialOptionRepository = vendorMaterialOptionRepository;
             _emailService = emailService;
+            _addressRepository = addressRepository;
         }
 
         public async Task<List<OrderResponseDto>> GetAllOrdersAsync()
@@ -96,7 +99,7 @@ namespace Graduation_Application.Services
 
             decimal totalOrderPrice = cart.Items.Sum(ci => ci.CachedPrice * ci.Quantity);
 
-            var phoneNumber = request.PhoneNumber ?? user.FindFirst(ClaimTypes.MobilePhone)?.Value;
+            var phoneNumber = request.PhoneNumber;
 
             var allOptionIds = cart.Items
                 .Where(ci => !string.IsNullOrEmpty(ci.SelectedOptionsJson) && ci.SelectedOptionsJson != "null")
@@ -188,9 +191,35 @@ namespace Graduation_Application.Services
                 Status = "Pending",
                 Address = request.Address,
                 PhoneNumber = phoneNumber,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                Email = request.Email,
                 Notes = request.Notes,
                 VendorOrders = vendorOrders
             };
+
+            // Save primary address to the Addresses table
+            var primaryAddressEntity = new Address
+            {
+                UserId = userId,
+                City = request.Address,
+                Street = request.Address,
+                Notes = request.Notes ?? string.Empty
+            };
+            await _addressRepository.AddAsync(primaryAddressEntity);
+
+            // Save secondary address to the Addresses table if provided
+            if (!string.IsNullOrWhiteSpace(request.SecondaryAddress))
+            {
+                var secondaryAddressEntity = new Address
+                {
+                    UserId = userId,
+                    City = request.SecondaryAddress,
+                    Street = request.SecondaryAddress,
+                    Notes = "Secondary Address from Order"
+                };
+                await _addressRepository.AddAsync(secondaryAddressEntity);
+            }
 
             // Add the master order (EF Core will cascade add vendor orders & items)
             await _orderRepository.AddAsync(order);
@@ -564,6 +593,9 @@ namespace Graduation_Application.Services
                 CreatedAt = order.CreatedAt,
                 Address = order.Address,
                 PhoneNumber = order.PhoneNumber,
+                FirstName = order.FirstName,
+                LastName = order.LastName,
+                Email = order.Email,
                 Notes = order.Notes,
                 VendorOrders = order.VendorOrders != null
                     ? order.VendorOrders

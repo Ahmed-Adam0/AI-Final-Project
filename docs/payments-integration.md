@@ -57,11 +57,7 @@
 * **جسم الطلب (Request Body - JSON):**
   ```json
   {
-    "masterOrderId": 12,                // رقم الطلب الرئيسي (Master Order ID)
-    "firstName": "Ahmed",              // الاسم الأول للعميل
-    "lastName": "Adam",                // الاسم الأخير للعميل
-    "email": "customer@example.com",   // البريد الإلكتروني
-    "phone": "01012345678"             // رقم الهاتف
+    "masterOrderId": 12                // رقم الطلب الرئيسي (Master Order ID)
   }
   ```
 * **الرد الناجح (Response - 200 OK):**

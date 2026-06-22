@@ -84,10 +84,10 @@ namespace Graduation_API.Controllers
                 var paymentUrl = await _paymentGateway.CreatePaymentUrlAsync(
                     request.MasterOrderId,
                     totalAmount,
-                    request.FirstName,
-                    request.LastName,
-                    request.Email,
-                    request.Phone
+                    order.FirstName ?? string.Empty,
+                    order.LastName ?? string.Empty,
+                    order.Email ?? string.Empty,
+                    order.PhoneNumber ?? string.Empty
                 );
 
                 return Ok(new PaymobPaymentResponse { PaymentUrl = paymentUrl });
