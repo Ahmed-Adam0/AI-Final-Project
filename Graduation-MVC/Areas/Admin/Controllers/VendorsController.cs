@@ -382,6 +382,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                     {
                         WorkshopId = x.WorkshopId,
                         WorkshopName = x.WorkshopName,
+                        WorkshopNameAr = x.WorkshopNameAr,
                         VendorName = x.VendorName,
                         Email = x.Email,
                         Phone = x.Phone,

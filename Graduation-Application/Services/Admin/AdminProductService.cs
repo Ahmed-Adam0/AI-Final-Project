@@ -112,6 +112,8 @@ namespace Graduation_Application.Services.Admin
                         NameEn = p.NameEn,
                         CategoryName = p.ProductType != null && p.ProductType.SubCategory != null && p.ProductType.SubCategory.Category != null 
                             ? p.ProductType.SubCategory.Category.NameEn : string.Empty,
+                        CategoryNameAr = p.ProductType != null && p.ProductType.SubCategory != null && p.ProductType.SubCategory.Category != null 
+                            ? p.ProductType.SubCategory.Category.NameAr : string.Empty,
                         VendorName = p.Workshop?.User?.FullName ?? "N/A",
                         Price = minPrice,
                         IsHidden = p.IsHidden,

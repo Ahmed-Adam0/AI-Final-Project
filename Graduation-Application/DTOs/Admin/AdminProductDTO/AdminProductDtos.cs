@@ -12,6 +12,7 @@ namespace Graduation_Application.DTOs.Admin.AdminProductDTO
         public string NameAr { get; set; }
         public string NameEn { get; set; }
         public string CategoryName { get; set; }
+        public string CategoryNameAr { get; set; }
         public string VendorName { get; set; }
         public decimal Price { get; set; }
         public bool IsHidden { get; set; }

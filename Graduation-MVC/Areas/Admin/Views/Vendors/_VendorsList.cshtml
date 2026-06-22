@@ -48,7 +48,7 @@
           asp-controller="Vendors"
           asp-action="@(Model.PendingOnly ? "Pending" : "Index")"
           class="row g-3">
-        <div class="col-md-5">
+        <div class="col-md-4">
             <label class="form-label text-muted small">@L.Get("auth.vendors.search")</label>
             <input class="form-control form-control-premium" name="Search" value="@Model.Filter.Search" placeholder="@L.Get("auth.vendors.searchPlace")" />
         </div>
@@ -57,7 +57,8 @@
             <select class="form-select form-select-premium" name="VerificationStatus">
                 @foreach (var opt in Model.VerificationStatusOptions)
                 {
-                    <option value="@opt.Value" selected="@(opt.Value == (Model.Filter.VerificationStatus ?? string.Empty) ? "selected" : null)">@opt.Label</option>
+                    var label = string.IsNullOrEmpty(opt.Value) ? L.Get("auth.vendors.allVerificationStatuses") : L.Get($"status.{opt.Value.ToLower()}");
+                    <option value="@opt.Value" selected="@(opt.Value == (Model.Filter.VerificationStatus ?? string.Empty) ? "selected" : null)">@label</option>
                 }
             </select>
         </div>
@@ -66,7 +67,8 @@
             <select class="form-select form-select-premium" name="AccountStatus">
                 @foreach (var opt in Model.AccountStatusOptions)
                 {
-                    <option value="@opt.Value" selected="@(opt.Value == (Model.Filter.AccountStatus ?? string.Empty) ? "selected" : null)">@opt.Label</option>
+                    var label = string.IsNullOrEmpty(opt.Value) ? L.Get("auth.vendors.allAccountStatuses") : L.Get($"status.{opt.Value.ToLower()}");
+                    <option value="@opt.Value" selected="@(opt.Value == (Model.Filter.AccountStatus ?? string.Empty) ? "selected" : null)">@label</option>
                 }
             </select>
         </div>
@@ -79,9 +81,9 @@
                 <option value="name_desc" selected="@(Model.Filter.SortBy == "name_desc" ? "selected" : null)">@L.Get("auth.vendors.sortNameZA")</option>
             </select>
         </div>
-        <div class="col-md-1 d-flex align-items-end gap-2">
+        <div class="col-md-2 d-flex align-items-end gap-2">
             <button class="btn btn-premium btn-premium-primary w-100" type="submit">
-                <i class="fa-solid fa-filter"></i>
+                <i class="fa-solid fa-filter me-1"></i> @L.Get("shared.filters.apply")
             </button>
         </div>
         <input type="hidden" name="Page" value="1" />
@@ -110,7 +112,7 @@
                         <td>
                             <div class="fw-semibold">@v.VendorName</div>
                         </td>
-                        <td>@v.WorkshopName</td>
+                        <td>@(L.GetCurrentCulture() == "ar" ? (string.IsNullOrEmpty(v.WorkshopNameAr) ? v.WorkshopName : v.WorkshopNameAr) : v.WorkshopName)</td>
                         <td>
                             <div class="small text-muted">@v.Email</div>
                             <div class="small text-muted">@v.Phone</div>

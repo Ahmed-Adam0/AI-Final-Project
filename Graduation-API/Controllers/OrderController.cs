@@ -282,14 +282,16 @@ namespace Graduation_API.Controllers
 
         private string GetLocalizedStatusAr(string status)
         {
-            return status?.ToLower() switch
+            return status?.ToLower().Replace(" ", "") switch
             {
                 "pending" => "قيد الانتظار",
+                "awaitingcustomerapproval" => "في انتظار موافقة العميل",
                 "confirmed" => "مؤكد",
                 "inprogress" => "قيد التنفيذ",
                 "processing" => "جاري المعالجة",
                 "partiallydelivered" => "تم التوصيل جزئياً",
                 "readyforpickup" => "جاهز للاستلام",
+                "shipped" => "تم الشحن",
                 "delivered" => "تم التوصيل",
                 "cancelled" => "ملغي",
                 "rejected" => "مرفوض",
@@ -299,14 +301,16 @@ namespace Graduation_API.Controllers
 
         private string GetLocalizedStatusEn(string status)
         {
-            return status?.ToLower() switch
+            return status?.ToLower().Replace(" ", "") switch
             {
                 "pending" => "Pending",
+                "awaitingcustomerapproval" => "Awaiting Customer Approval",
                 "confirmed" => "Confirmed",
                 "inprogress" => "In Progress",
                 "processing" => "Processing",
                 "partiallydelivered" => "Partially Delivered",
                 "readyforpickup" => "Ready for Pickup",
+                "shipped" => "Shipped",
                 "delivered" => "Delivered",
                 "cancelled" => "Cancelled",
                 "rejected" => "Rejected",

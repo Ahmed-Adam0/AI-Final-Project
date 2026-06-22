@@ -144,18 +144,26 @@
                             <td>
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="rounded overflow-hidden bg-secondary border" style="width: 50px; height: 50px; border-color: var(--border-color) !important;">
-                                        <img src="@ResolveImage(item.MainImageUrl)" alt="@item.NameEn" style="width: 100%; height: 100%; object-fit: cover;" />
+                                        <img src="@ResolveImage(item.MainImageUrl)" alt="@(L.GetCurrentCulture() == "ar" ? item.NameAr : item.NameEn)" style="width: 100%; height: 100%; object-fit: cover;" />
                                     </div>
                                     <div>
-                                        <div class="text-light font-weight-bold">@item.NameEn</div>
-                                        <div class="text-muted small">@item.NameAr</div>
+                                        @if (L.GetCurrentCulture() == "ar")
+                                        {
+                                            <div class="text-light font-weight-bold">@item.NameAr</div>
+                                            <div class="text-muted small">@item.NameEn</div>
+                                        }
+                                        else
+                                        {
+                                            <div class="text-light font-weight-bold">@item.NameEn</div>
+                                            <div class="text-muted small">@item.NameAr</div>
+                                        }
                                     </div>
                                 </div>
                             </td>
                             
                             <!-- Category -->
                             <td>
-                                <span class="text-light">@item.CategoryName</span>
+                                <span class="text-light">@(L.GetCurrentCulture() == "ar" ? item.CategoryNameAr : item.CategoryName)</span>
                             </td>
                             
                             <!-- Vendor -->

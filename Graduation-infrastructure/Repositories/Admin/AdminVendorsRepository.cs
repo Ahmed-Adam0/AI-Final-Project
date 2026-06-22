@@ -143,6 +143,7 @@ namespace Graduation_infrastructure.Repositories.Admin
                 {
                     WorkshopId = w.Id,
                     WorkshopName = w.WorkshopNameEn,
+                    WorkshopNameAr = w.WorkshopNameAr,
                     VendorName = w.User != null ? w.User.FullName : w.UserId,
                     Email = w.User != null ? w.User.Email : null,
                     Phone = w.User != null ? w.User.PhoneNumber : null,

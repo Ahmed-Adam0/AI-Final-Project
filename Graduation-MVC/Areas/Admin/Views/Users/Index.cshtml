@@ -308,13 +308,13 @@
 
     <script>
         var _swal = {
-            suspendTitle: '@L.Get("admin.users.confirm.suspend.title")',
-            suspendText: '@L.Get("admin.users.confirm.suspend.text")',
-            suspendYes: '@L.Get("admin.users.confirm.suspend.yes")',
-            deleteTitle: '@L.Get("admin.users.confirm.delete.title")',
-            deleteText: '@L.Get("admin.users.confirm.delete.text")',
-            deleteYes: '@L.Get("admin.users.confirm.delete.yes")',
-            cancel: '@L.Get("admin.users.confirm.cancel")'
+            suspendTitle: '@Html.Raw(L.Get("admin.users.confirm.suspend.title"))',
+            suspendText: '@Html.Raw(L.Get("admin.users.confirm.suspend.text"))',
+            suspendYes: '@Html.Raw(L.Get("admin.users.confirm.suspend.yes"))',
+            deleteTitle: '@Html.Raw(L.Get("admin.users.confirm.delete.title"))',
+            deleteText: '@Html.Raw(L.Get("admin.users.confirm.delete.text"))',
+            deleteYes: '@Html.Raw(L.Get("admin.users.confirm.delete.yes"))',
+            cancel: '@Html.Raw(L.Get("admin.users.confirm.cancel"))'
         };
 
         function showSuspendConfirm(form) {
