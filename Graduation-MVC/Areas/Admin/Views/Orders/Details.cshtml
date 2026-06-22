@@ -7,19 +7,22 @@
 
     string LocalStatus(string s) => s switch
     {
-        "Pending"            => LocalizationService.Get("auth.orders.statusPending"),
-        "Confirmed"          => LocalizationService.Get("auth.orders.statusConfirmed"),
-        "InProgress"         => LocalizationService.Get("auth.orders.statusInProgress"),
-        "Processing"         => LocalizationService.Get("auth.orders.statusProcessing"),
-        "PartiallyDelivered" => LocalizationService.Get("auth.orders.statusPartiallyDelivered"),
-        "Partially Delivered" => LocalizationService.Get("auth.orders.statusPartiallyDelivered"),
-        "Ready for Pickup"   => LocalizationService.Get("auth.orders.statusReadyForPickup"),
-        "ReadyForPickup"     => LocalizationService.Get("auth.orders.statusReadyForPickup"),
-        "Delivered"          => LocalizationService.Get("auth.orders.statusDelivered"),
-        "Completed"          => LocalizationService.Get("auth.orders.statusDelivered"),
-        "Cancelled"          => LocalizationService.Get("auth.orders.statusCancelled"),
-        "Rejected"           => LocalizationService.Get("auth.orders.statusRejected"),
-        _                    => s
+        "Pending"                  => LocalizationService.Get("auth.orders.statusPending"),
+        "AwaitingCustomerApproval" => LocalizationService.Get("auth.orders.statusAwaitingCustomerApproval"),
+        "Awaiting Customer Approval" => LocalizationService.Get("auth.orders.statusAwaitingCustomerApproval"),
+        "Confirmed"                => LocalizationService.Get("auth.orders.statusConfirmed"),
+        "InProgress"               => LocalizationService.Get("auth.orders.statusInProgress"),
+        "Processing"               => LocalizationService.Get("auth.orders.statusProcessing"),
+        "PartiallyDelivered"       => LocalizationService.Get("auth.orders.statusPartiallyDelivered"),
+        "Partially Delivered"      => LocalizationService.Get("auth.orders.statusPartiallyDelivered"),
+        "Ready for Pickup"         => LocalizationService.Get("auth.orders.statusReadyForPickup"),
+        "ReadyForPickup"           => LocalizationService.Get("auth.orders.statusReadyForPickup"),
+        "Shipped"                  => LocalizationService.Get("auth.orders.statusShipped"),
+        "Delivered"                => LocalizationService.Get("auth.orders.statusDelivered"),
+        "Completed"                => LocalizationService.Get("auth.orders.statusDelivered"),
+        "Cancelled"                => LocalizationService.Get("auth.orders.statusCancelled"),
+        "Rejected"                 => LocalizationService.Get("auth.orders.statusRejected"),
+        _                          => s
     };
 
     string LocalPayStatus(string s) => s switch
@@ -53,19 +56,22 @@
     // Translate timeline title (= raw status string from DB)
     string LocalTimelineTitle(string title) => title switch
     {
-        "Pending"            => LocalizationService.Get("auth.orders.statusPending"),
-        "Confirmed"          => LocalizationService.Get("auth.orders.statusConfirmed"),
-        "InProgress"         => LocalizationService.Get("auth.orders.statusInProgress"),
-        "Processing"         => LocalizationService.Get("auth.orders.statusProcessing"),
-        "PartiallyDelivered" => LocalizationService.Get("auth.orders.statusPartiallyDelivered"),
-        "Partially Delivered" => LocalizationService.Get("auth.orders.statusPartiallyDelivered"),
-        "Ready for Pickup"   => LocalizationService.Get("auth.orders.statusReadyForPickup"),
-        "ReadyForPickup"     => LocalizationService.Get("auth.orders.statusReadyForPickup"),
-        "Delivered"          => LocalizationService.Get("auth.orders.statusDelivered"),
-        "Completed"          => LocalizationService.Get("auth.orders.statusDelivered"),
-        "Cancelled"          => LocalizationService.Get("auth.orders.statusCancelled"),
-        "Rejected"           => LocalizationService.Get("auth.orders.statusRejected"),
-        _                    => title
+        "Pending"                  => LocalizationService.Get("auth.orders.statusPending"),
+        "AwaitingCustomerApproval" => LocalizationService.Get("auth.orders.statusAwaitingCustomerApproval"),
+        "Awaiting Customer Approval" => LocalizationService.Get("auth.orders.statusAwaitingCustomerApproval"),
+        "Confirmed"                => LocalizationService.Get("auth.orders.statusConfirmed"),
+        "InProgress"               => LocalizationService.Get("auth.orders.statusInProgress"),
+        "Processing"               => LocalizationService.Get("auth.orders.statusProcessing"),
+        "PartiallyDelivered"       => LocalizationService.Get("auth.orders.statusPartiallyDelivered"),
+        "Partially Delivered"      => LocalizationService.Get("auth.orders.statusPartiallyDelivered"),
+        "Ready for Pickup"         => LocalizationService.Get("auth.orders.statusReadyForPickup"),
+        "ReadyForPickup"           => LocalizationService.Get("auth.orders.statusReadyForPickup"),
+        "Shipped"                  => LocalizationService.Get("auth.orders.statusShipped"),
+        "Delivered"                => LocalizationService.Get("auth.orders.statusDelivered"),
+        "Completed"                => LocalizationService.Get("auth.orders.statusDelivered"),
+        "Cancelled"                => LocalizationService.Get("auth.orders.statusCancelled"),
+        "Rejected"                 => LocalizationService.Get("auth.orders.statusRejected"),
+        _                          => title
     };
 
     // Parse and translate timeline description: "Status changed from X to Y"

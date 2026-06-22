@@ -29,6 +29,7 @@ namespace Graduation_Application.DTOs.Admin.VendorManagementDTO
     {
         public int WorkshopId { get; set; }
         public string WorkshopName { get; set; }
+        public string? WorkshopNameAr { get; set; }
         public string VendorName { get; set; }
         public string? Email { get; set; }
         public string? Phone { get; set; }

@@ -7,6 +7,7 @@ namespace Graduation_domain.Enums
         Confirmed,
         InProgress,
         ReadyForPickup,
+        Shipped,
         Delivered,
         Cancelled
     }

@@ -50,9 +50,9 @@
                             <td>
                                 <div>
                                     <a asp-area="Admin" asp-controller="Products" asp-action="Details" asp-route-id="@report.ProductId" class="text-light font-weight-bold text-decoration-none hover-indigo">
-                                        @report.ProductNameEn <i class="fa-solid fa-arrow-up-right-from-square ms-1" style="font-size: 0.75rem; color: var(--accent-secondary);"></i>
+                                        @(L.GetCurrentCulture() == "ar" ? report.ProductNameAr : report.ProductNameEn) <i class="fa-solid fa-arrow-up-right-from-square ms-1" style="font-size: 0.75rem; color: var(--accent-secondary);"></i>
                                     </a>
-                                    <div class="text-muted small">@report.ProductNameAr</div>
+                                    <div class="text-muted small">@(L.GetCurrentCulture() == "ar" ? report.ProductNameEn : report.ProductNameAr)</div>
                                     <span class="text-muted small d-block" style="font-size: 0.75rem;">@L.Get("admin.products.details.productId") #@report.ProductId</span>
                                 </div>
                             </td>

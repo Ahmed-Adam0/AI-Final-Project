@@ -78,7 +78,19 @@
                             {
                                 <tr>
                                     <td>@log.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                                    <td>@log.Action</td>
+                                    <td>
+                                        @{
+                                            var isArabic = L.GetCurrentCulture() == "ar";
+                                            var actionText = log.Action;
+                                            if (isArabic)
+                                            {
+                                                var actionKey = $"shared.actions.{log.Action?.ToLower()}";
+                                                var localizedAction = L.Get(actionKey);
+                                                if (localizedAction != actionKey) actionText = localizedAction;
+                                            }
+                                        }
+                                        @actionText
+                                    </td>
                                     <td>@log.PerformedBy</td>
                                 </tr>
                             }

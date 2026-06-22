@@ -2,7 +2,9 @@
 @using Graduation_Application.IServices.Admin
 @inject ILocalizationService L
 @{
-    ViewData["Title"] = $"{L.Get("admin.products.details.title")}: {Model.Product.NameEn}";
+    var isArabic = L.GetCurrentCulture() == "ar";
+    var localizedProductName = isArabic ? Model.Product.NameAr : Model.Product.NameEn;
+    ViewData["Title"] = $"{L.Get("admin.products.details.title")}: {localizedProductName}";
 
     string ResolveImage(string? path) => ProductImageUrlResolver.Resolve(path);
 }
@@ -13,7 +15,7 @@
         <a asp-area="Admin" asp-controller="Products" asp-action="Index" class="btn btn-premium btn-premium-secondary mb-3">
             <i class="fa-solid fa-arrow-left"></i> @L.Get("admin.products.details.back")
         </a>
-        <h1 class="display-font text-light mb-1">@Model.Product.NameEn</h1>
+        <h1 class="display-font text-light mb-1">@localizedProductName</h1>
         <p class="text-muted mb-0">@L.Get("admin.products.details.productId") <strong class="text-indigo">#@Model.Product.Id</strong></p>
     </div>
     

@@ -327,8 +327,8 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        var _swalYes = '@L.Get("auth.vendors.confirmYes")';
-        var _swalCancel = '@L.Get("auth.vendors.confirmCancel")';
+        var _swalYes = '@Html.Raw(L.Get("auth.vendors.confirmYes"))';
+        var _swalCancel = '@Html.Raw(L.Get("auth.vendors.confirmCancel"))';
 
         (function () {
             document.querySelectorAll('form.js-confirm').forEach(function (form) {
