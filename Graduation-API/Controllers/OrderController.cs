@@ -134,11 +134,11 @@ namespace Graduation_API.Controllers
                     "UpdateOrderStatus",
                     "Order",
                     id.ToString(),
-                    $"Updated order #{id} status to '{request.Status}'.",
+                    $"Updated order #{id} status to '{GetLocalizedStatusEn(request.Status)}'.",
                     GetCurrentUserRoleAr(),
                     "تحديث حالة الطلب",
                     "طلب",
-                    $"تم تحديث حالة الطلب رقم {id} إلى '{request.Status}'."
+                    $"تم تحديث حالة الطلب رقم {id} إلى '{GetLocalizedStatusAr(request.Status)}'."
                 );
                 return Ok(new { Message = "Order status updated" });
             }
@@ -279,6 +279,40 @@ namespace Graduation_API.Controllers
                 "Vendor" => "بائع",
                 _ => GetCurrentUserRole(),
             };
+
+        private string GetLocalizedStatusAr(string status)
+        {
+            return status?.ToLower() switch
+            {
+                "pending" => "قيد الانتظار",
+                "confirmed" => "مؤكد",
+                "inprogress" => "قيد التنفيذ",
+                "processing" => "جاري المعالجة",
+                "partiallydelivered" => "تم التوصيل جزئياً",
+                "readyforpickup" => "جاهز للاستلام",
+                "delivered" => "تم التوصيل",
+                "cancelled" => "ملغي",
+                "rejected" => "مرفوض",
+                _ => status ?? "غير معروف"
+            };
+        }
+
+        private string GetLocalizedStatusEn(string status)
+        {
+            return status?.ToLower() switch
+            {
+                "pending" => "Pending",
+                "confirmed" => "Confirmed",
+                "inprogress" => "In Progress",
+                "processing" => "Processing",
+                "partiallydelivered" => "Partially Delivered",
+                "readyforpickup" => "Ready for Pickup",
+                "delivered" => "Delivered",
+                "cancelled" => "Cancelled",
+                "rejected" => "Rejected",
+                _ => status ?? "Unknown"
+            };
+        }
     }
 
     public class UpdateOrderStatusRequest

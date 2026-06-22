@@ -3,19 +3,19 @@
 @inject ILocalizationService L
 
 @{
-    ViewData["Title"] = "Create Subcategory";
+    ViewData["Title"] = L.Get("admin.categories.subcategories.create.title");
 }
 
 <div class="mb-3">
     <a asp-area="Admin" asp-controller="Categories" asp-action="SubCategories" asp-route-categoryId="@Model.CategoryId" class="btn btn-premium btn-premium-secondary small py-1 px-3">
-        <i class="fa-solid fa-arrow-left me-1"></i> Back to Subcategories
+        <i class="fa-solid fa-arrow-left me-1"></i> @L.Get("admin.categories.subcategories.backToSubcategories")
     </a>
 </div>
 
 <div class="row mb-4">
     <div class="col-md-6">
-        <h1 class="display-font text-light mb-1">Create Subcategory</h1>
-        <p class="text-muted mb-0">Add a new sub-classification under Category "@Model.CategoryNameEn"</p>
+        <h1 class="display-font text-light mb-1">@L.Get("admin.categories.subcategories.create.heading")</h1>
+        <p class="text-muted mb-0">@string.Format(L.Get("admin.categories.subcategories.create.desc"), Model.CategoryNameEn)</p>
     </div>
 </div>
 
@@ -30,23 +30,23 @@
                 <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-4 bg-danger bg-opacity-10 border-danger text-danger small" style="border-radius: 8px;"></div>
 
                 <div class="mb-3">
-                    <label asp-for="NameEn" class="form-label text-light small"></label>
+                    <label asp-for="NameEn" class="form-label text-light small">@L.Get("admin.categories.create.nameEnLabel")</label>
                     <input asp-for="NameEn" class="form-control form-control-premium" placeholder="e.g. Living Room" />
                     <span asp-validation-for="NameEn" class="text-danger small"></span>
                 </div>
 
                 <div class="mb-4">
-                    <label asp-for="NameAr" class="form-label text-light small"></label>
+                    <label asp-for="NameAr" class="form-label text-light small">@L.Get("admin.categories.create.nameArLabel")</label>
                     <input asp-for="NameAr" class="form-control form-control-premium" placeholder="مثال: غرف معيشة" dir="rtl" />
                     <span asp-validation-for="NameAr" class="text-danger small"></span>
                 </div>
 
                 <div class="d-flex gap-2 justify-content-end">
                     <a asp-area="Admin" asp-controller="Categories" asp-action="SubCategories" asp-route-categoryId="@Model.CategoryId" class="btn btn-premium btn-premium-secondary">
-                        Cancel
+                        @L.Get("admin.categories.create.cancel")
                     </a>
                     <button type="submit" class="btn btn-premium btn-premium-primary">
-                        <i class="fa-solid fa-check me-1"></i> Create
+                        <i class="fa-solid fa-check me-1"></i> @L.Get("admin.categories.subcategories.create.submit")
                     </button>
                 </div>
             </form>

@@ -94,6 +94,12 @@
       "Total Customers": "إجمالي العملاء",
       "Pending Orders": "طلبات قيد الانتظار",
       "Completed Orders": "طلبات مكتملة",
+      "Growth Rate": "معدل النمو",
+      "Average Order Value": "متوسط قيمة الطلب",
+      "Completion Rate": "معدل الإكمال",
+      "Compared to previous period": "مقارنة بالفترة السابقة",
+      "Across all completed orders": "عبر جميع الطلبات المكتملة",
+      "Orders completed on time": "الطلبات المكتملة في الوقت المحدد",
       "Manage Vendors": "إدارة الموردين",
       "Open vendor management panel": "افتح لوحة إدارة الموردين",
       "View Orders": "عرض الطلبات",
@@ -223,6 +229,10 @@
       "currencyFormat": "{0} ج.م",
       "statusPending": "قيد الانتظار",
       "statusConfirmed": "مؤكد",
+      "statusInProgress": "قيد التنفيذ",
+      "statusProcessing": "جاري المعالجة",
+      "statusPartiallyDelivered": "تم التوصيل جزئياً",
+      "statusReadyForPickup": "جاهز للاستلام",
       "statusDelivered": "تم التوصيل",
       "statusCancelled": "ملغي",
       "statusRejected": "مرفوض",
@@ -326,6 +336,14 @@
       "confirmCancel": "إلغاء",
       "currencyFormat": "{0} ج.م",
       "suspensionReason": "سبب التعليق"
+    }
+  },
+  "shared": {
+    "status": {
+      "visible": "مرئي",
+      "hidden": "مخفي",
+      "active": "نشط",
+      "inactive": "غير نشط"
     }
   },
   "admin": {
@@ -495,7 +513,24 @@
       "edit.success": "تم تحديث القسم بنجاح.",
       "delete.success": "تم حذف القسم بنجاح.",
       "delete.error": "فشل حذف القسم.",
-      "notfound": "القسم غير موجود."
+      "notfound": "القسم غير موجود.",
+      "subcategories": "الأقسام الفرعية",
+      "subcategoriesOf": "الأقسام الفرعية لـ {0}",
+      "manageSubcategories": "إدارة التصنيفات الفرعية لهذا القسم",
+      "addSubcategory": "إضافة قسم فرعي",
+      "noSubcategories": "لا توجد أقسام فرعية محددة",
+      "clickToAddSubcategory": "انقر فوق الزر أعلاه لإضافة قسم فرعي لـ {0}",
+      "confirmDeleteSubcategory": "هل أنت متأكد من رغبتك في حذف هذا القسم الفرعي؟ سيتم حذف جميع أنواع المنتجات التابعة له!",
+      "productTypes": "أنواع المنتجات",
+      "backToCategories": "العودة للأقسام",
+      "subcategories.create.title": "إضافة قسم فرعي",
+      "subcategories.create.heading": "إضافة قسم فرعي",
+      "subcategories.create.desc": "إضافة تصنيف فرعي جديد تحت قسم \"{0}\"",
+      "subcategories.edit.title": "تعديل قسم فرعي",
+      "subcategories.edit.heading": "تعديل القسم الفرعي",
+      "subcategories.edit.desc": "تعديل تفاصيل التصنيف الفرعي تحت قسم \"{0}\"",
+      "subcategories.backToSubcategories": "العودة للأقسام الفرعية",
+      "subcategories.create.submit": "إنشاء"
     },
     "reports": {
       "title": "التقارير",
@@ -839,6 +874,35 @@
       "reset": "إعادة تعيين",
       "apply": "تطبيق الفلاتر",
       "search": "بحث"
+    },
+    "roles": {
+      "superadmin": "مسؤول عام",
+      "admin": "مسؤول",
+      "administrator": "المدير",
+      "vendor": "مورد",
+      "customer": "عميل"
+    },
+    "actions": {
+      "createorder": "إنشاء طلب",
+      "cancelorder": "إلغاء طلب",
+      "suspenduser": "حظر مستخدم",
+      "activateuser": "تفعيل مستخدم",
+      "deleteuser": "حذف مستخدم",
+      "deleteproduct": "حذف منتج",
+      "approvevendor": "قبول مورد",
+      "rejectvendor": "رفض مورد",
+      "updateorderstatus": "تحديث حالة الطلب",
+      "createreview": "كتابة تقييم"
+    },
+    "entities": {
+      "order": "طلب",
+      "applicationuser": "مستخدم",
+      "product": "منتج",
+      "workshop": "ورشة",
+      "review": "تقييم",
+      "category": "قسم",
+      "subcategory": "قسم فرعي",
+      "producttype": "نوع منتج"
     }
   },
   "status": {

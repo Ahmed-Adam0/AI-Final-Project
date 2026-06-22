@@ -171,7 +171,11 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 "UpdateOrderStatus",
                 "Order",
                 id.ToString(),
-                $"Changed order status for order #{id} from '{oldStatus}' to 'Confirmed'."
+                $"Changed order status for order #{id} from '{GetLocalizedStatusEn(oldStatus)}' to 'Confirmed'.",
+                GetCurrentUserRoleAr(),
+                "تحديث حالة الطلب",
+                "طلب",
+                $"تم تغيير حالة الطلب رقم {id} من '{GetLocalizedStatusAr(oldStatus)}' إلى 'مؤكد'."
             );
 
             var msgTemplate = _localizationService.Get("auth.orders.statusChanged");
@@ -192,5 +196,49 @@ namespace Graduation_MVC.Areas.Admin.Controllers
             User.FindFirstValue(ClaimTypes.Name) ?? User.Identity?.Name ?? "SuperAdmin";
 
         private string GetCurrentUserRole() => User.FindFirstValue(ClaimTypes.Role) ?? "SuperAdmin";
+
+        private string GetCurrentUserRoleAr() =>
+            GetCurrentUserRole() switch
+            {
+                "SuperAdmin" => "مشرف عام",
+                "Admin" => "مدير",
+                "Vendor" => "بائع",
+                "Customer" => "عميل",
+                _ => GetCurrentUserRole(),
+            };
+
+        private string GetLocalizedStatusAr(string status)
+        {
+            return status?.ToLower() switch
+            {
+                "pending" => "قيد الانتظار",
+                "confirmed" => "مؤكد",
+                "inprogress" => "قيد التنفيذ",
+                "processing" => "جاري المعالجة",
+                "partiallydelivered" => "تم التوصيل جزئياً",
+                "readyforpickup" => "جاهز للاستلام",
+                "delivered" => "تم التوصيل",
+                "cancelled" => "ملغي",
+                "rejected" => "مرفوض",
+                _ => status ?? "غير معروف"
+            };
+        }
+
+        private string GetLocalizedStatusEn(string status)
+        {
+            return status?.ToLower() switch
+            {
+                "pending" => "Pending",
+                "confirmed" => "Confirmed",
+                "inprogress" => "In Progress",
+                "processing" => "Processing",
+                "partiallydelivered" => "Partially Delivered",
+                "readyforpickup" => "Ready for Pickup",
+                "delivered" => "Delivered",
+                "cancelled" => "Cancelled",
+                "rejected" => "Rejected",
+                _ => status ?? "Unknown"
+            };
+        }
     }
 }

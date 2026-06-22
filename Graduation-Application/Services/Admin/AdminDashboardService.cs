@@ -366,8 +366,11 @@ namespace Graduation_Application.Services.Admin
                 {
                     new() { Value = string.Empty, Label = "All Statuses" },
                     new() { Value = "Pending", Label = "Pending" },
-                    new() { Value = "Confirmed", Label = "Processing" },
-                    new() { Value = "Delivered", Label = "Completed" },
+                    new() { Value = "Confirmed", Label = "Confirmed" },
+                    new() { Value = "Processing", Label = "Processing" },
+                    new() { Value = "PartiallyDelivered", Label = "Partially Delivered" },
+                    new() { Value = "Ready for Pickup", Label = "Ready for Pickup" },
+                    new() { Value = "Completed", Label = "Completed" },
                     new() { Value = "Cancelled", Label = "Cancelled" },
                 },
                 Vendors = new List<AdminVendorOptionDto>
@@ -492,11 +495,11 @@ namespace Graduation_Application.Services.Admin
                         Title = "Average Order Value",
                         Value =
                             allOrders.Count == 0
-                                ? "$0"
+                                ? "0"
                                 : (
                                     deliveredOrders.Sum(x => x.TotalPrice)
                                     / Math.Max(1, deliveredOrders.Count)
-                                ).ToString("C0"),
+                                ).ToString("N0"),
                         SubText = "Across all completed orders",
                         IconClass = "fa-solid fa-receipt",
                     },
