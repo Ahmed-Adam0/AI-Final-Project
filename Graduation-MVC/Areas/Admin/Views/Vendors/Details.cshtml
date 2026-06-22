@@ -97,7 +97,8 @@
                 <span class="badge bg-danger">@L.Get("auth.vendors.cancelled"): @Model.OrdersStats.CancelledOrders</span>
                 <span class="badge bg-info">@L.Get("auth.vendors.inProgress"): @Model.OrdersStats.InProgressOrders</span>
                 <span class="badge bg-primary">@L.Get("auth.vendors.confirmed"): @Model.OrdersStats.ConfirmedOrders</span>
-                <span class="badge bg-black">@L.Get("auth.vendors.readyForPickup"): @Model.OrdersStats.ReadyforPickupOrders</span>
+                <span class="badge bg-black">@L.Get("auth.vendors.readyForPickup"): @Model.OrdersStats.ShippedOrders</span>
+                <span class="badge bg-secondary">@L.Get("auth.vendors.awaitingApproval"): @Model.OrdersStats.AwaitingOrders</span>
             </div>
             <hr />
             <div class="text-muted small">@L.Get("auth.vendors.revenue")</div>
@@ -163,16 +164,17 @@
                     <i class="fa-solid fa-ban"></i> @L.Get("auth.vendors.suspend")
                 </button>
             }
-            @if (Model.Actions.CanActivate)
+            else
             {
-                <form method="post" asp-area="Admin" asp-controller="Vendors" asp-action="Activate" class="d-inline js-confirm" data-title="@L.Get("auth.vendors.confirmActivate")" data-text="@L.Get("auth.vendors.confirmActivateText")">
+                <form method="post" asp-area="Admin" asp-controller="Vendors" asp-action="Activate" class="d-inline js-confirm" data-title="@L.Get("auth.vendors.confirmUnsuspend")" data-text="@L.Get("auth.vendors.confirmUnsuspendText")">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="workshopId" value="@Model.Profile.WorkshopId" />
                     <button type="submit" class="btn btn-outline-success">
-                        <i class="fa-solid fa-play"></i> @L.Get("auth.vendors.activate")
+                        <i class="fa-solid fa-circle-check"></i> @L.Get("auth.vendors.unsuspend")
                     </button>
                 </form>
             }
+
         </div>
     </div>
     <div class="text-muted small">@L.Get("auth.vendors.actionsAudit")</div>

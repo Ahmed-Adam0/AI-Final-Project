@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using Graduation_Application.DTOs.OrderDTO;
 using Graduation_Application.IRepositories;
 using Graduation_Application.IServices;
-using Graduation_domain.Enums;
 using Graduation_domain.Entities;
+using Graduation_domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Graduation_Application.Services
@@ -129,23 +129,26 @@ namespace Graduation_Application.Services
                     UpdatedAt = vo.UpdatedAt,
                     EstimatedDeliveryDate = vo.EstimatedDeliveryDate,
                     ItemCount = vo.Items.Sum(oi => oi.Quantity),
-                    Items = vo.Items.Select(oi => new VendorOrderItemDto
-                    {
-                        ProductId = oi.ProductId ?? 0,
-                        ProductName = oi.SnapshotProductNameEn,
-                        UnitPrice = oi.SnapshotUnitPrice,
-                        Quantity = oi.Quantity,
-                        Total = oi.SnapshotUnitPrice * oi.Quantity,
-                    }).ToList(),
-                    StatusHistory = vo.StatusHistory.Select(sh => new OrderStatusHistoryResponseDto
-                    {
-                        Id = sh.Id,
-                        OldStatus = sh.OldStatus,
-                        NewStatus = sh.NewStatus,
-                        CreatedAt = sh.CreatedAt,
-                    })
-                    .OrderByDescending(s => s.CreatedAt)
-                    .FirstOrDefault(),
+                    Items = vo
+                        .Items.Select(oi => new VendorOrderItemDto
+                        {
+                            ProductId = oi.ProductId ?? 0,
+                            ProductName = oi.SnapshotProductNameEn,
+                            UnitPrice = oi.SnapshotUnitPrice,
+                            Quantity = oi.Quantity,
+                            Total = oi.SnapshotUnitPrice * oi.Quantity,
+                        })
+                        .ToList(),
+                    StatusHistory = vo
+                        .StatusHistory.Select(sh => new OrderStatusHistoryResponseDto
+                        {
+                            Id = sh.Id,
+                            OldStatus = sh.OldStatus,
+                            NewStatus = sh.NewStatus,
+                            CreatedAt = sh.CreatedAt,
+                        })
+                        .OrderByDescending(s => s.CreatedAt)
+                        .FirstOrDefault(),
                 })
                 .ToListAsync();
 
@@ -185,23 +188,26 @@ namespace Graduation_Application.Services
                 CreatedAt = vo.CreatedAt,
                 UpdatedAt = vo.UpdatedAt,
                 EstimatedDeliveryDate = vo.EstimatedDeliveryDate,
-                Items = vo.Items.Select(oi => new VendorOrderItemDto
-                {
-                    ProductId = oi.ProductId ?? 0,
-                    ProductName = oi.SnapshotProductNameEn,
-                    UnitPrice = oi.SnapshotUnitPrice,
-                    Quantity = oi.Quantity,
-                    Total = oi.SnapshotUnitPrice * oi.Quantity,
-                }).ToList(),
-                StatusHistory = vo.StatusHistory.Select(sh => new OrderStatusHistoryResponseDto
-                {
-                    Id = sh.Id,
-                    OldStatus = sh.OldStatus,
-                    NewStatus = sh.NewStatus,
-                    CreatedAt = sh.CreatedAt,
-                })
-                .OrderByDescending(s => s.CreatedAt)
-                .FirstOrDefault(),
+                Items = vo
+                    .Items.Select(oi => new VendorOrderItemDto
+                    {
+                        ProductId = oi.ProductId ?? 0,
+                        ProductName = oi.SnapshotProductNameEn,
+                        UnitPrice = oi.SnapshotUnitPrice,
+                        Quantity = oi.Quantity,
+                        Total = oi.SnapshotUnitPrice * oi.Quantity,
+                    })
+                    .ToList(),
+                StatusHistory = vo
+                    .StatusHistory.Select(sh => new OrderStatusHistoryResponseDto
+                    {
+                        Id = sh.Id,
+                        OldStatus = sh.OldStatus,
+                        NewStatus = sh.NewStatus,
+                        CreatedAt = sh.CreatedAt,
+                    })
+                    .OrderByDescending(s => s.CreatedAt)
+                    .FirstOrDefault(),
             };
         }
 
@@ -250,8 +256,8 @@ namespace Graduation_Application.Services
             );
 
             // Recalculate parent Master Order status
-            var allVendorStatuses = vendorOrder.MasterOrder.VendorOrders
-                .Select(v => v.Id == orderId ? statusEnum : v.Status)
+            var allVendorStatuses = vendorOrder
+                .MasterOrder.VendorOrders.Select(v => v.Id == orderId ? statusEnum : v.Status)
                 .ToList();
 
             var derivedStatus = CalculateMasterOrderStatus(allVendorStatuses);
@@ -295,8 +301,8 @@ namespace Graduation_Application.Services
 
             // Send notification to customer
             await _notificationService.SendOrderStatusUpdateAsync(
-                vendorOrder.MasterOrder.UserId, 
-                vendorOrder.MasterOrderId, 
+                vendorOrder.MasterOrder.UserId,
+                vendorOrder.MasterOrderId,
                 derivedStatus
             );
         }
@@ -318,14 +324,20 @@ namespace Graduation_Application.Services
 
             var allOrdersInRangeQuery = _vendorOrderRepository
                 .Where(vo =>
-                    vo.WorkshopId == workshopId && vo.CreatedAt >= startDate && vo.CreatedAt <= endDate
+                    vo.WorkshopId == workshopId
+                    && vo.CreatedAt >= startDate
+                    && vo.CreatedAt <= endDate
                 )
                 .AsQueryable();
 
-            var deliveredInRangeQuery = allOrdersInRangeQuery.Where(vo => vo.Status == VendorOrderStatus.Delivered);
+            var deliveredInRangeQuery = allOrdersInRangeQuery.Where(vo =>
+                vo.Status == VendorOrderStatus.Delivered
+            );
 
             var deliveredAllTimeQuery = _vendorOrderRepository
-                .Where(vo => vo.WorkshopId == workshopId && vo.Status == VendorOrderStatus.Delivered)
+                .Where(vo =>
+                    vo.WorkshopId == workshopId && vo.Status == VendorOrderStatus.Delivered
+                )
                 .AsQueryable();
 
             var totalRevenue = await deliveredInRangeQuery.SumAsync(vo => vo.TotalPrice);
@@ -396,7 +408,9 @@ namespace Graduation_Application.Services
             startDate ??= DateTime.UtcNow.AddMonths(-1);
             endDate ??= DateTime.UtcNow;
 
-            var query = _vendorOrderRepository.Where(vo => vo.WorkshopId == workshopId).AsQueryable();
+            var query = _vendorOrderRepository
+                .Where(vo => vo.WorkshopId == workshopId)
+                .AsQueryable();
 
             var ordersInRange = await query
                 .Where(vo => vo.CreatedAt >= startDate && vo.CreatedAt <= endDate)
@@ -404,13 +418,17 @@ namespace Graduation_Application.Services
                 .ToListAsync();
 
             var totalOrders = ordersInRange.Count;
-            var completedOrders = ordersInRange.Count(vo => vo.Status == VendorOrderStatus.Delivered);
-            var cancelledOrders = ordersInRange.Count(vo => vo.Status == VendorOrderStatus.Cancelled);
+            var completedOrders = ordersInRange.Count(vo =>
+                vo.Status == VendorOrderStatus.Delivered
+            );
+            var cancelledOrders = ordersInRange.Count(vo =>
+                vo.Status == VendorOrderStatus.Cancelled
+            );
             var pendingOrders = ordersInRange.Count(vo => vo.Status == VendorOrderStatus.Pending);
             var inProgressOrders = ordersInRange.Count(vo =>
-                vo.Status == VendorOrderStatus.InProgress || 
-                vo.Status == VendorOrderStatus.Confirmed || 
-                vo.Status == VendorOrderStatus.Shipped
+                vo.Status == VendorOrderStatus.InProgress
+                || vo.Status == VendorOrderStatus.Confirmed
+                || vo.Status == VendorOrderStatus.Shipped
             );
 
             var totalRevenue = ordersInRange
@@ -454,9 +472,14 @@ namespace Graduation_Application.Services
 
             var totalOrders = await query.CountAsync();
             var activeOrders = await query
-                .Where(vo => vo.Status != VendorOrderStatus.Delivered && vo.Status != VendorOrderStatus.Cancelled)
+                .Where(vo =>
+                    vo.Status != VendorOrderStatus.Delivered
+                    && vo.Status != VendorOrderStatus.Cancelled
+                )
                 .CountAsync();
-            var completedOrders = await query.Where(vo => vo.Status == VendorOrderStatus.Delivered).CountAsync();
+            var completedOrders = await query
+                .Where(vo => vo.Status == VendorOrderStatus.Delivered)
+                .CountAsync();
 
             var currentRevenue = currentMonthOrders
                 .Where(vo => vo.Status == VendorOrderStatus.Delivered)
@@ -472,8 +495,9 @@ namespace Graduation_Application.Services
             var allOrders = await query.ToListAsync();
             var averageOrderValue =
                 allOrders.Count > 0
-                    ? allOrders.Where(vo => vo.Status == VendorOrderStatus.Delivered).Sum(vo => vo.TotalPrice)
-                        / allOrders.Count
+                    ? allOrders
+                        .Where(vo => vo.Status == VendorOrderStatus.Delivered)
+                        .Sum(vo => vo.TotalPrice) / allOrders.Count
                     : 0;
 
             return new VendorDashboardMetricsDto
@@ -508,7 +532,9 @@ namespace Graduation_Application.Services
 
             var completedOrders = orders.Count(vo => vo.Status == VendorOrderStatus.Delivered);
             var cancelledOrders = orders.Count(vo => vo.Status == VendorOrderStatus.Cancelled);
-            var totalRevenue = orders.Where(vo => vo.Status == VendorOrderStatus.Delivered).Sum(vo => vo.TotalPrice);
+            var totalRevenue = orders
+                .Where(vo => vo.Status == VendorOrderStatus.Delivered)
+                .Sum(vo => vo.TotalPrice);
 
             return new VendorActivityReportDto
             {
@@ -533,29 +559,53 @@ namespace Graduation_Application.Services
         }
 
         // Helper methods
-        private bool IsValidStatusTransition(VendorOrderStatus fromStatus, VendorOrderStatus toStatus)
+        private bool IsValidStatusTransition(
+            VendorOrderStatus fromStatus,
+            VendorOrderStatus toStatus
+        )
         {
             var validTransitions = new Dictionary<VendorOrderStatus, List<VendorOrderStatus>>
             {
                 {
                     VendorOrderStatus.Pending,
-                    new List<VendorOrderStatus> { VendorOrderStatus.AwaitingCustomerApproval, VendorOrderStatus.Cancelled }
+                    new List<VendorOrderStatus>
+                    {
+                        VendorOrderStatus.AwaitingCustomerApproval,
+                        VendorOrderStatus.Cancelled,
+                    }
                 },
                 {
                     VendorOrderStatus.AwaitingCustomerApproval,
-                    new List<VendorOrderStatus> { VendorOrderStatus.PendingPayment, VendorOrderStatus.Pending, VendorOrderStatus.Cancelled }
+                    new List<VendorOrderStatus>
+                    {
+                        VendorOrderStatus.Confirmed,
+                        VendorOrderStatus.Pending,
+                        VendorOrderStatus.Cancelled,
+                    }
                 },
                 {
                     VendorOrderStatus.PendingPayment,
-                    new List<VendorOrderStatus> { VendorOrderStatus.Confirmed, VendorOrderStatus.Cancelled }
+                    new List<VendorOrderStatus>
+                    {
+                        VendorOrderStatus.Confirmed,
+                        VendorOrderStatus.Cancelled,
+                    }
                 },
                 {
                     VendorOrderStatus.Confirmed,
-                    new List<VendorOrderStatus> { VendorOrderStatus.InProgress, VendorOrderStatus.Cancelled }
+                    new List<VendorOrderStatus>
+                    {
+                        VendorOrderStatus.InProgress,
+                        VendorOrderStatus.Cancelled,
+                    }
                 },
                 {
                     VendorOrderStatus.InProgress,
-                    new List<VendorOrderStatus> { VendorOrderStatus.Shipped, VendorOrderStatus.Cancelled }
+                    new List<VendorOrderStatus>
+                    {
+                        VendorOrderStatus.Shipped,
+                        VendorOrderStatus.Cancelled,
+                    }
                 },
                 {
                     VendorOrderStatus.Shipped,
@@ -571,7 +621,8 @@ namespace Graduation_Application.Services
 
         private string CalculateMasterOrderStatus(List<VendorOrderStatus> statuses)
         {
-            if (!statuses.Any()) return "Pending";
+            if (!statuses.Any())
+                return "Pending";
 
             if (statuses.All(s => s == VendorOrderStatus.Cancelled))
                 return "Cancelled";
@@ -583,11 +634,14 @@ namespace Graduation_Application.Services
             if (statuses.Any(s => s == VendorOrderStatus.Delivered))
                 return "PartiallyDelivered";
 
-            if (statuses.Any(s => s == VendorOrderStatus.AwaitingCustomerApproval || 
-                                s == VendorOrderStatus.PendingPayment ||
-                                s == VendorOrderStatus.Confirmed || 
-                                s == VendorOrderStatus.InProgress || 
-                                s == VendorOrderStatus.Shipped))
+            if (
+                statuses.Any(s =>
+                    s == VendorOrderStatus.AwaitingCustomerApproval
+                    || s == VendorOrderStatus.Confirmed
+                    || s == VendorOrderStatus.InProgress
+                    || s == VendorOrderStatus.Shipped
+                )
+            )
                 return "Processing";
 
             if (statuses.Any(s => s == VendorOrderStatus.Confirmed))
@@ -609,7 +663,9 @@ namespace Graduation_Application.Services
             {
                 var createdAt = vo.CreatedAt;
                 var deliveredAt = vo
-                    .StatusHistory.Where(sh => sh.NewStatus == VendorOrderStatus.Delivered.ToString())
+                    .StatusHistory.Where(sh =>
+                        sh.NewStatus == VendorOrderStatus.Delivered.ToString()
+                    )
                     .Select(sh => sh.CreatedAt)
                     .FirstOrDefault();
 
@@ -635,11 +691,17 @@ namespace Graduation_Application.Services
             return userIds;
         }
 
-        public async Task ProposeDeliveryDateAsync(int orderId, int workshopId, ProposeDeliveryDateRequestDto dto)
+        public async Task ProposeDeliveryDateAsync(
+            int orderId,
+            int workshopId,
+            ProposeDeliveryDateRequestDto dto
+        )
         {
             if (dto.EstimatedDeliveryDate < DateTime.UtcNow.AddMinutes(-5))
             {
-                throw new Exception("Estimated delivery date must be in the future (current time or later). / يجب أن يكون تاريخ التوصيل المتوقع في المستقبل (الوقت الحالي أو بعده).");
+                throw new Exception(
+                    "Estimated delivery date must be in the future (current time or later). / يجب أن يكون تاريخ التوصيل المتوقع في المستقبل (الوقت الحالي أو بعده)."
+                );
             }
 
             var vendorOrder = await _vendorOrderRepository
@@ -654,9 +716,14 @@ namespace Graduation_Application.Services
                 throw new Exception("Order not found or unauthorized");
             }
 
-            if (vendorOrder.Status != VendorOrderStatus.Pending && vendorOrder.Status != VendorOrderStatus.AwaitingCustomerApproval)
+            if (
+                vendorOrder.Status != VendorOrderStatus.Pending
+                && vendorOrder.Status != VendorOrderStatus.AwaitingCustomerApproval
+            )
             {
-                throw new Exception($"Cannot propose delivery date when status is {vendorOrder.Status}");
+                throw new Exception(
+                    $"Cannot propose delivery date when status is {vendorOrder.Status}"
+                );
             }
 
             var oldStatus = vendorOrder.Status.ToString();
@@ -664,16 +731,20 @@ namespace Graduation_Application.Services
             vendorOrder.EstimatedDeliveryDate = dto.EstimatedDeliveryDate;
             vendorOrder.UpdatedAt = DateTime.UtcNow;
 
-            vendorOrder.StatusHistory.Add(new VendorOrderStatusHistory
-            {
-                VendorOrderId = orderId,
-                OldStatus = oldStatus,
-                NewStatus = VendorOrderStatus.AwaitingCustomerApproval.ToString()
-            });
+            vendorOrder.StatusHistory.Add(
+                new VendorOrderStatusHistory
+                {
+                    VendorOrderId = orderId,
+                    OldStatus = oldStatus,
+                    NewStatus = VendorOrderStatus.AwaitingCustomerApproval.ToString(),
+                }
+            );
 
             // Derive MasterOrder status
-            var allVendorStatuses = vendorOrder.MasterOrder.VendorOrders
-                .Select(v => v.Id == orderId ? VendorOrderStatus.AwaitingCustomerApproval : v.Status)
+            var allVendorStatuses = vendorOrder
+                .MasterOrder.VendorOrders.Select(v =>
+                    v.Id == orderId ? VendorOrderStatus.AwaitingCustomerApproval : v.Status
+                )
                 .ToList();
             var derivedStatus = CalculateMasterOrderStatus(allVendorStatuses);
             vendorOrder.MasterOrder.Status = derivedStatus;
@@ -696,7 +767,11 @@ namespace Graduation_Application.Services
 
             if (customer != null && !string.IsNullOrWhiteSpace(customer.Email))
             {
-                await _emailService.SendDeliveryDateProposedEmailAsync(customer.Email, orderId, dto.EstimatedDeliveryDate);
+                await _emailService.SendDeliveryDateProposedEmailAsync(
+                    customer.Email,
+                    orderId,
+                    dto.EstimatedDeliveryDate
+                );
             }
         }
     }

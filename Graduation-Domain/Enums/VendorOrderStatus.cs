@@ -3,12 +3,12 @@ namespace Graduation_domain.Enums
     public enum VendorOrderStatus
     {
         Pending,
-        AwaitingCustomerApproval,
         PendingPayment,
+        AwaitingCustomerApproval,
         Confirmed,
         InProgress,
         Shipped,
         Delivered,
-        Cancelled
+        Cancelled,
     }
 }

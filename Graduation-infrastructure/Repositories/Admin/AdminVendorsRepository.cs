@@ -212,21 +212,38 @@ namespace Graduation_infrastructure.Repositories.Admin
 
             // Backward-compatibility: IsVerified previously used alone
             var verificationStatus =
-                workshop.User.IsActive == false
+                workshop.IsVerified == false
                     ? VendorVerificationStatus.inActive
                     : VendorVerificationStatus.Active;
 
-            var ordersQuery = _db.VendorOrders.AsNoTracking().Where(vo => vo.WorkshopId == workshopId);
+            var ordersQuery = _db
+                .VendorOrders.AsNoTracking()
+                .Where(vo => vo.WorkshopId == workshopId);
             var totalOrders = await ordersQuery.CountAsync();
-            var deliveredOrders = await ordersQuery.CountAsync(o => o.Status == VendorOrderStatus.Delivered);
-            var pendingOrders = await ordersQuery.CountAsync(o => o.Status == VendorOrderStatus.Pending);
-            var CancelledOrders = await ordersQuery.CountAsync(o => o.Status == VendorOrderStatus.Cancelled);
-            var InProgressOrders = await ordersQuery.CountAsync(o => o.Status == VendorOrderStatus.InProgress);
-            var ConfirmedOrders = await ordersQuery.CountAsync(o => o.Status == VendorOrderStatus.Confirmed);
-            var ReadyforPickupOrders = await ordersQuery.CountAsync(o =>
+            var deliveredOrders = await ordersQuery.CountAsync(o =>
+                o.Status == VendorOrderStatus.Delivered
+            );
+            var pendingOrders = await ordersQuery.CountAsync(o =>
+                o.Status == VendorOrderStatus.Pending
+            );
+            var CancelledOrders = await ordersQuery.CountAsync(o =>
+                o.Status == VendorOrderStatus.Cancelled
+            );
+            var InProgressOrders = await ordersQuery.CountAsync(o =>
+                o.Status == VendorOrderStatus.InProgress
+            );
+            var ConfirmedOrders = await ordersQuery.CountAsync(o =>
+                o.Status == VendorOrderStatus.Confirmed
+            );
+            var ShippedOrders = await ordersQuery.CountAsync(o =>
+                //o.Status == VendorOrderStatus.ReadyForPickup
+                //||
                 o.Status == VendorOrderStatus.Shipped
             );
-            Console.WriteLine($"ReadyforPickup: {ReadyforPickupOrders}");
+            Console.WriteLine($"ShippedOrders: {ShippedOrders}");
+            var AwaitingOrders = await ordersQuery.CountAsync(o =>
+                o.Status == VendorOrderStatus.AwaitingCustomerApproval
+            );
             var totalRevenue = await ordersQuery.SumAsync(o => (decimal?)o.TotalPrice) ?? 0m;
             var deliveredRevenue =
                 await ordersQuery
@@ -349,7 +366,8 @@ namespace Graduation_infrastructure.Repositories.Admin
                     CancelledOrders = CancelledOrders,
                     InProgressOrders = InProgressOrders,
                     ConfirmedOrders = ConfirmedOrders,
-                    ReadyforPickupOrders = ReadyforPickupOrders,
+                    ShippedOrders = ShippedOrders,
+                    AwaitingOrders = AwaitingOrders,
                 },
                 RevenueStats = new AdminVendorRevenueStatsDto
                 {
@@ -366,11 +384,22 @@ namespace Graduation_infrastructure.Repositories.Admin
             pageSize = pageSize <= 0 ? 20 : pageSize;
             page = page <= 0 ? 1 : page;
 
-            var verificationQuery = _db
+            // Fetch raw rows separately (no client projection in SQL)
+            var verificationRows = await _db
                 .VendorVerificationHistory.AsNoTracking()
                 .Include(h => h.Workshop)
                 .Include(h => h.PerformedByAdmin)
-                .Select(h => new AdminVendorUnifiedHistoryItemDto
+                .ToListAsync();
+
+            var accountRows = await _db
+                .VendorAccountStatusHistory.AsNoTracking()
+                .Include(h => h.Workshop)
+                .Include(h => h.PerformedByAdmin)
+                .ToListAsync();
+
+            // Project in memory (string interpolation is safe here)
+            var verificationItems = verificationRows.Select(
+                h => new AdminVendorUnifiedHistoryItemDto
                 {
                     CreatedAt = h.CreatedAt,
                     WorkshopId = h.WorkshopId,
@@ -388,38 +417,32 @@ namespace Graduation_infrastructure.Repositories.Admin
                         h.NewStatus == VendorVerificationStatus.Active ? "bg-success"
                         : h.NewStatus == VendorVerificationStatus.inActive ? "bg-danger"
                         : "bg-warning",
-                });
+                }
+            );
 
-            var accountQuery = _db
-                .VendorAccountStatusHistory.AsNoTracking()
-                .Include(h => h.Workshop)
-                .Include(h => h.PerformedByAdmin)
-                .Select(h => new AdminVendorUnifiedHistoryItemDto
-                {
-                    CreatedAt = h.CreatedAt,
-                    WorkshopId = h.WorkshopId,
-                    WorkshopName =
-                        h.Workshop != null ? h.Workshop.WorkshopNameEn : $"#{h.WorkshopId}",
-                    Action = $"Account: {h.OldStatus} → {h.NewStatus}",
-                    AdminName =
-                        h.PerformedByAdmin != null
-                            ? h.PerformedByAdmin.FullName
-                            : h.PerformedByAdminId,
-                    Details = string.IsNullOrWhiteSpace(h.Reason) ? h.Notes : $"Reason: {h.Reason}",
-                    BadgeClass =
-                        h.NewStatus == VendorAccountStatus.Approved ? "bg-success" : "bg-danger",
-                });
+            var accountItems = accountRows.Select(h => new AdminVendorUnifiedHistoryItemDto
+            {
+                CreatedAt = h.CreatedAt,
+                WorkshopId = h.WorkshopId,
+                WorkshopName = h.Workshop != null ? h.Workshop.WorkshopNameEn : $"#{h.WorkshopId}",
+                Action = $"Account: {h.OldStatus} → {h.NewStatus}",
+                AdminName =
+                    h.PerformedByAdmin != null ? h.PerformedByAdmin.FullName : h.PerformedByAdminId,
+                Details = string.IsNullOrWhiteSpace(h.Reason) ? h.Notes : $"Reason: {h.Reason}",
+                BadgeClass =
+                    h.NewStatus == VendorAccountStatus.Approved ? "bg-success" : "bg-danger",
+            });
 
-            var unified = verificationQuery.Concat(accountQuery);
+            // Combine, sort, and paginate in memory
+            var unified = verificationItems
+                .Concat(accountItems)
+                .OrderByDescending(x => x.CreatedAt)
+                .ToList();
 
-            var totalCount = await unified.CountAsync();
+            var totalCount = unified.Count;
             var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
-            var items = await unified
-                .OrderByDescending(x => x.CreatedAt)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+            var items = unified.Skip((page - 1) * pageSize).Take(pageSize).ToList();
 
             return new AdminVendorHistoryPageDto
             {
