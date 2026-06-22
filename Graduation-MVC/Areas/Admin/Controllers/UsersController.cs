@@ -104,7 +104,8 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 "ActivateUser",
                 "User",
                 id,
-                $"Activated user '{targetUser.FullName}' ({targetUser.Email})."
+                $"Activated user '{targetUser.FullName}' ({targetUser.Email}).",
+                descriptionAr: $"تم تفعيل المستخدم '{targetUser.FullName}' ({targetUser.Email})."
             );
             TempData["SuccessMessage"] = _localizationService.Get("admin.users.activate.success");
             return RedirectToAction(nameof(Index));
@@ -123,7 +124,8 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 "SuspendUser",
                 "User",
                 id,
-                $"Suspended user '{targetUser.FullName}' ({targetUser.Email})."
+                $"Suspended user '{targetUser.FullName}' ({targetUser.Email}).",
+                descriptionAr: $"تم حظر المستخدم '{targetUser.FullName}' ({targetUser.Email})."
             );
             TempData["SuccessMessage"] = _localizationService.Get("admin.users.suspend.success");
             return RedirectToAction(nameof(Index));
@@ -142,7 +144,8 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                 "DeleteUser",
                 "User",
                 id,
-                $"Deleted user '{targetUser.FullName}' ({targetUser.Email})."
+                $"Deleted user '{targetUser.FullName}' ({targetUser.Email}).",
+                descriptionAr: $"تم حذف المستخدم '{targetUser.FullName}' ({targetUser.Email})."
             );
             TempData["SuccessMessage"] = _localizationService.Get("admin.users.delete.success");
             return RedirectToAction(nameof(Index));

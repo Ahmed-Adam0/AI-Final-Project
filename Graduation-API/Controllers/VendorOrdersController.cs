@@ -80,6 +80,40 @@ namespace Graduation_API.Controllers
                 _ => GetCurrentUserRole(),
             };
 
+        private string GetLocalizedStatusAr(string status)
+        {
+            return status?.ToLower() switch
+            {
+                "pending" => "قيد الانتظار",
+                "confirmed" => "مؤكد",
+                "inprogress" => "قيد التنفيذ",
+                "processing" => "جاري المعالجة",
+                "partiallydelivered" => "تم التوصيل جزئياً",
+                "readyforpickup" => "جاهز للاستلام",
+                "delivered" => "تم التوصيل",
+                "cancelled" => "ملغي",
+                "rejected" => "مرفوض",
+                _ => status ?? "غير معروف"
+            };
+        }
+
+        private string GetLocalizedStatusEn(string status)
+        {
+            return status?.ToLower() switch
+            {
+                "pending" => "Pending",
+                "confirmed" => "Confirmed",
+                "inprogress" => "In Progress",
+                "processing" => "Processing",
+                "partiallydelivered" => "Partially Delivered",
+                "readyforpickup" => "Ready for Pickup",
+                "delivered" => "Delivered",
+                "cancelled" => "Cancelled",
+                "rejected" => "Rejected",
+                _ => status ?? "Unknown"
+            };
+        }
+
         /// <summary>
         /// Get vendor orders with filtering and pagination
         /// </summary>
@@ -172,11 +206,11 @@ namespace Graduation_API.Controllers
                     "UpdateOrderStatus",
                     "Order",
                     orderId.ToString(),
-                    $"Vendor updated order #{orderId} status to '{request.NewStatus}'.",
+                    $"Vendor updated order #{orderId} status to '{GetLocalizedStatusEn(request.NewStatus)}'.",
                     GetCurrentUserRoleAr(),
                     "تحديث حالة الطلب",
                     "طلب",
-                    $"قام البائع بتحديث حالة الطلب رقم {orderId} إلى '{request.NewStatus}'."
+                    $"قام البائع بتحديث حالة الطلب رقم {orderId} إلى '{GetLocalizedStatusAr(request.NewStatus)}'."
                 );
                 return Ok(new { message = "Status updated successfully" });
             }

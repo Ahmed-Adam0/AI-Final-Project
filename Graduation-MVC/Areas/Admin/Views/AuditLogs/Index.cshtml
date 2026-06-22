@@ -35,7 +35,10 @@
                     <option value="">@L.Get("admin.audit.filter.all")</option>
                     @foreach (var role in Model.RoleOptions)
                     {
-                        <option value="@role" selected="@(Model.Filter.UserRole == role)">@role</option>
+                        var roleKey = $"shared.roles.{role?.ToLower()}";
+                        var localizedRole = L.Get(roleKey);
+                        var roleText = localizedRole == roleKey ? role : localizedRole;
+                        <option value="@role" selected="@(Model.Filter.UserRole == role)">@roleText</option>
                     }
                 </select>
             </div>
@@ -46,7 +49,10 @@
                     <option value="">@L.Get("admin.audit.filter.all")</option>
                     @foreach (var action in Model.ActionOptions)
                     {
-                        <option value="@action" selected="@(Model.Filter.Action == action)">@action</option>
+                        var actionKey = $"shared.actions.{action?.ToLower()}";
+                        var localizedAction = L.Get(actionKey);
+                        var actionText = localizedAction == actionKey ? action : localizedAction;
+                        <option value="@action" selected="@(Model.Filter.Action == action)">@actionText</option>
                     }
                 </select>
             </div>
@@ -96,10 +102,66 @@
                     {
                         <tr>
                             <td class="fw-semibold text-light">@log.UserName</td>
-                            <td><span class="badge-status badge-status-active">@log.UserRole</span></td>
-                            <td class="text-muted small">@log.Action</td>
-                            <td class="text-muted small">@log.EntityType</td>
-                            <td class="text-muted small">@log.Description</td>
+                            <td>
+                                @{
+                                    var isArabic = L.GetCurrentCulture() == "ar";
+                                    var roleText = isArabic && !string.IsNullOrEmpty(log.UserRoleAr) ? log.UserRoleAr : log.UserRole;
+                                    if (isArabic && roleText == log.UserRole)
+                                    {
+                                        var roleKey = $"shared.roles.{log.UserRole?.ToLower()}";
+                                        var localizedRole = L.Get(roleKey);
+                                        if (localizedRole != roleKey) roleText = localizedRole;
+                                    }
+                                }
+                                <span class="badge-status badge-status-active">@roleText</span>
+                            </td>
+                             <td class="text-muted small">
+                                 @{
+                                     var actionText = isArabic && !string.IsNullOrEmpty(log.ActionAr) ? log.ActionAr : log.Action;
+                                     if (isArabic && actionText == log.Action)
+                                     {
+                                         var actionKey = $"shared.actions.{log.Action?.ToLower()}";
+                                         var localizedAction = L.Get(actionKey);
+                                         if (localizedAction != actionKey) actionText = localizedAction;
+                                     }
+                                 }
+                                 @actionText
+                             </td>
+                             <td class="text-muted small">
+                                 @{
+                                     var entityText = isArabic && !string.IsNullOrEmpty(log.EntityTypeAr) ? log.EntityTypeAr : log.EntityType;
+                                     if (isArabic && entityText == log.EntityType)
+                                     {
+                                         var entityKey = $"shared.entities.{log.EntityType?.ToLower()}";
+                                         var localizedEntity = L.Get(entityKey);
+                                         if (localizedEntity != entityKey) entityText = localizedEntity;
+                                     }
+                                 }
+                                 @entityText
+                             </td>
+                            <td class="text-muted small">
+                                 @{
+                                     var descText = L.GetCurrentCulture() == "ar" ? (log.DescriptionAr ?? log.Description) : log.Description;
+                                     if (L.GetCurrentCulture() == "ar" && !string.IsNullOrEmpty(descText))
+                                     {
+                                         descText = descText
+                                             .Replace("Pending", "قيد الانتظار")
+                                             .Replace("Confirmed", "مؤكد")
+                                             .Replace("InProgress", "قيد التنفيذ")
+                                             .Replace("In Progress", "قيد التنفيذ")
+                                             .Replace("Processing", "جاري المعالجة")
+                                             .Replace("PartiallyDelivered", "تم التوصيل جزئياً")
+                                             .Replace("Partially Delivered", "تم التوصيل جزئياً")
+                                             .Replace("ReadyForPickup", "جاهز للاستلام")
+                                             .Replace("Ready for Pickup", "جاهز للاستلام")
+                                             .Replace("Delivered", "تم التوصيل")
+                                             .Replace("Completed", "تم التوصيل")
+                                             .Replace("Cancelled", "ملغي")
+                                             .Replace("Rejected", "مرفوض");
+                                     }
+                                 }
+                                 @descText
+                            </td>
                             <td class="text-muted small">@log.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
                             <td class="text-center">
                                 <a asp-area="Admin" asp-controller="AuditLogs" asp-action="Details" asp-route-id="@log.Id" class="btn btn-sm btn-premium btn-premium-secondary">
@@ -166,28 +228,38 @@
                 @Html.Raw(string.Join(",", Model.ActionOptions.Select(v => $"\"{v}\"")))
             ];
 
-            const selectedAction = '@(Model.Filter.Action ?? string.Empty)';
+             const actionMap = {
+                 @foreach (var action in Model.ActionOptions)
+                 {
+                     var actionKey = $"shared.actions.{action?.ToLower()}";
+                     var localizedAction = L.Get(actionKey);
+                     var actionText = localizedAction == actionKey ? action : localizedAction;
+                     <text>"@action": "@Html.Raw(actionText)",</text>
+                 }
+             };
 
-            function rebuildActions() {
-                const role = roleSelect.value;
-                const allowed = role && allowedMap[role] ? allowedMap[role] : allActions;
+             const selectedAction = '@(Model.Filter.Action ?? string.Empty)';
 
-                actionSelect.innerHTML = '';
+             function rebuildActions() {
+                 const role = roleSelect.value;
+                 const allowed = role && allowedMap[role] ? allowedMap[role] : allActions;
 
-                const allOption = document.createElement('option');
-                allOption.value = '';
-                allOption.textContent = '@L.Get("admin.audit.filter.all")';
-                actionSelect.appendChild(allOption);
+                 actionSelect.innerHTML = '';
 
-                allowed.forEach(function (action) {
-                    const option = document.createElement('option');
-                    option.value = action;
-                    option.textContent = action;
-                    if (selectedAction === action) {
-                        option.selected = true;
-                    }
-                    actionSelect.appendChild(option);
-                });
+                 const allOption = document.createElement('option');
+                 allOption.value = '';
+                 allOption.textContent = '@Html.Raw(L.Get("admin.audit.filter.all"))';
+                 actionSelect.appendChild(allOption);
+
+                 allowed.forEach(function (action) {
+                     const option = document.createElement('option');
+                     option.value = action;
+                     option.textContent = actionMap[action] || action;
+                     if (selectedAction === action) {
+                         option.selected = true;
+                     }
+                     actionSelect.appendChild(option);
+                 });
 
                 if (selectedAction && !allowed.includes(selectedAction)) {
                     actionSelect.value = '';

@@ -38,19 +38,53 @@
             <div class="text-light">@Model.UserName</div>
         </div>
 
-        <div class="col-md-6">
+         <div class="col-md-6">
             <label class="form-label text-muted small">@L.Get("admin.audit.details.userRole")</label>
-            <div><span class="badge-status badge-status-active">@Model.UserRole</span></div>
+            <div>
+                @{
+                    var isArabic = L.GetCurrentCulture() == "ar";
+                    var roleText = isArabic && !string.IsNullOrEmpty(Model.UserRoleAr) ? Model.UserRoleAr : Model.UserRole;
+                    if (isArabic && roleText == Model.UserRole)
+                    {
+                        var roleKey = $"shared.roles.{Model.UserRole?.ToLower()}";
+                        var localizedRole = L.Get(roleKey);
+                        if (localizedRole != roleKey) roleText = localizedRole;
+                    }
+                }
+                <span class="badge-status badge-status-active">@roleText</span>
+            </div>
         </div>
 
-        <div class="col-md-6">
+         <div class="col-md-6">
             <label class="form-label text-muted small">@L.Get("admin.audit.details.action")</label>
-            <div class="text-light">@Model.Action</div>
+            <div class="text-light">
+                @{
+                    var actionText = isArabic && !string.IsNullOrEmpty(Model.ActionAr) ? Model.ActionAr : Model.Action;
+                    if (isArabic && actionText == Model.Action)
+                    {
+                        var actionKey = $"shared.actions.{Model.Action?.ToLower()}";
+                        var localizedAction = L.Get(actionKey);
+                        if (localizedAction != actionKey) actionText = localizedAction;
+                    }
+                }
+                @actionText
+            </div>
         </div>
 
         <div class="col-md-6">
             <label class="form-label text-muted small">@L.Get("admin.audit.details.entityType")</label>
-            <div class="text-light">@Model.EntityType</div>
+            <div class="text-light">
+                @{
+                    var entityText = isArabic && !string.IsNullOrEmpty(Model.EntityTypeAr) ? Model.EntityTypeAr : Model.EntityType;
+                    if (isArabic && entityText == Model.EntityType)
+                    {
+                        var entityKey = $"shared.entities.{Model.EntityType?.ToLower()}";
+                        var localizedEntity = L.Get(entityKey);
+                        if (localizedEntity != entityKey) entityText = localizedEntity;
+                    }
+                }
+                @entityText
+            </div>
         </div>
 
         <div class="col-md-6">
@@ -60,7 +94,29 @@
 
         <div class="col-12">
             <label class="form-label text-muted small">@L.Get("admin.audit.details.description")</label>
-            <div class="text-light">@Model.Description</div>
+            <div class="text-light">
+                @{
+                    var descText = L.GetCurrentCulture() == "ar" ? (Model.DescriptionAr ?? Model.Description) : Model.Description;
+                    if (L.GetCurrentCulture() == "ar" && !string.IsNullOrEmpty(descText))
+                    {
+                        descText = descText
+                            .Replace("Pending", "قيد الانتظار")
+                            .Replace("Confirmed", "مؤكد")
+                            .Replace("InProgress", "قيد التنفيذ")
+                            .Replace("In Progress", "قيد التنفيذ")
+                            .Replace("Processing", "جاري المعالجة")
+                            .Replace("PartiallyDelivered", "تم التوصيل جزئياً")
+                            .Replace("Partially Delivered", "تم التوصيل جزئياً")
+                            .Replace("ReadyForPickup", "جاهز للاستلام")
+                            .Replace("Ready for Pickup", "جاهز للاستلام")
+                            .Replace("Delivered", "تم التوصيل")
+                            .Replace("Completed", "تم التوصيل")
+                            .Replace("Cancelled", "ملغي")
+                            .Replace("Rejected", "مرفوض");
+                    }
+                }
+                @descText
+            </div>
         </div>
     </div>
 </div>

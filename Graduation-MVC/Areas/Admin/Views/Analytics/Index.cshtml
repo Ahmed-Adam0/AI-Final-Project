@@ -43,8 +43,17 @@
                     <div class="text-muted small text-uppercase fw-semibold">@L.Get("auth.dashboard." + metric.Title)</div>
                     <i class="@metric.IconClass text-primary"></i>
                 </div>
-                <div class="fs-3 fw-bold text-light">@metric.Value</div>
-                <div class="@metric.TrendClass small mt-1">@metric.SubText</div>
+                <div class="fs-3 fw-bold text-light">
+                    @if (metric.Title == "Average Order Value")
+                    {
+                        @string.Format(L.Get("admin.analytics.currencyFormat"), metric.Value)
+                    }
+                    else
+                    {
+                        @metric.Value
+                    }
+                </div>
+                <div class="@metric.TrendClass small mt-1">@L.Get("auth.dashboard." + metric.SubText)</div>
             </div>
         </div>
     }

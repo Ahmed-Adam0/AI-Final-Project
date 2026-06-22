@@ -585,6 +585,9 @@ namespace Graduation_Application.Services
                                 s == VendorOrderStatus.ReadyForPickup))
                 return "Processing";
 
+            if (statuses.Any(s => s == VendorOrderStatus.Confirmed))
+                return "Confirmed";
+
             return "Pending";
         }
 

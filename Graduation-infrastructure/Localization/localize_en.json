@@ -94,6 +94,12 @@
       "Total Customers": "Total Customers",
       "Pending Orders": "Pending Orders",
       "Completed Orders": "Completed Orders",
+      "Growth Rate": "Growth Rate",
+      "Average Order Value": "Average Order Value",
+      "Completion Rate": "Completion Rate",
+      "Compared to previous period": "Compared to previous period",
+      "Across all completed orders": "Across all completed orders",
+      "Orders completed on time": "Orders completed on time",
       "Manage Vendors": "Manage Vendors",
       "Open vendor management panel": "Open vendor management panel",
       "View Orders": "View Orders",
@@ -223,6 +229,10 @@
       "currencyFormat": "EGP {0}",
       "statusPending": "Pending",
       "statusConfirmed": "Confirmed",
+      "statusInProgress": "In Progress",
+      "statusProcessing": "Processing",
+      "statusPartiallyDelivered": "Partially Delivered",
+      "statusReadyForPickup": "Ready for Pickup",
       "statusDelivered": "Delivered",
       "statusCancelled": "Cancelled",
       "statusRejected": "Rejected",
@@ -326,6 +336,14 @@
       "confirmCancel": "Cancel",
       "currencyFormat": "EGP {0}",
       "suspensionReason": "Suspension reason"
+    }
+  },
+  "shared": {
+    "status": {
+      "visible": "Visible",
+      "hidden": "Hidden",
+      "active": "Active",
+      "inactive": "Inactive"
     }
   },
   "admin": {
@@ -495,7 +513,24 @@
       "edit.success": "Category updated successfully.",
       "delete.success": "Category deleted successfully.",
       "delete.error": "Failed to delete the category.",
-      "notfound": "Category not found."
+      "notfound": "Category not found.",
+      "subcategories": "Subcategories",
+      "subcategoriesOf": "Subcategories of {0}",
+      "manageSubcategories": "Manage sub-level classifications for this category",
+      "addSubcategory": "Add Subcategory",
+      "noSubcategories": "No subcategories defined",
+      "clickToAddSubcategory": "Click the button above to add a subcategory for {0}",
+      "confirmDeleteSubcategory": "Are you sure you want to delete this subcategory? All child product types will be deleted!",
+      "productTypes": "Product Types",
+      "backToCategories": "Back to Categories",
+      "subcategories.create.title": "Create Subcategory",
+      "subcategories.create.heading": "Create Subcategory",
+      "subcategories.create.desc": "Add a new sub-classification under Category \"{0}\"",
+      "subcategories.edit.title": "Edit Subcategory",
+      "subcategories.edit.heading": "Edit Subcategory",
+      "subcategories.edit.desc": "Modify sub-classification details under Category \"{0}\"",
+      "subcategories.backToSubcategories": "Back to Subcategories",
+      "subcategories.create.submit": "Create"
     },
     "reports": {
       "title": "Reports",
@@ -848,6 +883,35 @@
       "reset": "Reset",
       "apply": "Apply Filters",
       "search": "Search"
+    },
+    "roles": {
+      "superadmin": "Super Admin",
+      "admin": "Admin",
+      "administrator": "Administrator",
+      "vendor": "Vendor",
+      "customer": "Customer"
+    },
+    "actions": {
+      "createorder": "Create Order",
+      "cancelorder": "Cancel Order",
+      "suspenduser": "Suspend User",
+      "activateuser": "Activate User",
+      "deleteuser": "Delete User",
+      "deleteproduct": "Delete Product",
+      "approvevendor": "Approve Vendor",
+      "rejectvendor": "Reject Vendor",
+      "updateorderstatus": "Update Order Status",
+      "createreview": "Create Review"
+    },
+    "entities": {
+      "order": "Order",
+      "applicationuser": "User",
+      "product": "Product",
+      "workshop": "Workshop",
+      "review": "Review",
+      "category": "Category",
+      "subcategory": "Subcategory",
+      "producttype": "Product Type"
     },
     "pending": "Pending",
     "hidden": "Hidden",
