@@ -637,6 +637,11 @@ namespace Graduation_Application.Services
 
         public async Task ProposeDeliveryDateAsync(int orderId, int workshopId, ProposeDeliveryDateRequestDto dto)
         {
+            if (dto.EstimatedDeliveryDate < DateTime.UtcNow.AddMinutes(-5))
+            {
+                throw new Exception("Estimated delivery date must be in the future (current time or later). / يجب أن يكون تاريخ التوصيل المتوقع في المستقبل (الوقت الحالي أو بعده).");
+            }
+
             var vendorOrder = await _vendorOrderRepository
                 .Where(vo => vo.Id == orderId && vo.WorkshopId == workshopId)
                 .Include(vo => vo.StatusHistory)
