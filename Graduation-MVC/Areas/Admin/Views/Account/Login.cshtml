@@ -29,10 +29,10 @@
         <span asp-validation-for="Password" class="text-danger"></span>
     </div>
     
-    <div class="mb-3 form-check">
+    @* <div class="mb-3 form-check">
         <input asp-for="RememberMe" class="form-check-input" />
         <label class="form-check-label" asp-for="RememberMe">@LocalizationService.Get("auth.login.rememberMe")</label>
-    </div>
+    </div> *@
     
     <button type="submit" class="btn btn-premium-primary w-100">@LocalizationService.Get("auth.login.submit")</button>
 
