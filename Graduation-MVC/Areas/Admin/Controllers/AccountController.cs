@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Graduation_MVC.Areas.Admin.ViewModels.Auth;
+using Graduation_MVC.Filters;
 
 namespace Graduation_MVC.Areas.Admin.Controllers
 {
@@ -33,6 +34,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
 
         [HttpGet]
         [AllowAnonymous]
+        [RedirectAuthenticated]
         public IActionResult Login()
         {
             return View(new LoginViewModel());
@@ -40,6 +42,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RedirectAuthenticated]
         public async Task<IActionResult> Login(LoginViewModel vm)
         {
             try
@@ -65,7 +68,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
                     principal,
                     new AuthenticationProperties
                     {
-                        IsPersistent = false  // ← مش هيتحفظ لما يقفل المتصفح
+                        IsPersistent = false,
                     }
                 );
 
@@ -89,6 +92,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         }
 
         [HttpGet]
+        [RedirectAuthenticated]
         public IActionResult ForgotPassword()
         {
             return View(new ForgotPasswordViewModel());
@@ -96,6 +100,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RedirectAuthenticated]
         public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel vm)
         {
             try
@@ -115,6 +120,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         }
 
         [HttpGet]
+        [RedirectAuthenticated]
         public IActionResult VerifyOtp()
         {
             var vm = new VerifyOtpViewModel();
@@ -124,6 +130,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RedirectAuthenticated]
         public async Task<IActionResult> VerifyOtp(VerifyOtpViewModel vm)
         {
             try
@@ -149,6 +156,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
         }
 
         [HttpGet("ResetPassword")]
+        [RedirectAuthenticated]
         public IActionResult ResetPassword()
         {
             var vm = new ResetPasswordViewModel();
@@ -159,6 +167,7 @@ namespace Graduation_MVC.Areas.Admin.Controllers
 
         [HttpPost("ResetPassword")]
         [ValidateAntiForgeryToken]
+        [RedirectAuthenticated]
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel vm)
         {
             try
