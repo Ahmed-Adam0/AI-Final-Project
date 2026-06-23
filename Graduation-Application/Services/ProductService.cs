@@ -24,6 +24,7 @@ namespace Graduation_Application.Services
         private readonly IGenaricRepositories<ProductMaterialOption> _productMaterialOptionRepository;
         private readonly IGenaricRepositories<ProductType> _productTypeRepository;
         private readonly IGenaricRepositories<Review> _reviewRepository;
+        private readonly IFileService _fileService;
 
         public ProductService(
             IGenaricRepositories<Product> productRepository,
@@ -34,7 +35,8 @@ namespace Graduation_Application.Services
             IGenaricRepositories<ProductAttributeValue> attributeValueRepository,
             IGenaricRepositories<ProductMaterialOption> productMaterialOptionRepository,
             IGenaricRepositories<ProductType> productTypeRepository,
-            IGenaricRepositories<Review> reviewRepository
+            IGenaricRepositories<Review> reviewRepository,
+            IFileService fileService
         )
         {
             _productRepository = productRepository;
@@ -46,6 +48,7 @@ namespace Graduation_Application.Services
             _productMaterialOptionRepository = productMaterialOptionRepository;
             _productTypeRepository = productTypeRepository;
             _reviewRepository = reviewRepository;
+            _fileService = fileService;
         }
 
         public async Task<PaginatedResult<ProductDto>> GetProductsAsync(ProductFilterDto filter)
@@ -471,6 +474,11 @@ namespace Graduation_Application.Services
 
             EnsureProductOwnership(product, userId);
 
+            if (!string.IsNullOrEmpty(product.Product3DModelUrl))
+            {
+                await _fileService.DeleteRawAsync(product.Product3DModelUrl);
+            }
+
             _productRepository.Delete(product);
             await _productRepository.SaveChangesAsync();
 
@@ -823,6 +831,43 @@ namespace Graduation_Application.Services
                 throw new UnauthorizedAccessException(
                     "You do not have permission to manage this product."
                 );
+        }
+
+        public async Task<string> UploadProduct3DModelAsync(int productId, string userId, Microsoft.AspNetCore.Http.IFormFile file)
+        {
+            var product = await _productRepository.GetByIdAsync(productId);
+            if (product == null)
+                throw new ArgumentException($"Product with ID {productId} not found.");
+
+            EnsureProductOwnership(product, userId);
+
+            var folderName = "products/3d-models";
+            var modelUrl = await _fileService.Save3DModelAsync(file, folderName, product.Product3DModelUrl);
+
+            product.Product3DModelUrl = modelUrl;
+            _productRepository.Update(product);
+            await _productRepository.SaveChangesAsync();
+
+            return modelUrl;
+        }
+
+        public async Task<bool> RemoveProduct3DModelAsync(int productId, string userId)
+        {
+            var product = await _productRepository.GetByIdAsync(productId);
+            if (product == null)
+                return false;
+
+            EnsureProductOwnership(product, userId);
+
+            if (!string.IsNullOrEmpty(product.Product3DModelUrl))
+            {
+                await _fileService.DeleteRawAsync(product.Product3DModelUrl);
+                product.Product3DModelUrl = null;
+                _productRepository.Update(product);
+                await _productRepository.SaveChangesAsync();
+            }
+
+            return true;
         }
     }
 }

@@ -35,5 +35,8 @@ namespace Graduation_Application.IServices
         Task<AttributeValueDto> AddAttributeValueAsync(int productId, int attributeId, string userId, CreateProductAttributeValueDto dto);
         Task<AttributeValueDto> UpdateAttributeValueAsync(int productId, int attributeId, int valueId, string userId, UpdateProductAttributeValueDto dto);
         Task<bool> DeleteAttributeValueAsync(int productId, int attributeId, int valueId, string userId);
+
+        Task<string> UploadProduct3DModelAsync(int productId, string userId, Microsoft.AspNetCore.Http.IFormFile file);
+        Task<bool> RemoveProduct3DModelAsync(int productId, string userId);
     }
 }

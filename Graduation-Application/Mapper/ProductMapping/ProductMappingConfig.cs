@@ -59,6 +59,7 @@ namespace Graduation_Application.Mapper.ProductMapping
                 .Map(dest => dest.CategoryNameEn, src => src.ProductType != null && src.ProductType.SubCategory != null && src.ProductType.SubCategory.Category != null ? src.ProductType.SubCategory.Category.NameEn : string.Empty)
                 .Map(dest => dest.CreatedAt, src => src.CreatedAt)
                 .Map(dest => dest.IsActive, src => src.IsActive)
+                .Map(dest => dest.Product3DModelUrl, src => src.Product3DModelUrl)
                 .Map(dest => dest.Images,
                     src => src.Images != null
                         ? src.Images.Adapt<List<ProductImageDto>>()

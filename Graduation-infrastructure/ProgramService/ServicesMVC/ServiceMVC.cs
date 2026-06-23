@@ -6,6 +6,7 @@ using Graduation_Application.IServices;
 using Graduation_Application.IServices.Admin;
 using Graduation_Application.Mapper.Admin;
 using Graduation_Application.Mapper.ProductMapping;
+using Graduation_Application.Mapper.InspirationMapping;
 using Graduation_Application.Options;
 using Graduation_Application.Services;
 using Graduation_Application.Services.Admin;
@@ -70,6 +71,7 @@ namespace Graduation_infrastructure.ProgramService.ServicesMVC
             AdminAuthMappingConfig.RegisterMappings();
             AdminProfileMappingConfig.RegisterMappings();
             AdminUsersMappingConfig.RegisterMappings();
+            InspirationMappingConfig.RegisterMappings();
 
             // Admin Services
             services.AddScoped<IAdminProductService, AdminProductService>();
@@ -81,6 +83,8 @@ namespace Graduation_infrastructure.ProgramService.ServicesMVC
             services.AddScoped<IAdminUsersService, AdminUsersService>();
             services.AddScoped<IAdminAuditLogsService, AdminAuditLogsService>();
             services.AddScoped<ILocalizationService, LocalizationService>();
+            services.AddScoped<IOrderReviewImageRepository, OrderReviewImageRepository>();
+            services.AddScoped<IAdminInspirationService, AdminInspirationService>();
             // Application Services
             services.AddScoped<IJwtTokenGenerator, NullJwtTokenGenerator>();
             // Do not register existing IAuthService here for MVC; register Admin auth service instead

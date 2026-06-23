@@ -38,6 +38,7 @@ namespace Graduation_infrastructure.AppDbContext
         public DbSet<VendorAccountStatusHistory> VendorAccountStatusHistory { get; set; }
         public DbSet<Faq> Faqs { get; set; }
         public DbSet<Banner> Banners { get; set; }
+        public DbSet<OrderReviewImage> OrderReviewImages { get; set; }
 
         // ── Vendor-Driven Catalog ──────────────────────────────────────────────────
         public DbSet<ProductAttribute> ProductAttributes { get; set; }
@@ -384,6 +385,21 @@ namespace Graduation_infrastructure.AppDbContext
                 entity.Property(x => x.EntityId).HasMaxLength(100);
                 entity.Property(x => x.Description).IsRequired().HasMaxLength(1000);
                 entity.Property(x => x.DescriptionAr).HasMaxLength(1000);
+            });
+
+            // ── OrderReviewImage Configuration ──────────────────────────────
+            builder.Entity<OrderReviewImage>(entity =>
+            {
+                entity.ToTable("OrderReviewImages");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.BeforeImageUrl).IsRequired();
+                entity.Property(e => e.AfterImageUrl).IsRequired();
+                entity.Property(e => e.IsApproved).HasDefaultValue(false);
+
+                entity.HasOne(e => e.Order)
+                      .WithMany(o => o.OrderReviewImages)
+                      .HasForeignKey(e => e.OrderId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
         }
     }

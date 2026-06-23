@@ -48,6 +48,8 @@ namespace Graduation_Application.DTOs.ProductDTO
             Attributes = new List<ProductAttributeDto>();
             MaterialGroups = new List<ProductMaterialGroupResponseDto>();
         }
+
+        public string? Product3DModelUrl { get; set; }
     }
 
     public class ProductMaterialGroupResponseDto

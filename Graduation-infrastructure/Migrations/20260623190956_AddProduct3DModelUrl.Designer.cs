@@ -4,6 +4,7 @@ using Graduation_infrastructure.AppDbContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Graduation_infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260623190956_AddProduct3DModelUrl")]
+    partial class AddProduct3DModelUrl
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -812,52 +815,6 @@ namespace Graduation_infrastructure.Migrations
                     b.HasIndex("VendorOrderId");
 
                     b.ToTable("OrderItems");
-                });
-
-            modelBuilder.Entity("Graduation_domain.Entities.OrderReviewImage", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AfterImageUrl")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("BeforeImageUrl")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsApproved")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<int>("OrderId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OrderId");
-
-                    b.ToTable("OrderReviewImages", (string)null);
                 });
 
             modelBuilder.Entity("Graduation_domain.Entities.PaymentTransaction", b =>
@@ -2103,17 +2060,6 @@ namespace Graduation_infrastructure.Migrations
                     b.Navigation("VendorOrder");
                 });
 
-            modelBuilder.Entity("Graduation_domain.Entities.OrderReviewImage", b =>
-                {
-                    b.HasOne("Graduation_domain.Entities.Order", "Order")
-                        .WithMany("OrderReviewImages")
-                        .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Order");
-                });
-
             modelBuilder.Entity("Graduation_domain.Entities.Product", b =>
                 {
                     b.HasOne("Graduation_domain.Entities.ProductType", "ProductType")
@@ -2468,8 +2414,6 @@ namespace Graduation_infrastructure.Migrations
             modelBuilder.Entity("Graduation_domain.Entities.Order", b =>
                 {
                     b.Navigation("FinalResultImages");
-
-                    b.Navigation("OrderReviewImages");
 
                     b.Navigation("VendorOrders");
                 });

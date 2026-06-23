@@ -12,6 +12,7 @@ using Graduation_Application.Mapper.ProductMapping;
 using Graduation_Application.Mapper.ReviewMapping;
 using Graduation_Application.Mapper.UsersMapping;
 using Graduation_Application.Mapper.VendorMapping;
+using Graduation_Application.Mapper.InspirationMapping;
 using Graduation_Application.Options;
 using Graduation_Application.Services;
 using Graduation_Application.Services.Admin;
@@ -89,6 +90,7 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             VendorAuthResponseMappingConfig.Response();
             VendorProfileMappingConfig.RegisterMappings();
             UpdateVendorProfileMappingConfig.RegisterMappings();
+            InspirationMappingConfig.RegisterMappings();
 
             // Register Generic Repository
             services.AddScoped(typeof(IGenaricRepositories<>), typeof(GenaricRepositories<>));
@@ -131,6 +133,9 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             services.AddScoped<IVoiceChatService, VoiceChatService>();
             services.AddScoped<IAdminAuditLogsService, AdminAuditLogsService>();
             services.AddScoped<ILanguageUserService, LanguageUserService>();
+            services.AddScoped<IOrderReviewImageRepository, OrderReviewImageRepository>();
+            services.AddScoped<IInspirationService, InspirationService>();
+            services.AddScoped<IAdminInspirationService, AdminInspirationService>();
             services.AddHttpClient();
             services.AddHttpClient("N8NChatClient", client =>
             {

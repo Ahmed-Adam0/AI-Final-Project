@@ -39,5 +39,7 @@ namespace Graduation_domain.Entities
         public List<ProductMaterialOption> MaterialOptions { get; set; } = [];
 
         public List<ProductImage>? Images { get; set; }
+
+        public string? Product3DModelUrl { get; set; }
     }
 }
