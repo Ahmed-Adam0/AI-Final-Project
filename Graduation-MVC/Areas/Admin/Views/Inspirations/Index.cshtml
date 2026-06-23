@@ -1,0 +1,171 @@
+@model Graduation_Application.DTOs.Common.PaginatedResult<Graduation_Application.DTOs.Admin.Inspirations.AdminInspirationListDto>
+@using Graduation_Application.DTOs.Admin.Inspirations
+@inject Graduation_Application.IServices.Admin.ILocalizationService L
+@{
+    ViewData["Title"] = L.Get("admin.inspirations.title");
+    var filter = ViewData["Filter"] as AdminInspirationFilterDto ?? new AdminInspirationFilterDto();
+
+    var paginationModel = new Graduation_MVC.Areas.Admin.ViewModels.Shared.AdminPaginationViewModel
+    {
+        PageNumber = Model?.PageNumber ?? 1,
+        PageSize = Model?.PageSize ?? 10,
+        TotalCount = Model?.TotalCount ?? 0,
+        TotalPages = Model?.TotalPages ?? 0,
+        Area = "Admin",
+        Controller = "Inspirations",
+        Action = "Index",
+        RouteValues = filter
+    };
+}
+
+<div class="row align-items-center mb-4">
+    <div class="col-md-6">
+        <h1 class="display-font mb-1">@L.Get("admin.inspirations.title")</h1>
+        <p class="text-muted mb-0">@L.Get("admin.inspirations.subtitle")</p>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-circle-check me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-circle-exclamation me-2"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="glass-card p-4 mb-4">
+    <h5 class="mb-3"><i class="fa-solid fa-filter me-2" style="color: var(--accent-primary);"></i>@L.Get("admin.inspirations.filter.title")</h5>
+    <form method="get" asp-area="Admin" asp-controller="Inspirations" asp-action="Index">
+        <input type="hidden" name="PageNumber" value="1" />
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label text-muted small">@L.Get("admin.inspirations.filter.search")</label>
+                <input type="text" name="Search" value="@filter.Search" class="form-control form-control-premium" placeholder="@L.Get("admin.inspirations.filter.searchPlaceholder")" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-muted small">@L.Get("admin.inspirations.filter.status")</label>
+                <select name="IsApproved" class="form-select form-select-premium">
+                    <option value="">@L.Get("admin.inspirations.filter.statusAll")</option>
+                    @if (filter.IsApproved == true)
+                    {
+                        <option value="true" selected>@L.Get("admin.inspirations.filter.statusApproved")</option>
+                        <option value="false">@L.Get("admin.inspirations.filter.statusPending")</option>
+                    }
+                    else if (filter.IsApproved == false)
+                    {
+                        <option value="true">@L.Get("admin.inspirations.filter.statusApproved")</option>
+                        <option value="false" selected>@L.Get("admin.inspirations.filter.statusPending")</option>
+                    }
+                    else
+                    {
+                        <option value="true">@L.Get("admin.inspirations.filter.statusApproved")</option>
+                        <option value="false">@L.Get("admin.inspirations.filter.statusPending")</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
+            <a asp-area="Admin" asp-controller="Inspirations" asp-action="Index" class="btn btn-premium btn-premium-secondary">
+                <i class="fa-solid fa-arrow-rotate-left"></i> @L.Get("admin.inspirations.filter.reset")
+            </a>
+            <button type="submit" class="btn btn-premium btn-premium-primary">
+                <i class="fa-solid fa-check"></i> @L.Get("admin.inspirations.filter.apply")
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="glass-card p-4">
+    @if (Model == null || Model.Items == null || !Model.Items.Any())
+    {
+        <div class="text-center py-5">
+            <div class="text-muted mb-3"><i class="fa-solid fa-image-slash fa-3x"></i></div>
+            <h5>@L.Get("admin.inspirations.empty.title")</h5>
+            <p class="text-muted small">@L.Get("admin.inspirations.empty.subtitle")</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>@L.Get("admin.inspirations.table.id")</th>
+                        <th>@L.Get("admin.inspirations.table.orderId")</th>
+                        <th>@L.Get("admin.inspirations.table.customer")</th>
+                        <th class="text-center">@L.Get("admin.inspirations.table.before")</th>
+                        <th class="text-center">@L.Get("admin.inspirations.table.after")</th>
+                        <th>@L.Get("admin.inspirations.table.date")</th>
+                        <th>@L.Get("admin.inspirations.table.status")</th>
+                        <th class="text-end">@L.Get("admin.inspirations.table.actions")</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Items)
+                    {
+                        <tr>
+                            <td><strong>#@item.Id</strong></td>
+                            <td>#@item.OrderId</td>
+                            <td>@item.CustomerName</td>
+                            <td class="text-center">
+                                <a href="@item.BeforeImageUrl" target="_blank">
+                                    <img src="@item.BeforeImageUrl" alt="Before" class="rounded" style="max-height: 80px; max-width: 120px; object-fit: cover;" />
+                                </a>
+                            </td>
+                            <td class="text-center">
+                                <a href="@item.AfterImageUrl" target="_blank">
+                                    <img src="@item.AfterImageUrl" alt="After" class="rounded" style="max-height: 80px; max-width: 120px; object-fit: cover;" />
+                                </a>
+                            </td>
+                            <td>@item.CreatedAt.ToString("yyyy-MM-dd")</td>
+                            <td>
+                                @if (item.IsApproved)
+                                {
+                                    <span class="badge-status badge-status-active"><i class="fa-solid fa-circle-check me-1"></i> @L.Get("admin.inspirations.status.approved")</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-status badge-status-pending"><i class="fa-solid fa-clock me-1"></i> @L.Get("admin.inspirations.status.pending")</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                @if (!item.IsApproved)
+                                {
+                                    <form asp-area="Admin" asp-controller="Inspirations" asp-action="Approve" asp-route-id="@item.Id" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                                        <button type="submit" class="btn btn-premium btn-premium-primary btn-sm">
+                                            <i class="fa-solid fa-check"></i> @L.Get("admin.inspirations.action.approve")
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-sm btn-outline-secondary" disabled>
+                                        <i class="fa-solid fa-circle-check"></i> @L.Get("admin.inspirations.status.approved")
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mt-4 pt-3 border-top">
+            <div class="text-muted small mb-3 mb-sm-0">
+                @string.Format(L.Get("admin.inspirations.pagination.info"), Model.PageNumber, Model.TotalPages, Model.TotalCount)
+            </div>
+            <partial name="~/Areas/Admin/Views/Shared/_Pagination.cshtml" model="paginationModel" />
+        </div>
+    }
+</div>

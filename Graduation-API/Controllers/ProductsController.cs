@@ -349,6 +349,74 @@ namespace Graduation_API.Controllers
         }
 
         /// <summary>
+        /// Upload and set a 3D model for a product (Vendor only)
+        /// </summary>
+        [HttpPost("{productId}/3d-model")]
+        [Authorize(Roles = "Vendor")]
+        public async Task<IActionResult> Upload3DModel(int productId, IFormFile file)
+        {
+            try
+            {
+                if (productId <= 0)
+                    return BadRequest(new { message = "Invalid product ID" });
+
+                if (file == null || file.Length == 0)
+                    return BadRequest(new { message = "File is required" });
+
+                var userId = GetCurrentUserId();
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized(new { message = "User ID not found in token" });
+
+                var modelUrl = await _productService.UploadProduct3DModelAsync(productId, userId, file);
+                return Ok(new { product3DModelUrl = modelUrl });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Delete the 3D model of a product (Vendor only)
+        /// </summary>
+        [HttpDelete("{productId}/3d-model")]
+        [Authorize(Roles = "Vendor")]
+        public async Task<IActionResult> Delete3DModel(int productId)
+        {
+            try
+            {
+                if (productId <= 0)
+                    return BadRequest(new { message = "Invalid product ID" });
+
+                var userId = GetCurrentUserId();
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized(new { message = "User ID not found in token" });
+
+                var result = await _productService.RemoveProduct3DModelAsync(productId, userId);
+                if (!result)
+                    return NotFound(new { message = "Product not found or 3D model not deleted" });
+
+                return Ok(new { message = "3D model removed successfully" });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// Delete a product image (Vendor only)
         /// </summary>
         [HttpDelete("{productId}/images/{imageId}")]

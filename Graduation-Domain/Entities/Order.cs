@@ -21,5 +21,6 @@ namespace Graduation_domain.Entities
         public string? Notes { get; set; }
         public List<VendorOrder> VendorOrders { get; set; } = [];
         public List<FinalResultImage> FinalResultImages { get; set; }
+        public List<OrderReviewImage> OrderReviewImages { get; set; } = [];
     }
 }
