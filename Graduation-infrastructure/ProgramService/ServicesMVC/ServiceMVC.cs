@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
 using Graduation_Application.DTOs.PaymentDTO;
 using Graduation_Application.ExternalServices.EmailServices;
 using Graduation_Application.IRepositories;
@@ -5,8 +8,8 @@ using Graduation_Application.IRepositories.Admin;
 using Graduation_Application.IServices;
 using Graduation_Application.IServices.Admin;
 using Graduation_Application.Mapper.Admin;
-using Graduation_Application.Mapper.ProductMapping;
 using Graduation_Application.Mapper.InspirationMapping;
+using Graduation_Application.Mapper.ProductMapping;
 using Graduation_Application.Options;
 using Graduation_Application.Services;
 using Graduation_Application.Services.Admin;
@@ -23,9 +26,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Graduation_infrastructure.ProgramService.ServicesMVC
 {
@@ -43,7 +43,8 @@ namespace Graduation_infrastructure.ProgramService.ServicesMVC
             );
 
             // Cookie Authentication — لازم يكون قبل Identity
-            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            services
+                .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
                 {
                     options.LoginPath = "/Admin/Account/Login";
@@ -51,11 +52,11 @@ namespace Graduation_infrastructure.ProgramService.ServicesMVC
                     options.ExpireTimeSpan = TimeSpan.FromHours(1);
                     //options.SlidingExpiration = true;
                     options.SlidingExpiration = false;
-
                 });
 
             // Identity Core — من غير ما تـ override الـ Authentication
-            services.AddIdentityCore<ApplicationUser>()
+            services
+                .AddIdentityCore<ApplicationUser>()
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders()
