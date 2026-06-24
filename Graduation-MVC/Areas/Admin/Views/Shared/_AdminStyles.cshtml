@@ -74,7 +74,7 @@
         top: 0;
         left: 0;
         z-index: 1000;
-        transition: transform 0.3s ease;
+        transition: transform 0.3s ease, width 0.3s ease;
         padding: 1.5rem 1.25rem;
         overflow-y: auto;
     }
@@ -168,12 +168,39 @@
     }
 
     .admin-nav-toggle {
-        display: none;
+        display: block;
         background: none;
         border: none;
         color: var(--text-main);
-        font-size: 1.5rem;
+        font-size: 1.35rem;
         cursor: pointer;
+        margin-right: 1.25rem;
+        transition: transform 0.2s ease;
+    }
+
+    body.sidebar-collapsed .admin-sidebar {
+        width: 80px;
+    }
+    body.sidebar-collapsed .admin-sidebar .sidebar-brand span,
+    body.sidebar-collapsed .admin-sidebar .sidebar-item span,
+    body.sidebar-collapsed .admin-sidebar .sidebar-section-title {
+        display: none;
+    }
+    body.sidebar-collapsed .admin-sidebar .sidebar-brand {
+        justify-content: center;
+        padding-left: 0;
+        padding-right: 0;
+    }
+    body.sidebar-collapsed .admin-sidebar .sidebar-link {
+        justify-content: center;
+        padding: 0.75rem 0;
+    }
+    body.sidebar-collapsed .admin-sidebar .sidebar-link i {
+        width: auto;
+        font-size: 1.25rem;
+    }
+    body.sidebar-collapsed .admin-layout-wrapper {
+        margin-left: 80px;
     }
 
     .admin-content {
@@ -540,7 +567,12 @@
         .admin-sidebar { transform: translateX(-100%); }
         .admin-sidebar.show { transform: translateX(0); }
         .admin-layout-wrapper { margin-left: 0; }
-        .admin-nav-toggle { display: block; }
+        body.sidebar-collapsed .admin-sidebar { transform: translateX(-100%); width: 280px; }
+        body.sidebar-collapsed .admin-sidebar.show { transform: translateX(0); width: 280px; }
+        body.sidebar-collapsed .admin-sidebar .sidebar-brand span,
+        body.sidebar-collapsed .admin-sidebar .sidebar-item span,
+        body.sidebar-collapsed .admin-sidebar .sidebar-section-title { display: block; }
+        body.sidebar-collapsed .admin-layout-wrapper { margin-left: 0; }
     }
 
     /* RTL Overrides for Admin Theme */

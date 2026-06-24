@@ -229,6 +229,7 @@
       "statusChanged": "Order #{0} status changed to Confirmed.",
       "currencyFormat": "EGP {0}",
       "statusPending": "Pending",
+      "statusPendingPayment": "Pending Payment",
       "statusAwaitingCustomerApproval": "Awaiting Customer Approval",
       "statusConfirmed": "Confirmed",
       "statusInProgress": "In Progress",
@@ -237,6 +238,7 @@
       "statusReadyForPickup": "Ready for Pickup",
       "statusShipped": "Shipped",
       "statusDelivered": "Delivered",
+      "statusCompleted": "Completed",
       "statusCancelled": "Cancelled",
       "statusRejected": "Rejected",
       "payPaid": "Paid",
@@ -308,6 +310,7 @@
       "confirmed": "Confirmed",
       "readyForPickup": "Shipped",
       "awaitingApproval": "Awaiting Approval",
+      "pendingPayment": "Pending Payment",
       "revenue": "Revenue",
       "deliveredRevenue": "Delivered revenue",
       "business": "Business",
@@ -352,7 +355,9 @@
       "visible": "Visible",
       "hidden": "Hidden",
       "active": "Active",
-      "inactive": "Inactive"
+      "inactive": "Inactive",
+      "approved": "Active",
+      "suspended": "Suspended"
     }
   },
   "admin": {

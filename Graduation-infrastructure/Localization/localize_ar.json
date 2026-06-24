@@ -229,6 +229,7 @@
       "statusChanged": "تم تغيير حالة الطلب #{0} إلى مؤكد.",
       "currencyFormat": "{0} ج.م",
       "statusPending": "قيد الانتظار",
+      "statusPendingPayment": "بانتظار الدفع",
       "statusAwaitingCustomerApproval": "في انتظار موافقة العميل",
       "statusConfirmed": "مؤكد",
       "statusInProgress": "قيد التنفيذ",
@@ -237,6 +238,7 @@
       "statusReadyForPickup": "جاهز للاستلام",
       "statusShipped": "تم الشحن",
       "statusDelivered": "تم التوصيل",
+      "statusCompleted": "مكتمل",
       "statusCancelled": "ملغي",
       "statusRejected": "مرفوض",
       "payPaid": "مدفوع",
@@ -308,6 +310,7 @@
       "confirmed": "مؤكد",
       "readyForPickup": "قيد الشحن",
       "awaitingApproval": "في انتظار الموافقة",
+      "pendingPayment": "بانتظار الدفع",
       "revenue": "الإيرادات",
       "deliveredRevenue": "إيرادات الطلبات المسلمة",
       "business": "بيانات النشاط",
@@ -352,7 +355,9 @@
       "visible": "مرئي",
       "hidden": "مخفي",
       "active": "نشط",
-      "inactive": "غير نشط"
+      "inactive": "غير نشط",
+      "approved": "نشط",
+      "suspended": "معلق"
     }
   },
   "admin": {

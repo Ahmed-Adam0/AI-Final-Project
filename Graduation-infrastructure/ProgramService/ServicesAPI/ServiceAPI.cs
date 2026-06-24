@@ -183,8 +183,16 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
                     "AllowVercel",
                     policy =>
                     {
-                        // تقدر تحط رابط فيرسل بتاعك، بس الأسهل حالياً عشان ننجز مشروع التخرج وتشتغل معاك علطول:
-                        policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+                        policy
+                            .WithOrigins(
+                                "http://localhost:4200",
+                                "https://localhost:4200",
+                                "https://home-ai-angular.vercel.app",
+                                "https://home-ai-angular-4ckfe970j-ahmed-adams-projects-f69659da.vercel.app"
+                            )
+                            .AllowAnyHeader()
+                            .AllowAnyMethod()
+                            .AllowCredentials();
                     }
                 );
             });

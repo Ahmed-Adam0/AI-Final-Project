@@ -5,9 +5,19 @@
     (function () {
         var toggle = document.getElementById('sidebarToggle');
         var sidebar = document.getElementById('sidebar');
+        // Restore sidebar state on desktop
+        if (window.innerWidth > 991.98 && localStorage.getItem('sidebar-collapsed') === 'true') {
+            document.body.classList.add('sidebar-collapsed');
+        }
+
         if (toggle && sidebar) {
             toggle.addEventListener('click', function () {
-                sidebar.classList.toggle('show');
+                if (window.innerWidth <= 991.98) {
+                    sidebar.classList.toggle('show');
+                } else {
+                    document.body.classList.toggle('sidebar-collapsed');
+                    localStorage.setItem('sidebar-collapsed', document.body.classList.contains('sidebar-collapsed'));
+                }
             });
 
             document.addEventListener('click', function (event) {
