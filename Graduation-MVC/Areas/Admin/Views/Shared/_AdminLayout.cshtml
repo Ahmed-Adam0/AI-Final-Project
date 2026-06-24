@@ -44,6 +44,10 @@
                 margin-right: 280px; 
                 margin-left: 0; 
             }
+            body.sidebar-collapsed .admin-layout-wrapper {
+                margin-right: 80px;
+                margin-left: 0;
+            }
             .dropdown-menu-end {
                 --bs-position: start !important;
                 right: auto !important;
@@ -60,6 +64,12 @@
                     margin-right: 0; 
                     margin-left: 0; 
                 }
+                body.sidebar-collapsed .admin-layout-wrapper {
+                    margin-right: 0;
+                    margin-left: 0;
+                }
+                body.sidebar-collapsed .admin-sidebar { transform: translateX(100%); width: 280px; }
+                body.sidebar-collapsed .admin-sidebar.show { transform: translateX(0); width: 280px; }
             }
             </text>
         }

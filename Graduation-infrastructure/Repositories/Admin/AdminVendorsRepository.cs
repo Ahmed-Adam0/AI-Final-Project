@@ -244,6 +244,9 @@ namespace Graduation_infrastructure.Repositories.Admin
             var AwaitingOrders = await ordersQuery.CountAsync(o =>
                 o.Status == VendorOrderStatus.AwaitingCustomerApproval
             );
+            var PendingPaymentOrders = await ordersQuery.CountAsync(o =>
+                o.Status == VendorOrderStatus.PendingPayment
+            );
             var totalRevenue = await ordersQuery.SumAsync(o => (decimal?)o.TotalPrice) ?? 0m;
             var deliveredRevenue =
                 await ordersQuery
@@ -363,6 +366,7 @@ namespace Graduation_infrastructure.Repositories.Admin
                     TotalOrders = totalOrders,
                     DeliveredOrders = deliveredOrders,
                     PendingOrders = pendingOrders,
+                    PendingPaymentOrders = PendingPaymentOrders,
                     CancelledOrders = CancelledOrders,
                     InProgressOrders = InProgressOrders,
                     ConfirmedOrders = ConfirmedOrders,

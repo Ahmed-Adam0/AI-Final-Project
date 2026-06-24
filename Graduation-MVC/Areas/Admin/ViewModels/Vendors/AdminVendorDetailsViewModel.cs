@@ -63,6 +63,7 @@ namespace Graduation_MVC.Areas.Admin.ViewModels.Vendors
         public int TotalOrders { get; set; }
         public int DeliveredOrders { get; set; }
         public int PendingOrders { get; set; }
+        public int PendingPaymentOrders { get; set; }
 
         public int CancelledOrders { get; set; }
         public int InProgressOrders { get; set; }

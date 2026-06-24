@@ -57,7 +57,7 @@
             <select class="form-select form-select-premium" name="VerificationStatus">
                 @foreach (var opt in Model.VerificationStatusOptions)
                 {
-                    var label = string.IsNullOrEmpty(opt.Value) ? L.Get("auth.vendors.allVerificationStatuses") : L.Get($"status.{opt.Value.ToLower()}");
+                    var label = string.IsNullOrEmpty(opt.Value) ? L.Get("auth.vendors.allVerificationStatuses") : L.Get($"shared.status.{opt.Value.ToLower()}");
                     <option value="@opt.Value" selected="@(opt.Value == (Model.Filter.VerificationStatus ?? string.Empty) ? "selected" : null)">@label</option>
                 }
             </select>
@@ -67,7 +67,7 @@
             <select class="form-select form-select-premium" name="AccountStatus">
                 @foreach (var opt in Model.AccountStatusOptions)
                 {
-                    var label = string.IsNullOrEmpty(opt.Value) ? L.Get("auth.vendors.allAccountStatuses") : L.Get($"status.{opt.Value.ToLower()}");
+                    var label = string.IsNullOrEmpty(opt.Value) ? L.Get("auth.vendors.allAccountStatuses") : L.Get($"shared.status.{opt.Value.ToLower()}");
                     <option value="@opt.Value" selected="@(opt.Value == (Model.Filter.AccountStatus ?? string.Empty) ? "selected" : null)">@label</option>
                 }
             </select>
