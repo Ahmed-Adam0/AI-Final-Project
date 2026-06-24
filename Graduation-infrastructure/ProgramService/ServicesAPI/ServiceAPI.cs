@@ -93,6 +93,7 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             InspirationMappingConfig.RegisterMappings();
 
             // Register Generic Repository
+            services.AddMemoryCache();
             services.AddScoped(typeof(IGenaricRepositories<>), typeof(GenaricRepositories<>));
 
             // Register Services

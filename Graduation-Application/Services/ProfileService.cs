@@ -46,11 +46,25 @@ namespace Graduation_Application.Services
                 if (exists) throw new System.Exception("Username already taken.");
             }
 
-            // validate email
-            if (!string.IsNullOrWhiteSpace(dto.Email))
+            // enforce validation and reject email changes for Google users
+            bool isGoogleUser = !string.IsNullOrEmpty(user.GoogleId);
+            if (isGoogleUser)
             {
-                var exists = await _profileRepository.EmailExistsAsync(dto.Email, userId);
-                if (exists) throw new System.Exception("Email already taken.");
+                if (!string.IsNullOrWhiteSpace(dto.Email) && !string.Equals(dto.Email, user.Email, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new System.Exception("Google-authenticated users cannot change their email address manually.");
+                }
+                // Keep the dto email matching the user's current email so Mapster doesn't modify it
+                dto.Email = user.Email;
+            }
+            else
+            {
+                // validate email for standard users
+                if (!string.IsNullOrWhiteSpace(dto.Email))
+                {
+                    var exists = await _profileRepository.EmailExistsAsync(dto.Email, userId);
+                    if (exists) throw new System.Exception("Email already taken.");
+                }
             }
 
             // Mapster will update allowed properties
@@ -93,6 +107,11 @@ namespace Graduation_Application.Services
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null) throw new System.Exception("User not found");
+
+            if (!string.IsNullOrEmpty(user.GoogleId))
+            {
+                throw new System.Exception("Password change is not available for Google accounts.");
+            }
 
             // Check if old password equals new password
             if (dto.OldPassword == dto.NewPassword)

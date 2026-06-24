@@ -10,7 +10,9 @@ using Graduation_domain.Enums;
 using Graduation_domain.Entities;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Graduation_Application.Services
 {
@@ -22,6 +24,7 @@ namespace Graduation_Application.Services
         private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
         private readonly IInternalNotificationService _internalNotificationService;
+        private readonly IMemoryCache _cache;
 
         public AuthService(
             UserManager<ApplicationUser> userManager,
@@ -29,7 +32,8 @@ namespace Graduation_Application.Services
             IJwtTokenGenerator jwtTokenGenerator,
             IEmailService emailService,
             IConfiguration configuration,
-            IInternalNotificationService internalNotificationService)
+            IInternalNotificationService internalNotificationService,
+            IMemoryCache cache)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -37,6 +41,7 @@ namespace Graduation_Application.Services
             _emailService = emailService;
             _configuration = configuration;
             _internalNotificationService = internalNotificationService;
+            _cache = cache;
         }
 
         public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
@@ -152,6 +157,11 @@ namespace Graduation_Application.Services
                 throw new Exception($"User with email '{dto.Email}' not found");
             }
 
+            if (!string.IsNullOrEmpty(user.GoogleId))
+            {
+                throw new Exception("Password reset is not available for Google accounts.");
+            }
+
             if (!user.IsActive)
             {
                 throw new Exception("Email address is not Active. Please Active your email first");
@@ -197,6 +207,11 @@ namespace Graduation_Application.Services
             if (user == null)
             {
                 throw new Exception($"User with email '{dto.Email}' not found");
+            }
+
+            if (!string.IsNullOrEmpty(user.GoogleId))
+            {
+                throw new Exception("Password reset is not available for Google accounts.");
             }
 
             if (user.OtpCode != dto.OtpCode)
@@ -309,14 +324,29 @@ namespace Graduation_Application.Services
                 throw new Exception("Google token does not contain email.");
             }
 
-            var user = await _userManager.FindByEmailAsync(payload.Email);
+            // Look up user by GoogleId (sub claim) first
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.GoogleId == payload.Subject);
 
             if (user != null)
             {
-                // Existing user: update GoogleId if not set
-                if (string.IsNullOrWhiteSpace(user.GoogleId))
+                // Auto-sync email if changed on Google side
+                if (!string.Equals(user.Email, payload.Email, StringComparison.OrdinalIgnoreCase))
                 {
-                    user.GoogleId = payload.Subject; // sub claim
+                    var emailConflict = await _userManager.FindByEmailAsync(payload.Email);
+                    if (emailConflict != null)
+                    {
+                        throw new Exception($"Cannot update email from Google to '{payload.Email}' because another account is already using it.");
+                    }
+
+                    user.Email = payload.Email;
+                    user.NormalizedEmail = payload.Email.ToUpperInvariant();
+
+                    if (string.Equals(user.UserName, user.Email, StringComparison.OrdinalIgnoreCase) || user.UserName.Contains("@"))
+                    {
+                        user.UserName = payload.Email;
+                        user.NormalizedUserName = payload.Email.ToUpperInvariant();
+                    }
+
                     await _userManager.UpdateAsync(user);
                 }
 
@@ -330,14 +360,101 @@ namespace Graduation_Application.Services
                 return (user, tokenExisting, rolesExisting).Adapt<AuthResponseDto>();
             }
 
-            // Auto-register new user via Mapster mapping from Google payload
-            var newUser = payload.Adapt<ApplicationUser>();
+            // If not found by GoogleId, check if a user with that email already exists
+            var userByEmail = await _userManager.FindByEmailAsync(payload.Email);
+            if (userByEmail != null)
+            {
+                throw new Exception("This email address is already associated with another login method.");
+            }
 
-            var createResult = await _userManager.CreateAsync(newUser);
+            // Generate a secure registration token
+            var rawToken = System.Security.Cryptography.RandomNumberGenerator.GetBytes(32);
+            var registrationToken = Guid.NewGuid().ToString("N") + Convert.ToBase64String(rawToken)
+                .Replace("+", "").Replace("/", "").Replace("=", "");
+
+            // Read cache expiry (default 15 minutes)
+            var expiryMinutes = 15;
+            if (int.TryParse(_configuration["Google:RegistrationExpiryMinutes"], out var configuredExpiry))
+            {
+                expiryMinutes = configuredExpiry;
+            }
+
+            var cacheItem = new GoogleRegistrationCacheItem
+            {
+                Email = payload.Email,
+                GoogleId = payload.Subject,
+                FullName = payload.Name ?? payload.Email,
+                ProfileImage = payload.Picture ?? string.Empty
+            };
+
+            var cacheKey = $"GoogleReg_{registrationToken}";
+            _cache.Set(cacheKey, cacheItem, new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(expiryMinutes)
+            });
+
+            return new AuthResponseDto
+            {
+                RegistrationRequired = true,
+                RegistrationToken = registrationToken,
+                GoogleProfile = new GoogleProfileDto
+                {
+                    Email = payload.Email,
+                    FirstName = payload.GivenName ?? string.Empty,
+                    LastName = payload.FamilyName ?? string.Empty,
+                    ProfileImage = payload.Picture ?? string.Empty
+                }
+            };
+        }
+
+        public async Task<AuthResponseDto> CompleteGoogleRegistrationAsync(CompleteGoogleRegistrationDto dto)
+        {
+            var cacheKey = $"GoogleReg_{dto.RegistrationToken}";
+            if (!_cache.TryGetValue<GoogleRegistrationCacheItem>(cacheKey, out var cacheItem) || cacheItem == null)
+            {
+                throw new Exception("Registration session has expired or is invalid");
+            }
+
+            // Check if user already exists by GoogleId or Email (prevent duplicate/replay account creation)
+            var existingGoogleUser = await _userManager.Users.FirstOrDefaultAsync(u => u.GoogleId == cacheItem.GoogleId);
+            if (existingGoogleUser != null)
+            {
+                throw new Exception("This Google account is already registered.");
+            }
+
+            var existingUser = await _userManager.FindByEmailAsync(cacheItem.Email);
+            if (existingUser != null)
+            {
+                throw new Exception($"User with email '{cacheItem.Email}' already exists");
+            }
+
+            // Map and create new user
+            var newUser = new ApplicationUser
+            {
+                Email = cacheItem.Email,
+                UserName = cacheItem.Email,
+                FullName = cacheItem.FullName,
+                ProfileImage = cacheItem.ProfileImage,
+                GoogleId = cacheItem.GoogleId,
+                EmailConfirmed = true
+            };
+
+            var createResult = await _userManager.CreateAsync(newUser, dto.Password);
             if (!createResult.Succeeded)
             {
                 var errors = string.Join(" ; ", createResult.Errors.Select(e => e.Description));
                 throw new Exception(errors);
+            }
+
+            // Link Google Login Provider to the new account
+            var loginInfo = new UserLoginInfo("Google", cacheItem.GoogleId, "Google");
+            var addLoginResult = await _userManager.AddLoginAsync(newUser, loginInfo);
+            if (!addLoginResult.Succeeded)
+            {
+                // Rollback user creation if linking provider fails
+                await _userManager.DeleteAsync(newUser);
+                var errors = string.Join(" ; ", addLoginResult.Errors.Select(e => e.Description));
+                throw new Exception($"Failed to link external provider: {errors}");
             }
 
             // Ensure Customer role exists and assign
@@ -347,12 +464,30 @@ namespace Graduation_Application.Services
                 await _roleManager.CreateAsync(new IdentityRole(Roles.Customer));
             }
 
-            await _userManager.AddToRoleAsync(newUser, Roles.Customer);
+            var addToRoleResult = await _userManager.AddToRoleAsync(newUser, Roles.Customer);
+            if (!addToRoleResult.Succeeded)
+            {
+                // Rollback
+                await _userManager.DeleteAsync(newUser);
+                var errors = string.Join(" ; ", addToRoleResult.Errors.Select(e => e.Description));
+                throw new Exception($"Failed to assign role: {errors}");
+            }
+
+            // Evict registration token from cache (single-use)
+            _cache.Remove(cacheKey);
 
             var roles = await _userManager.GetRolesAsync(newUser);
             var token = _jwtTokenGenerator.GenerateToken(newUser, roles);
 
             return (newUser, token, roles).Adapt<AuthResponseDto>();
+        }
+
+        private class GoogleRegistrationCacheItem
+        {
+            public string Email { get; set; } = string.Empty;
+            public string GoogleId { get; set; } = string.Empty;
+            public string FullName { get; set; } = string.Empty;
+            public string ProfileImage { get; set; } = string.Empty;
         }
     }
 }

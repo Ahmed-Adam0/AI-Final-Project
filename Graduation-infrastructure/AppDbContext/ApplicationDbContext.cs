@@ -401,6 +401,12 @@ namespace Graduation_infrastructure.AppDbContext
                       .HasForeignKey(e => e.OrderId)
                       .OnDelete(DeleteBehavior.Cascade);
             });
+
+            // ── ApplicationUser GoogleId Index ────────────────────────────────
+            builder.Entity<ApplicationUser>()
+                .HasIndex(u => u.GoogleId)
+                .HasFilter("[GoogleId] IS NOT NULL")
+                .IsUnique();
         }
     }
 }
