@@ -62,6 +62,7 @@ namespace Graduation_Application.Services
                 UserId = request.UserId,
                 ConversationId = request.ConversationId,
                 Message = request.Message,
+                Token = request.Token,
             };
 
             try

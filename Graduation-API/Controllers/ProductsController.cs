@@ -174,14 +174,26 @@ namespace Graduation_API.Controllers
         /// <param name="id">Product ID</param>
         /// <returns>Product details with images and workshop information</returns>
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetProductDetails(int id)
+        public async Task<IActionResult> GetProductDetails(string id)
         {
             try
             {
-                if (id <= 0)
-                    return BadRequest(new { message = "Invalid product ID" });
+                if (string.IsNullOrWhiteSpace(id))
+                    return BadRequest(new { message = "Invalid product identifier" });
 
-                var product = await _productService.GetProductDetailsAsync(id);
+                ProductDetailsDto product = null;
+
+                if (int.TryParse(id, out int numericId))
+                {
+                    if (numericId <= 0)
+                        return BadRequest(new { message = "Invalid product ID" });
+
+                    product = await _productService.GetProductDetailsAsync(numericId);
+                }
+                else
+                {
+                    product = await _productService.GetProductDetailsByNameAsync(id);
+                }
 
                 if (product == null)
                     return NotFound(new { message = "Product not found" });
