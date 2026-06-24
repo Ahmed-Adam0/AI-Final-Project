@@ -19,6 +19,6 @@ namespace Graduation_Application.IServices
         /// <param name="conversationId">The optional conversation ID.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The reply from the chatbot.</returns>
-        Task<ChatReplyDto> ProcessVoiceMessageAsync(IFormFile audioFile, string userId, string? conversationId = null, CancellationToken cancellationToken = default);
+        Task<ChatReplyDto> ProcessVoiceMessageAsync(IFormFile audioFile, string userId, string? conversationId = null, string token = "", CancellationToken cancellationToken = default);
     }
 }

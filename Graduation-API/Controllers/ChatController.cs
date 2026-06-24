@@ -1,9 +1,12 @@
 using System;
 using System.Net.Http;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using Graduation_Application.DTOs.ChatDTO;
 using Graduation_Application.IServices;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -11,6 +14,7 @@ namespace Graduation_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class ChatController : ControllerBase
     {
         private readonly IChatService _chatService;
@@ -28,6 +32,20 @@ namespace Graduation_API.Controllers
             _logger = logger;
         }
 
+        private string GetUserId()
+        {
+            var userId =
+                User.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? User.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)
+                ?? User.FindFirstValue(ClaimTypes.Name)
+                ?? User.FindFirstValue(ClaimTypes.Email);
+
+            if (string.IsNullOrWhiteSpace(userId))
+                throw new UnauthorizedAccessException("Authenticated user ID not found");
+
+            return userId;
+        }
+
         [HttpPost]
         public async Task<IActionResult> SendMessageAsync(
             [FromBody] ChatRequestDto request,
@@ -39,9 +57,14 @@ namespace Graduation_API.Controllers
                 return BadRequest(new { Success = false, Message = "Request body is required" });
             }
 
-            if (string.IsNullOrWhiteSpace(request.UserId))
+            try
             {
-                return BadRequest(new { Success = false, Message = "userId is required" });
+                request.UserId = GetUserId();
+                request.Token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "").Trim();
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { Success = false, Message = ex.Message });
             }
 
             if (string.IsNullOrWhiteSpace(request.Message))
@@ -104,17 +127,29 @@ namespace Graduation_API.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> SendVoiceMessageAsync(
             IFormFile audioFile,
-            [FromForm] string userId,
             [FromForm] string? conversationId,
             CancellationToken cancellationToken
         )
         {
+            string userId;
+            string token;
+            try
+            {
+                userId = GetUserId();
+                token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "").Trim();
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { Success = false, Message = ex.Message });
+            }
+
             try
             {
                 var result = await _voiceChatService.ProcessVoiceMessageAsync(
                     audioFile,
                     userId,
                     conversationId,
+                    token,
                     cancellationToken
                 );
 

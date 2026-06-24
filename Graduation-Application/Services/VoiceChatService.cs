@@ -35,7 +35,7 @@ namespace Graduation_Application.Services
             _logger = logger;
         }
 
-        public async Task<ChatReplyDto> ProcessVoiceMessageAsync(IFormFile audioFile, string userId, string? conversationId = null, CancellationToken cancellationToken = default)
+        public async Task<ChatReplyDto> ProcessVoiceMessageAsync(IFormFile audioFile, string userId, string? conversationId = null, string token = "", CancellationToken cancellationToken = default)
         {
             var stopwatch = Stopwatch.StartNew();
 
@@ -94,7 +94,8 @@ namespace Graduation_Application.Services
             {
                 UserId = userId,
                 Message = transcribedText,
-                ConversationId = conversationId
+                ConversationId = conversationId,
+                Token = token
             };
 
             ChatReplyDto chatReply;

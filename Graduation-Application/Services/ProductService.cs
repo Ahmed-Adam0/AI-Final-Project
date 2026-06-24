@@ -215,6 +215,33 @@ namespace Graduation_Application.Services
             return product.Adapt<ProductDetailsDto>();
         }
 
+        public async Task<ProductDetailsDto> GetProductDetailsByNameAsync(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return null;
+                
+            string searchTerm = name.ToLower().Trim();
+
+            var product = await _productRepository
+                .GetAllAsNoTracking()
+                .Include(p => p.ProductType)
+                    .ThenInclude(pt => pt.SubCategory)
+                        .ThenInclude(sc => sc.Category)
+                .Include(p => p.Workshop)
+                .Include(p => p.Attributes)
+                    .ThenInclude(a => a.Values)
+                .Include(p => p.Images)
+                .Include(p => p.MaterialOptions)
+                    .ThenInclude(mo => mo.VendorMaterialOption)
+                        .ThenInclude(o => o.Group)
+                .FirstOrDefaultAsync(p => (p.NameAr.ToLower().Contains(searchTerm) || p.NameEn.ToLower().Contains(searchTerm)) && p.IsActive && !p.IsHidden);
+
+            if (product == null)
+                return null;
+
+            return product.Adapt<ProductDetailsDto>();
+        }
+
         public async Task<PaginatedResult<ProductEmbeddingDto>> GetProductsForEmbeddingAsync(
             int pageNumber,
             int pageSize
