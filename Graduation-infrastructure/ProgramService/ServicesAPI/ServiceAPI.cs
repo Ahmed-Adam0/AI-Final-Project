@@ -6,17 +6,17 @@ using Graduation_Application.ExternalServices.EmailServices;
 using Graduation_Application.IRepositories;
 using Graduation_Application.IServices;
 using Graduation_Application.IServices.Admin;
+using Graduation_Application.IServices.Vendor;
 using Graduation_Application.Mapper.CategoryMapping;
+using Graduation_Application.Mapper.InspirationMapping;
 using Graduation_Application.Mapper.NotificationMapping;
 using Graduation_Application.Mapper.ProductMapping;
 using Graduation_Application.Mapper.ReviewMapping;
 using Graduation_Application.Mapper.UsersMapping;
 using Graduation_Application.Mapper.VendorMapping;
-using Graduation_Application.Mapper.InspirationMapping;
 using Graduation_Application.Options;
 using Graduation_Application.Services;
 using Graduation_Application.Services.Admin;
-using Graduation_Application.IServices.Vendor;
 using Graduation_Application.Services.Vendor;
 using Graduation_domain.Entities;
 using Graduation_infrastructure.AppDbContext;
@@ -138,20 +138,54 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             services.AddScoped<IInspirationService, InspirationService>();
             services.AddScoped<IAdminInspirationService, AdminInspirationService>();
             services.AddHttpClient();
-            services.AddHttpClient("N8NChatClient", client =>
-            {
-                client.Timeout = TimeSpan.FromSeconds(120); // Increased timeout to prevent timeouts during complex AI voice operations
-            });
+            services.AddHttpClient(
+                "N8NChatClient",
+                client =>
+                {
+                    client.Timeout = TimeSpan.FromSeconds(120); // Increased timeout to prevent timeouts during complex AI voice operations
+                }
+            );
             services.AddHttpContextAccessor();
-            // Add CORS policy for development / frontend
+            //// Add CORS policy for development / frontend
+            //services.AddCors(options =>
+            //{
+            //    options.AddPolicy(
+            //        "AllowAll",
+            //        builder =>
+            //            builder
+            //                .AllowAnyHeader()
+            //                .AllowAnyMethod()
+            //                .SetIsOriginAllowed(_ => true)
+            //                .AllowCredentials()
+            //    );
+            //});
+
+            //services.AddCors(options =>
+            //{
+            //    options.AddPolicy(
+            //        "AllowVercel",
+            //        policy =>
+            //        {
+            //            policy
+            //                //.WithOrigins("https://home-ai-angular.vercel.app/")
+            //                .WithOrigins(
+            //                    "https://home-ai-angular-4ckfe970j-ahmed-adams-projects-f69659da.vercel.app/"
+            //                )
+            //                .AllowAnyHeader()
+            //                .AllowAnyMethod();
+            //        }
+            //    );
+            //});
+
             services.AddCors(options =>
             {
                 options.AddPolicy(
-                    "AllowAll",
-                    builder => builder.AllowAnyHeader()
-                    .AllowAnyMethod()
-                    .SetIsOriginAllowed(_ => true)
-            .AllowCredentials()
+                    "AllowVercel",
+                    policy =>
+                    {
+                        // تقدر تحط رابط فيرسل بتاعك، بس الأسهل حالياً عشان ننجز مشروع التخرج وتشتغل معاك علطول:
+                        policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+                    }
                 );
             });
 
@@ -187,13 +221,15 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
                         {
                             var accessToken = context.Request.Query["access_token"];
                             var path = context.Request.Path;
-                            if (!string.IsNullOrEmpty(accessToken) &&
-                                path.StartsWithSegments("/hubs/notifications"))
+                            if (
+                                !string.IsNullOrEmpty(accessToken)
+                                && path.StartsWithSegments("/hubs/notifications")
+                            )
                             {
                                 context.Token = accessToken;
                             }
                             return System.Threading.Tasks.Task.CompletedTask;
-                        }
+                        },
                     };
                 });
 

@@ -14,5 +14,7 @@ namespace Graduation_Application.DTOs.UserDTO
         [Required(ErrorMessage = "Confirm password is required")]
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; } = string.Empty;
+
+        public string PreferredLanguage { get; set; } = "en";
     }
 }

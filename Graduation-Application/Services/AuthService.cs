@@ -436,6 +436,7 @@ namespace Graduation_Application.Services
                 FullName = cacheItem.FullName,
                 ProfileImage = cacheItem.ProfileImage,
                 GoogleId = cacheItem.GoogleId,
+                PreferredLanguage = string.IsNullOrWhiteSpace(dto.PreferredLanguage) ? "en" : dto.PreferredLanguage,
                 EmailConfirmed = true
             };
 
