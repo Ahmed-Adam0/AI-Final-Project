@@ -13,5 +13,6 @@ namespace Graduation_Application.IServices
         Task ConfirmEmailOtpAsync(ConfirmEmailOtpDto dto);
         Task ResendConfirmationEmailAsync(ResendConfirmationDto dto);
         Task<AuthResponseDto> GoogleLoginAsync(GoogleLoginDto dto);
+        Task<AuthResponseDto> CompleteGoogleRegistrationAsync(CompleteGoogleRegistrationDto dto);
     }
 }

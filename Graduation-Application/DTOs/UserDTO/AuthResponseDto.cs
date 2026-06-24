@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -10,5 +10,9 @@ namespace Graduation_Application.DTOs.UserDTO
         public string Email { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
         //public List<string> Roles { get; set; } = new List<string>();
+        
+        public bool RegistrationRequired { get; set; }
+        public string? RegistrationToken { get; set; }
+        public GoogleProfileDto? GoogleProfile { get; set; }
     }
 }

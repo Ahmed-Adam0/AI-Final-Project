@@ -16,5 +16,8 @@ namespace Graduation_Application.DTOs.UserDTO
         public string? UserName { get; set; }
         public List<AddressDto>? Addresses { get; set; }
 
+        // Backend-driven UI controls
+        public bool IsGoogleUser { get; set; }
+        public bool CanEditEmail { get; set; }
     }
 }

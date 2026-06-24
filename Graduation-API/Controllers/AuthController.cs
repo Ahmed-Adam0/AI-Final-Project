@@ -129,7 +129,23 @@ namespace Graduation_API.Controllers
             try
             {
                 var result = await _authService.GoogleLoginAsync(dto);
-                return Ok(new { Success = true, Message = "Login successful", Data = result });
+                var message = result.RegistrationRequired ? "Registration completion required" : "Login successful";
+                return Ok(new { Success = true, Message = message, Data = result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Success = false, Message = ex.Message });
+            }
+        }
+
+        [HttpPost("complete-google-registration")]
+        [AllowAnonymous]
+        public async Task<IActionResult> CompleteGoogleRegistrationAsync([FromBody] CompleteGoogleRegistrationDto dto)
+        {
+            try
+            {
+                var result = await _authService.CompleteGoogleRegistrationAsync(dto);
+                return Ok(new { Success = true, Message = "Registration and login successful", Data = result });
             }
             catch (Exception ex)
             {

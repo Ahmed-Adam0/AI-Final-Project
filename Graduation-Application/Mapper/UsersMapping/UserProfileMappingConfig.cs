@@ -41,7 +41,9 @@ namespace Graduation_Application.Mapper.UsersMapping
                 .Map(dest => dest.PreferredLanguage, src => src.PreferredLanguage)
                 .Map(dest => dest.PhoneNumber, src => src.PhoneNumber)
                 .Map(dest => dest.UserName, src => src.UserName)
-                .Map(dest => dest.Addresses, src => src.Addresses);
+                .Map(dest => dest.Addresses, src => src.Addresses)
+                .Map(dest => dest.IsGoogleUser, src => !string.IsNullOrEmpty(src.GoogleId))
+                .Map(dest => dest.CanEditEmail, src => string.IsNullOrEmpty(src.GoogleId));
 
             // UpdateProfileDto → ApplicationUser
             TypeAdapterConfig<UpdateProfileDto, ApplicationUser>
@@ -53,9 +55,11 @@ namespace Graduation_Application.Mapper.UsersMapping
                     src => src.Email == null ? null : src.Email.ToUpper())
                 //.Map(dest => dest.ProfileImage, src => src.ProfileImage)
                 .Map(dest => dest.PhoneNumber, src => src.PhoneNumber)
-                .Map(dest => dest.UserName, src => src.UserName)
+                .Map(dest => dest.UserName, src => string.IsNullOrWhiteSpace(src.Email) ? src.UserName : src.Email)
                 .Map(dest => dest.NormalizedUserName,
-                    src => src.UserName == null ? null : src.UserName.ToUpper())
+                    src => string.IsNullOrWhiteSpace(src.Email) 
+                        ? (src.UserName == null ? null : src.UserName.ToUpper()) 
+                        : src.Email.ToUpper())
                 .Map(dest => dest.ConcurrencyStamp,
                     src => System.Guid.NewGuid().ToString())
                 .Ignore(dest => dest.Id)
