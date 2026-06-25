@@ -48,6 +48,8 @@ namespace Graduation_Application.Services
                 .Include(vo => vo.MasterOrder)
                     .ThenInclude(mo => mo.User)
                 .Include(vo => vo.Items)
+                    .ThenInclude(i => i.Product)
+                        .ThenInclude(p => p.Images)
                 .Include(vo => vo.StatusHistory)
                 .AsNoTracking();
 
@@ -119,12 +121,30 @@ namespace Graduation_Application.Services
                 {
                     Id = vo.Id,
                     MasterOrderId = vo.MasterOrderId,
-                    CustomerName = string.IsNullOrWhiteSpace(vo.MasterOrder.FirstName) && string.IsNullOrWhiteSpace(vo.MasterOrder.LastName)
-                        ? (vo.MasterOrder.User != null ? vo.MasterOrder.User.FullName : "Customer")
-                        : $"{vo.MasterOrder.FirstName} {vo.MasterOrder.LastName}".Trim(),
-                    CustomerPhone = (vo.Status == VendorOrderStatus.Shipped || vo.Status == VendorOrderStatus.Delivered)
-                        ? (vo.MasterOrder.PhoneNumber ?? (vo.MasterOrder.User != null ? vo.MasterOrder.User.PhoneNumber : "") ?? "")
-                        : "",
+                    CustomerName =
+                        string.IsNullOrWhiteSpace(vo.MasterOrder.FirstName)
+                        && string.IsNullOrWhiteSpace(vo.MasterOrder.LastName)
+                            ? (
+                                vo.MasterOrder.User != null
+                                    ? vo.MasterOrder.User.FullName
+                                    : "Customer"
+                            )
+                            : $"{vo.MasterOrder.FirstName} {vo.MasterOrder.LastName}".Trim(),
+                    CustomerPhone =
+                        (
+                            vo.Status == VendorOrderStatus.Shipped
+                            || vo.Status == VendorOrderStatus.Delivered
+                        )
+                            ? (
+                                vo.MasterOrder.PhoneNumber
+                                ?? (
+                                    vo.MasterOrder.User != null
+                                        ? vo.MasterOrder.User.PhoneNumber
+                                        : ""
+                                )
+                                ?? ""
+                            )
+                            : "",
                     TotalPrice = vo.Items.Sum(oi => oi.SnapshotUnitPrice * oi.Quantity),
                     Status = vo.Status.ToString(),
                     Address = vo.MasterOrder.Address ?? "",
@@ -141,6 +161,13 @@ namespace Graduation_Application.Services
                             UnitPrice = oi.SnapshotUnitPrice,
                             Quantity = oi.Quantity,
                             Total = oi.SnapshotUnitPrice * oi.Quantity,
+                            ProductImage =
+                                oi.Product != null && oi.Product.Images != null
+                                    ? oi
+                                        .Product.Images.OrderByDescending(img => img.IsPrimary)
+                                        .Select(img => img.ImageUrl)
+                                        .FirstOrDefault()
+                                    : null,
                         })
                         .ToList(),
                     StatusHistory = vo
@@ -170,6 +197,8 @@ namespace Graduation_Application.Services
                 .Include(v => v.MasterOrder)
                     .ThenInclude(mo => mo.User)
                 .Include(v => v.Items)
+                    .ThenInclude(i => i.Product)
+                        .ThenInclude(p => p.Images)
                 .Include(v => v.StatusHistory)
                 .FirstOrDefaultAsync();
 
@@ -183,12 +212,22 @@ namespace Graduation_Application.Services
                 Id = vo.Id,
                 MasterOrderId = vo.MasterOrderId,
                 UserId = vo.MasterOrder.UserId,
-                CustomerName = string.IsNullOrWhiteSpace(vo.MasterOrder.FirstName) && string.IsNullOrWhiteSpace(vo.MasterOrder.LastName)
-                    ? (vo.MasterOrder.User != null ? vo.MasterOrder.User.FullName : "Customer")
-                    : $"{vo.MasterOrder.FirstName} {vo.MasterOrder.LastName}".Trim(),
-                CustomerPhone = (vo.Status == VendorOrderStatus.Shipped || vo.Status == VendorOrderStatus.Delivered)
-                    ? (vo.MasterOrder.PhoneNumber ?? (vo.MasterOrder.User != null ? vo.MasterOrder.User.PhoneNumber : "") ?? "")
-                    : "",
+                CustomerName =
+                    string.IsNullOrWhiteSpace(vo.MasterOrder.FirstName)
+                    && string.IsNullOrWhiteSpace(vo.MasterOrder.LastName)
+                        ? (vo.MasterOrder.User != null ? vo.MasterOrder.User.FullName : "Customer")
+                        : $"{vo.MasterOrder.FirstName} {vo.MasterOrder.LastName}".Trim(),
+                CustomerPhone =
+                    (
+                        vo.Status == VendorOrderStatus.Shipped
+                        || vo.Status == VendorOrderStatus.Delivered
+                    )
+                        ? (
+                            vo.MasterOrder.PhoneNumber
+                            ?? (vo.MasterOrder.User != null ? vo.MasterOrder.User.PhoneNumber : "")
+                            ?? ""
+                        )
+                        : "",
                 TotalPrice = vo.Items.Sum(oi => oi.SnapshotUnitPrice * oi.Quantity),
                 Status = vo.Status.ToString(),
                 Address = vo.MasterOrder.Address ?? "",
@@ -204,6 +243,13 @@ namespace Graduation_Application.Services
                         UnitPrice = oi.SnapshotUnitPrice,
                         Quantity = oi.Quantity,
                         Total = oi.SnapshotUnitPrice * oi.Quantity,
+                        ProductImage =
+                            oi.Product != null && oi.Product.Images != null
+                                ? (
+                                    oi.Product.Images.FirstOrDefault(img => img.IsPrimary)?.ImageUrl
+                                    ?? oi.Product.Images.FirstOrDefault()?.ImageUrl
+                                )
+                                : null,
                     })
                     .ToList(),
                 StatusHistory = vo
@@ -557,9 +603,15 @@ namespace Graduation_Application.Services
                     .Select(vo => new OrderActivityDto
                     {
                         OrderId = vo.Id,
-                        CustomerName = string.IsNullOrWhiteSpace(vo.MasterOrder.FirstName) && string.IsNullOrWhiteSpace(vo.MasterOrder.LastName)
-                            ? (vo.MasterOrder.User != null ? vo.MasterOrder.User.FullName : "Customer")
-                            : $"{vo.MasterOrder.FirstName} {vo.MasterOrder.LastName}".Trim(),
+                        CustomerName =
+                            string.IsNullOrWhiteSpace(vo.MasterOrder.FirstName)
+                            && string.IsNullOrWhiteSpace(vo.MasterOrder.LastName)
+                                ? (
+                                    vo.MasterOrder.User != null
+                                        ? vo.MasterOrder.User.FullName
+                                        : "Customer"
+                                )
+                                : $"{vo.MasterOrder.FirstName} {vo.MasterOrder.LastName}".Trim(),
                         Status = vo.Status.ToString(),
                         Amount = vo.TotalPrice,
                         CreatedAt = vo.CreatedAt,

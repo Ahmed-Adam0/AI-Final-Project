@@ -17,9 +17,6 @@
             <a asp-area="Admin" asp-controller="Orders" asp-action="Index" class="btn btn-premium btn-premium-secondary">
                 <i class="fa-solid fa-cart-shopping"></i> @LocalizationService.Get("auth.dashboard.View Orders")
             </a>
-            <a asp-area="Admin" asp-controller="Reports" asp-action="Index" class="btn btn-premium btn-premium-primary">
-                <i class="fa-solid fa-file-lines"></i> @LocalizationService.Get("auth.dashboard.Generate Report")
-            </a>
         </div>
     </div>
 </div>
@@ -181,17 +178,7 @@
                     <div class="text-muted small mt-2">@review.Comment</div>
                 </div>
             }
-            <h5 class="text-light mt-4 mb-3">@LocalizationService.Get("auth.dashboard.Latest Reports")</h5>
-            @foreach (var report in Model.LatestReports)
-            {
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div>
-                        <div class="fw-semibold text-light">@(isArabic ? report.Title.Replace("Product report", "بلاغ منتج") : report.Title)</div>
-                        <div class="text-muted small">@(isArabic ? "منتج" : report.Type)</div>
-                    </div>
-                    <a href="@report.DownloadUrl" class="btn btn-sm btn-premium btn-premium-secondary">@LocalizationService.Get("auth.dashboard.Download")</a>
-                </div>
-            }
+
         </div>
     </div>
 </div>
@@ -201,23 +188,122 @@
     <script>
         (function () {
             var revenueCanvas = document.getElementById('@Model.RevenueChart.ChartId');
-            if (revenueCanvas) {
-                new Chart(revenueCanvas, {
-                    type: 'line',
-                    data: {
-                        labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RevenueChart.Labels)),
-                        datasets: [{
-                            label: '@(isArabic ? "اتجاه الأرباح" : Model.RevenueChart.Title)',
-                            data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RevenueChart.Values)),
-                            borderColor: '#0d6efd',
-                            backgroundColor: 'rgba(13,110,253,0.12)',
-                            tension: 0.35,
-                            fill: true
-                        }]
+            if (!revenueCanvas) return;
+
+            var ctx = revenueCanvas.getContext('2d');
+
+            // Build gradient fill
+            var gradient = ctx.createLinearGradient(0, 0, 0, 320);
+            gradient.addColorStop(0,   'rgba(99, 102, 241, 0.35)');
+            gradient.addColorStop(0.5, 'rgba(99, 102, 241, 0.10)');
+            gradient.addColorStop(1,   'rgba(99, 102, 241, 0.00)');
+
+            var labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RevenueChart.Labels));
+            var values = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RevenueChart.Values));
+            var isArabic = @(isArabic ? "true" : "false");
+            var currencySymbol = isArabic ? 'ج.م' : 'EGP';
+
+            new Chart(revenueCanvas, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '@Html.Raw(isArabic ? "اتجاه الأرباح" : Model.RevenueChart.Title)',
+                        data: values,
+                        borderColor: '#6366f1',
+                        borderWidth: 2.5,
+                        backgroundColor: gradient,
+                        pointBackgroundColor: '#6366f1',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 8,
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#6366f1',
+                        pointHoverBorderWidth: 3,
+                        tension: 0.42,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 900,
+                        easing: 'easeInOutQuart'
                     },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
-            }
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            align: 'end',
+                            labels: {
+                                color: '#94a3b8',
+                                font: { size: 12, family: "'Inter', sans-serif" },
+                                boxWidth: 12,
+                                boxHeight: 12,
+                                borderRadius: 3,
+                                usePointStyle: true,
+                                pointStyle: 'rectRounded'
+                            }
+                        },
+                        tooltip: {
+                            enabled: true,
+                            backgroundColor: 'rgba(15, 23, 42, 0.92)',
+                            titleColor: '#e2e8f0',
+                            bodyColor: '#94a3b8',
+                            borderColor: 'rgba(99,102,241,0.4)',
+                            borderWidth: 1,
+                            padding: 12,
+                            cornerRadius: 10,
+                            titleFont: { size: 13, weight: '600', family: "'Inter', sans-serif" },
+                            bodyFont: { size: 12, family: "'Inter', sans-serif" },
+                            callbacks: {
+                                label: function(ctx) {
+                                    var val = ctx.parsed.y;
+                                    var formatted = new Intl.NumberFormat('en-EG').format(val);
+                                    return ' ' + currencySymbol + ' ' + formatted;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(148,163,184,0.08)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#64748b',
+                                font: { size: 11, family: "'Inter', sans-serif" },
+                                maxRotation: 0
+                            },
+                            border: { display: false }
+                        },
+                        y: {
+                            position: isArabic ? 'right' : 'left',
+                            grid: {
+                                color: 'rgba(148,163,184,0.10)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#64748b',
+                                font: { size: 11, family: "'Inter', sans-serif" },
+                                padding: 8,
+                                callback: function(val) {
+                                    if (val >= 1000) return (val / 1000).toFixed(0) + 'K';
+                                    return val;
+                                }
+                            },
+                            border: { display: false }
+                        }
+                    }
+                }
+            });
         })();
     </script>
 }

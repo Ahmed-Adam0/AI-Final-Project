@@ -6,44 +6,44 @@
     ViewData["Title"] = LocalizationService.Get("auth.orders.title");
 
     // Localized status display map
-    string LocalStatus(string s) => s switch
+    string LocalStatus(string s) => (s?.ToLower().Replace(" ", "")) switch
     {
-        "Pending"            => LocalizationService.Get("auth.orders.statusPending"),
-        "Confirmed"          => LocalizationService.Get("auth.orders.statusConfirmed"),
-        "InProgress"         => LocalizationService.Get("auth.orders.statusInProgress"),
-        "Processing"         => LocalizationService.Get("auth.orders.statusProcessing"),
-        "PartiallyDelivered" => LocalizationService.Get("auth.orders.statusPartiallyDelivered"),
-        "Ready for Pickup"   => LocalizationService.Get("auth.orders.statusReadyForPickup"),
-        "ReadyForPickup"      => LocalizationService.Get("auth.orders.statusReadyForPickup"),
-        "Delivered"          => LocalizationService.Get("auth.orders.statusDelivered"),
-        "Completed"          => LocalizationService.Get("auth.orders.statusDelivered"),
-        "Cancelled"          => LocalizationService.Get("auth.orders.statusCancelled"),
-        "Rejected"           => LocalizationService.Get("auth.orders.statusRejected"),
-        _                    => s
+        "pending"            => LocalizationService.Get("auth.orders.statusPending"),
+        "confirmed"          => LocalizationService.Get("auth.orders.statusConfirmed"),
+        "inprogress"         => LocalizationService.Get("auth.orders.statusProcessing"),
+        "processing"         => LocalizationService.Get("auth.orders.statusProcessing"),
+        "partiallydelivered" => LocalizationService.Get("auth.orders.statusPartiallyDelivered"),
+        "readyforpickup"     => LocalizationService.Get("auth.orders.statusReadyForPickup"),
+        "delivered"          => LocalizationService.Get("auth.orders.statusDelivered"),
+        "completed"          => LocalizationService.Get("auth.orders.statusCompleted"),
+        "cancelled"          => LocalizationService.Get("auth.orders.statusCancelled"),
+        "rejected"           => LocalizationService.Get("auth.orders.statusRejected"),
+        _                    => s?.ToUpper()
     };
 
-    string LocalPayStatus(string s) => s switch
+    string LocalPayStatus(string s) => (s?.ToLower()) switch
     {
-        "Paid"    => LocalizationService.Get("auth.orders.payPaid"),
-        "Failed"  => LocalizationService.Get("auth.orders.payFailed"),
-        "Pending" => LocalizationService.Get("auth.orders.payPending"),
-        _         => s
+        "paid"    => LocalizationService.Get("auth.orders.payPaid"),
+        "failed"  => LocalizationService.Get("auth.orders.payFailed"),
+        "pending" => LocalizationService.Get("auth.orders.payPending"),
+        _         => s?.ToUpper()
     };
 
     // Translate the Label values coming from the Service (hardcoded English)
-    string LocalStatusLabel(string label) => label switch
+    string LocalStatusLabel(string label) => (label?.ToLower().Replace(" ", "")) switch
     {
-        "All Statuses"        => LocalizationService.Get("auth.orders.allStatuses"),
-        "Pending"             => LocalizationService.Get("auth.orders.statusPending"),
-        "Confirmed"           => LocalizationService.Get("auth.orders.statusConfirmed"),
-        "InProgress"          => LocalizationService.Get("auth.orders.statusInProgress"),
-        "Processing"          => LocalizationService.Get("auth.orders.statusProcessing"),
-        "Partially Delivered" => LocalizationService.Get("auth.orders.statusPartiallyDelivered"),
-        "Ready for Pickup"    => LocalizationService.Get("auth.orders.statusReadyForPickup"),
-        "ReadyForPickup"       => LocalizationService.Get("auth.orders.statusReadyForPickup"),
-        "Completed"           => LocalizationService.Get("auth.orders.statusDelivered"),
-        "Cancelled"           => LocalizationService.Get("auth.orders.statusCancelled"),
-        _                     => label
+        "allstatuses"        => LocalizationService.Get("auth.orders.allStatuses"),
+        "pending"            => LocalizationService.Get("auth.orders.statusPending"),
+        "confirmed"          => LocalizationService.Get("auth.orders.statusConfirmed"),
+        "inprogress"         => LocalizationService.Get("auth.orders.statusProcessing"),
+        "processing"         => LocalizationService.Get("auth.orders.statusProcessing"),
+        "partiallydelivered" => LocalizationService.Get("auth.orders.statusPartiallyDelivered"),
+        "readyforpickup"     => LocalizationService.Get("auth.orders.statusReadyForPickup"),
+        "delivered"          => LocalizationService.Get("auth.orders.statusDelivered"),
+        "completed"          => LocalizationService.Get("auth.orders.statusCompleted"),
+        "cancelled"          => LocalizationService.Get("auth.orders.statusCancelled"),
+        "rejected"           => LocalizationService.Get("auth.orders.statusRejected"),
+        _                    => label
     };
 
     string LocalVendorLabel(string label) => label switch
@@ -162,43 +162,49 @@
                             (isArabic ? order.VendorNameAr : order.VendorName))</td>
                         <td>
                             @{
-                                var StatusClass = order.Status switch
+                                var StatusClass = order.Status?.ToLower().Replace(" ", "") switch
                                 {
-                                    "Confirmed" => "badge-status-active",
-                                    "Delivered" => "badge-status-active",
-                                    "Cancelled" => "badge-status-inactive",
-                                    "Rejected"  => "badge-status-hidden",
+                                    "confirmed" => "badge-status-active",
+                                    "delivered" => "badge-status-active",
+                                    "completed" => "badge-status-active",
+                                    "inprogress" => "badge-status-active",
+                                    "processing" => "badge-status-active",
+                                    "cancelled" => "badge-status-inactive",
+                                    "rejected"  => "badge-status-hidden",
                                     _           => "badge-status-pending"
                                 };
-                                var statusIcon = order.Status switch
+                                var statusIcon = order.Status?.ToLower().Replace(" ", "") switch
                                 {
-                                    "Confirmed" => "fa-solid fa-circle-check",
-                                    "Delivered" => "fa-solid fa-truck-fast",
-                                    "Cancelled" => "fa-solid fa-circle-xmark",
-                                    "Rejected"  => "fa-solid fa-ban",
+                                    "confirmed" => "fa-solid fa-circle-check",
+                                    "delivered" => "fa-solid fa-truck-fast",
+                                    "completed" => "fa-solid fa-truck-fast",
+                                    "inprogress" => "fa-solid fa-gear fa-spin",
+                                    "processing" => "fa-solid fa-gear fa-spin",
+                                    "cancelled" => "fa-solid fa-circle-xmark",
+                                    "rejected"  => "fa-solid fa-ban",
                                     _           => "fa-solid fa-hourglass-half"
                                 };
                             }
-                            <span class="badge-status @StatusClass">
+                            <span class="badge-status @StatusClass text-nowrap">
                                 <i class="@statusIcon me-1"></i> @LocalStatus(order.Status)
                             </span>
                         </td>
                         <td>
                             @{
-                                var paymentStatusClass = order.PaymentStatus switch
+                                var paymentStatusClass = order.PaymentStatus?.ToLower() switch
                                 {
-                                    "Paid"   => "badge-status-active",
-                                    "Failed" => "badge-status-hidden",
+                                    "paid"   => "badge-status-active",
+                                    "failed" => "badge-status-hidden",
                                     _        => "badge-status-pending"
                                 };
-                                var paymentStatusIcon = order.PaymentStatus switch
+                                var paymentStatusIcon = order.PaymentStatus?.ToLower() switch
                                 {
-                                    "Paid"   => "fa-solid fa-circle-check",
-                                    "Failed" => "fa-solid fa-circle-xmark",
+                                    "paid"   => "fa-solid fa-circle-check",
+                                    "failed" => "fa-solid fa-circle-xmark",
                                     _        => "fa-solid fa-hourglass-half"
                                 };
                             }
-                            <span class="badge-status @paymentStatusClass">
+                            <span class="badge-status @paymentStatusClass text-nowrap">
                                 <i class="@paymentStatusIcon me-1"></i> @LocalPayStatus(order.PaymentStatus)
                             </span>
                         </td>

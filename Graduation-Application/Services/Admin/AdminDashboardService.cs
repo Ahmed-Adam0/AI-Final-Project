@@ -57,7 +57,7 @@ namespace Graduation_Application.Services.Admin
                 .AsQueryable();
             var orders = await ordersQuery
                 .OrderByDescending(o => o.CreatedAt)
-                .Take(10)
+                .Take(5)
                 .ToListAsync();
 
             IQueryable<Order> completedOrders = ordersQuery.Where(o => o.Status == "Delivered");
@@ -78,14 +78,6 @@ namespace Graduation_Application.Services.Admin
                 .Take(5)
                 .ToListAsync();
 
-            var latestReports = await _productReportRepository
-                .GetAllAsNoTracking()
-                .Include(r => r.Product)
-                .Include(r => r.User)
-                .OrderByDescending(r => r.CreatedAt)
-                .Take(5)
-                .ToListAsync();
-
             var vendorStats = await _workshopRepository
                 .GetAllAsNoTracking()
                 .Include(w => w.User)
@@ -102,7 +94,9 @@ namespace Graduation_Application.Services.Admin
                     Revenue =
                         _vendorOrderRepository
                             .GetAllAsNoTracking()
-                            .Where(vo => vo.WorkshopId == w.Id && vo.Status == VendorOrderStatus.Delivered)
+                            .Where(vo =>
+                                vo.WorkshopId == w.Id && vo.Status == VendorOrderStatus.Delivered
+                            )
                             .Select(vo => (decimal?)vo.TotalPrice)
                             .Sum()
                         ?? 0m,
@@ -111,7 +105,15 @@ namespace Graduation_Application.Services.Admin
                 .Take(5)
                 .ToListAsync();
 
-            var revenueSeries = await completedOrders
+            var last6Months = Enumerable
+                .Range(0, 6)
+                .Select(i => DateTime.UtcNow.AddMonths(-5 + i)) // generate last 6 months in chronological order
+                .Select(d => new { d.Year, d.Month })
+                .ToList();
+            var sixMonthsAgo = DateTime.UtcNow.AddMonths(-6);
+
+            var revenueSeriesDb = await completedOrders
+                .Where(o => o.CreatedAt >= sixMonthsAgo)
                 .GroupBy(o => new { o.CreatedAt.Year, o.CreatedAt.Month })
                 .Select(g => new
                 {
@@ -119,11 +121,22 @@ namespace Graduation_Application.Services.Admin
                     g.Key.Month,
                     Revenue = g.Sum(x => x.TotalPrice),
                 })
-                .OrderBy(x => x.Year)
-                .ThenBy(x => x.Month)
                 .ToListAsync();
 
-            var orderSeries = await ordersQuery
+            var finalRevenueSeries = last6Months
+                .Select(m => new
+                {
+                    m.Year,
+                    m.Month,
+                    Revenue = revenueSeriesDb
+                        .FirstOrDefault(r => r.Year == m.Year && r.Month == m.Month)
+                        ?.Revenue
+                        ?? 0m,
+                })
+                .ToList();
+
+            var orderSeriesDb = await ordersQuery
+                .Where(o => o.CreatedAt >= sixMonthsAgo)
                 .GroupBy(o => new { o.CreatedAt.Year, o.CreatedAt.Month })
                 .Select(g => new
                 {
@@ -131,9 +144,19 @@ namespace Graduation_Application.Services.Admin
                     g.Key.Month,
                     Count = g.Count(),
                 })
-                .OrderBy(x => x.Year)
-                .ThenBy(x => x.Month)
                 .ToListAsync();
+
+            var finalOrderSeries = last6Months
+                .Select(m => new
+                {
+                    m.Year,
+                    m.Month,
+                    Count = orderSeriesDb
+                        .FirstOrDefault(r => r.Year == m.Year && r.Month == m.Month)
+                        ?.Count
+                        ?? 0,
+                })
+                .ToList();
 
             return new AdminDashboardDto
             {
@@ -206,16 +229,6 @@ namespace Graduation_Application.Services.Admin
                         BadgeText = "Review",
                         BadgeClass = "bg-info",
                     },
-                    new()
-                    {
-                        Title = "Recent report activity",
-                        Description = latestReports.Any()
-                            ? $"Latest product report: {latestReports.First().Reason}"
-                            : "No reports yet",
-                        CreatedAt = latestReports.FirstOrDefault()?.CreatedAt ?? DateTime.UtcNow,
-                        BadgeText = "Report",
-                        BadgeClass = "bg-warning",
-                    },
                 },
                 LatestOrders = orders
                     .Select(o => new AdminOrderListItemDto
@@ -223,8 +236,22 @@ namespace Graduation_Application.Services.Admin
                         Id = o.Id,
                         OrderNumber = $"ORD-{o.Id:D5}",
                         CustomerName = o.User?.FullName ?? o.UserId,
-                        VendorName = o.VendorOrders != null ? string.Join(", ", o.VendorOrders.Select(vo => vo.Workshop?.WorkshopNameEn).Where(name => !string.IsNullOrEmpty(name))) : "N/A",
-                        VendorNameAr = o.VendorOrders != null ? string.Join("، ", o.VendorOrders.Select(vo => vo.Workshop?.WorkshopNameAr).Where(name => !string.IsNullOrEmpty(name))) : "غير متاح",
+                        VendorName =
+                            o.VendorOrders != null
+                                ? string.Join(
+                                    ", ",
+                                    o.VendorOrders.Select(vo => vo.Workshop?.WorkshopNameEn)
+                                        .Where(name => !string.IsNullOrEmpty(name))
+                                )
+                                : "N/A",
+                        VendorNameAr =
+                            o.VendorOrders != null
+                                ? string.Join(
+                                    "، ",
+                                    o.VendorOrders.Select(vo => vo.Workshop?.WorkshopNameAr)
+                                        .Where(name => !string.IsNullOrEmpty(name))
+                                )
+                                : "غير متاح",
                         TotalAmount = o.TotalPrice,
                         Status = o.Status,
                         CreatedAt = o.CreatedAt,
@@ -242,30 +269,19 @@ namespace Graduation_Application.Services.Admin
                         CreatedAt = r.CreatedAt,
                     })
                     .ToList(),
-                LatestReports = latestReports
-                    .Select(r => new AdminReportListItemDto
-                    {
-                        Id = r.Id,
-                        Title = $"Product report #{r.Id}",
-                        Type = "Product",
-                        VendorName = r.Product?.Workshop?.WorkshopNameEn ?? "N/A",
-                        CreatedAt = r.CreatedAt,
-                        DownloadUrl = $"/Admin/Reports/Download?reportId={r.Id}",
-                    })
-                    .ToList(),
                 RevenueChart = new AdminChartDto
                 {
                     ChartId = "revenueChart",
                     Title = "Revenue Trend",
-                    Labels = revenueSeries.Select(x => $"{x.Month}/{x.Year}").ToList(),
-                    Values = revenueSeries.Select(x => x.Revenue).ToList(),
+                    Labels = finalRevenueSeries.Select(x => $"{x.Month}/{x.Year}").ToList(),
+                    Values = finalRevenueSeries.Select(x => x.Revenue).ToList(),
                 },
                 OrdersChart = new AdminChartDto
                 {
                     ChartId = "ordersChart",
                     Title = "Order Volume",
-                    Labels = orderSeries.Select(x => $"{x.Month}/{x.Year}").ToList(),
-                    Values = orderSeries.Select(x => (decimal)x.Count).ToList(),
+                    Labels = finalOrderSeries.Select(x => $"{x.Month}/{x.Year}").ToList(),
+                    Values = finalOrderSeries.Select(x => (decimal)x.Count).ToList(),
                 },
             };
         }
@@ -343,8 +359,22 @@ namespace Graduation_Application.Services.Admin
                         Id = o.Id,
                         OrderNumber = $"ORD-{o.Id:D5}",
                         CustomerName = o.User?.FullName ?? o.UserId,
-                        VendorName = o.VendorOrders != null ? string.Join(", ", o.VendorOrders.Select(vo => vo.Workshop?.WorkshopNameEn).Where(name => !string.IsNullOrEmpty(name))) : "N/A",
-                        VendorNameAr = o.VendorOrders != null ? string.Join("، ", o.VendorOrders.Select(vo => vo.Workshop?.WorkshopNameAr).Where(name => !string.IsNullOrEmpty(name))) : "غير متاح",
+                        VendorName =
+                            o.VendorOrders != null
+                                ? string.Join(
+                                    ", ",
+                                    o.VendorOrders.Select(vo => vo.Workshop?.WorkshopNameEn)
+                                        .Where(name => !string.IsNullOrEmpty(name))
+                                )
+                                : "N/A",
+                        VendorNameAr =
+                            o.VendorOrders != null
+                                ? string.Join(
+                                    "، ",
+                                    o.VendorOrders.Select(vo => vo.Workshop?.WorkshopNameAr)
+                                        .Where(name => !string.IsNullOrEmpty(name))
+                                )
+                                : "غير متاح",
                         TotalAmount = o.TotalPrice,
                         Status = o.Status,
                         PaymentStatus =
@@ -370,7 +400,7 @@ namespace Graduation_Application.Services.Admin
                     new() { Value = "Processing", Label = "Processing" },
                     new() { Value = "PartiallyDelivered", Label = "Partially Delivered" },
                     new() { Value = "Ready for Pickup", Label = "Ready for Pickup" },
-                    new() { Value = "Completed", Label = "Completed" },
+                    new() { Value = "Delivered", Label = "Delivered" },
                     new() { Value = "Cancelled", Label = "Cancelled" },
                 },
                 Vendors = new List<AdminVendorOptionDto>
@@ -406,7 +436,11 @@ namespace Graduation_Application.Services.Admin
                 .GetAllAsNoTracking()
                 .FirstOrDefaultAsync(pt => pt.LocalOrderId == orderId);
 
-            var subtotal = order.VendorOrders?.SelectMany(vo => vo.Items ?? new List<OrderItem>()).Sum(x => x.SnapshotUnitPrice * x.Quantity) ?? 0m;
+            var subtotal =
+                order
+                    .VendorOrders?.SelectMany(vo => vo.Items ?? new List<OrderItem>())
+                    .Sum(x => x.SnapshotUnitPrice * x.Quantity)
+                ?? 0m;
 
             return new AdminOrderDetailsDto
             {
@@ -431,44 +465,80 @@ namespace Graduation_Application.Services.Admin
                 },
                 Vendor = new AdminOrderVendorDto
                 {
-                    Name = order.VendorOrders != null ? string.Join(", ", order.VendorOrders.Select(vo => vo.Workshop?.WorkshopNameEn).Where(name => !string.IsNullOrEmpty(name))) : "N/A",
-                    NameAr = order.VendorOrders != null ? string.Join("، ", order.VendorOrders.Select(vo => vo.Workshop?.WorkshopNameAr).Where(name => !string.IsNullOrEmpty(name))) : "غير متاح",
-                    Email = order.VendorOrders != null ? string.Join(", ", order.VendorOrders.Select(vo => vo.Workshop?.User?.Email).Where(email => !string.IsNullOrEmpty(email))) : "",
-                    Phone = order.VendorOrders != null ? string.Join(", ", order.VendorOrders.Select(vo => vo.Workshop?.User?.PhoneNumber).Where(phone => !string.IsNullOrEmpty(phone))) : "",
+                    Name =
+                        order.VendorOrders != null
+                            ? string.Join(
+                                ", ",
+                                order
+                                    .VendorOrders.Select(vo => vo.Workshop?.WorkshopNameEn)
+                                    .Where(name => !string.IsNullOrEmpty(name))
+                            )
+                            : "N/A",
+                    NameAr =
+                        order.VendorOrders != null
+                            ? string.Join(
+                                "، ",
+                                order
+                                    .VendorOrders.Select(vo => vo.Workshop?.WorkshopNameAr)
+                                    .Where(name => !string.IsNullOrEmpty(name))
+                            )
+                            : "غير متاح",
+                    Email =
+                        order.VendorOrders != null
+                            ? string.Join(
+                                ", ",
+                                order
+                                    .VendorOrders.Select(vo => vo.Workshop?.User?.Email)
+                                    .Where(email => !string.IsNullOrEmpty(email))
+                            )
+                            : "",
+                    Phone =
+                        order.VendorOrders != null
+                            ? string.Join(
+                                ", ",
+                                order
+                                    .VendorOrders.Select(vo => vo.Workshop?.User?.PhoneNumber)
+                                    .Where(phone => !string.IsNullOrEmpty(phone))
+                            )
+                            : "",
                     RevenueShare = 0m,
                 },
-                Items = order.VendorOrders != null
-                    ? order.VendorOrders
-                        .SelectMany(vo => vo.Items ?? new List<OrderItem>())
-                        .Select(i => new AdminOrderItemDto
-                        {
-                            Id = i.Id,
-                            ProductName = i.SnapshotProductNameEn ?? "Unknown",
-                            Quantity = i.Quantity,
-                            UnitPrice = i.SnapshotUnitPrice,
-                            LineTotal = i.SnapshotUnitPrice * i.Quantity,
-                        })
-                        .ToList()
-                    : new List<AdminOrderItemDto>(),
-                Timeline = order.VendorOrders != null
-                    ? order.VendorOrders
-                        .SelectMany(vo => vo.StatusHistory ?? new List<VendorOrderStatusHistory>())
-                        .OrderBy(x => x.CreatedAt)
-                        .Select(x => new AdminOrderTimelineItemDto
-                        {
-                            Title = x.NewStatus,
-                            Description = $"Status changed from {x.OldStatus} to {x.NewStatus}",
-                            CreatedAt = x.CreatedAt,
-                            StatusClass = "bg-primary",
-                        })
-                        .ToList()
-                    : new List<AdminOrderTimelineItemDto>(),
+                Items =
+                    order.VendorOrders != null
+                        ? order
+                            .VendorOrders.SelectMany(vo => vo.Items ?? new List<OrderItem>())
+                            .Select(i => new AdminOrderItemDto
+                            {
+                                Id = i.Id,
+                                ProductName = i.SnapshotProductNameEn ?? "Unknown",
+                                Quantity = i.Quantity,
+                                UnitPrice = i.SnapshotUnitPrice,
+                                LineTotal = i.SnapshotUnitPrice * i.Quantity,
+                            })
+                            .ToList()
+                        : new List<AdminOrderItemDto>(),
+                Timeline =
+                    order.VendorOrders != null
+                        ? order
+                            .VendorOrders.SelectMany(vo =>
+                                vo.StatusHistory ?? new List<VendorOrderStatusHistory>()
+                            )
+                            .OrderBy(x => x.CreatedAt)
+                            .Select(x => new AdminOrderTimelineItemDto
+                            {
+                                Title = x.NewStatus,
+                                Description = $"Status changed from {x.OldStatus} to {x.NewStatus}",
+                                CreatedAt = x.CreatedAt,
+                                StatusClass = "bg-primary",
+                            })
+                            .ToList()
+                        : new List<AdminOrderTimelineItemDto>(),
             };
         }
 
         public async Task<AdminAnalyticsDto> GetAnalyticsAsync(AdminAnalyticsFilterDto filter)
         {
-            var from = filter.FromDate ?? DateTime.UtcNow.AddMonths(-1);
+            var from = filter.FromDate ?? DateTime.UtcNow.AddMonths(-4);
             var to = filter.ToDate ?? DateTime.UtcNow;
 
             var orders = _orderRepository
@@ -478,6 +548,44 @@ namespace Graduation_Application.Services.Admin
             var allOrders = await orders.ToListAsync();
             var deliveredOrders = await delivered.ToListAsync();
 
+            var duration = to - from;
+            var previousFrom = from - duration;
+            var previousTo = from;
+
+            var previousOrdersCount = await _orderRepository
+                .GetAllAsNoTracking()
+                .CountAsync(o => o.CreatedAt >= previousFrom && o.CreatedAt < previousTo);
+
+            var currentOrdersCount = allOrders.Count;
+            
+            string growthRateValue = "0%";
+            string trendClass = "text-muted";
+            if (previousOrdersCount == 0 && currentOrdersCount > 0)
+            {
+                growthRateValue = "+100%";
+                trendClass = "text-success";
+            }
+            else if (previousOrdersCount > 0)
+            {
+                var growth = ((currentOrdersCount - previousOrdersCount) * 100m) / previousOrdersCount;
+                growthRateValue = growth > 0 ? $"+{Math.Round(growth, 1)}%" : $"{Math.Round(growth, 1)}%";
+                trendClass = growth > 0 ? "text-success" : (growth < 0 ? "text-danger" : "text-muted");
+            }
+
+            var monthsCount = ((to.Year - from.Year) * 12) + to.Month - from.Month + 1;
+            if (monthsCount <= 0) monthsCount = 1;
+
+            var monthRange = Enumerable.Range(0, monthsCount)
+                .Select(i => to.AddMonths(-i))
+                .Select(d => new { d.Year, d.Month })
+                .OrderBy(x => x.Year).ThenBy(x => x.Month)
+                .ToList();
+
+            var revenueLabels = monthRange.Select(m => $"{m.Month}/{m.Year}").ToList();
+            var revenueValues = monthRange.Select(m =>
+                deliveredOrders.Where(o => o.CreatedAt.Year == m.Year && o.CreatedAt.Month == m.Month).Sum(x => x.TotalPrice)
+            ).ToList();
+
             return new AdminAnalyticsDto
             {
                 Filter = filter,
@@ -486,9 +594,10 @@ namespace Graduation_Application.Services.Admin
                     new()
                     {
                         Title = "Growth Rate",
-                        Value = allOrders.Count == 0 ? "0%" : "+8.4%",
+                        Value = growthRateValue,
                         SubText = "Compared to previous period",
                         IconClass = "fa-solid fa-chart-line",
+                        TrendClass = trendClass,
                     },
                     new()
                     {
@@ -533,18 +642,8 @@ namespace Graduation_Application.Services.Admin
                 {
                     ChartId = "revenueGrowthChart",
                     Title = "Revenue Growth",
-                    Labels = deliveredOrders
-                        .GroupBy(o => new { o.CreatedAt.Year, o.CreatedAt.Month })
-                        .OrderBy(g => g.Key.Year)
-                        .ThenBy(g => g.Key.Month)
-                        .Select(g => $"{g.Key.Month}/{g.Key.Year}")
-                        .ToList(),
-                    Values = deliveredOrders
-                        .GroupBy(o => new { o.CreatedAt.Year, o.CreatedAt.Month })
-                        .OrderBy(g => g.Key.Year)
-                        .ThenBy(g => g.Key.Month)
-                        .Select(g => g.Sum(x => x.TotalPrice))
-                        .ToList(),
+                    Labels = revenueLabels,
+                    Values = revenueValues,
                 },
                 ForecastChart = new AdminChartDto
                 {
@@ -562,7 +661,10 @@ namespace Graduation_Application.Services.Admin
                         Revenue =
                             _vendorOrderRepository
                                 .GetAllAsNoTracking()
-                                .Where(vo => vo.WorkshopId == w.Id && vo.Status == VendorOrderStatus.Delivered)
+                                .Where(vo =>
+                                    vo.WorkshopId == w.Id
+                                    && vo.Status == VendorOrderStatus.Delivered
+                                )
                                 .Select(vo => (decimal?)vo.TotalPrice)
                                 .Sum()
                             ?? 0m,
@@ -578,8 +680,13 @@ namespace Graduation_Application.Services.Admin
                     .Include(p => p.ProductType)
                         .ThenInclude(pt => pt.SubCategory)
                             .ThenInclude(sc => sc.Category)
-                    .GroupBy(p => p.ProductType != null && p.ProductType.SubCategory != null && p.ProductType.SubCategory.Category != null 
-                        ? p.ProductType.SubCategory.Category.NameEn : "Unknown")
+                    .GroupBy(p =>
+                        p.ProductType != null
+                        && p.ProductType.SubCategory != null
+                        && p.ProductType.SubCategory.Category != null
+                            ? p.ProductType.SubCategory.Category.NameEn
+                            : "Unknown"
+                    )
                     .Select(g => new AdminRankingItemDto
                     {
                         Rank = 0,

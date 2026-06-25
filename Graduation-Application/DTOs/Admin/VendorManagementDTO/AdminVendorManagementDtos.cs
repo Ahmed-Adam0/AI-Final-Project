@@ -113,6 +113,7 @@ namespace Graduation_Application.DTOs.Admin.VendorManagementDTO
         public int TotalOrders { get; set; }
         public int DeliveredOrders { get; set; }
         public int PendingOrders { get; set; }
+        public int PendingPaymentOrders { get; set; }
         public int CancelledOrders { get; set; }
         public int InProgressOrders { get; set; }
         public int ConfirmedOrders { get; set; }

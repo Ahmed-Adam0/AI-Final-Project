@@ -36,8 +36,7 @@
             </a>
         </li>
         <li class="sidebar-item"><a asp-area="Admin" asp-controller="Analytics" asp-action="Index" class="@LinkClass("Analytics", "Index")"><i class="fa-solid fa-chart-line"></i><span>@LocalizationService.Get("auth.sidebar.analytics")</span></a></li>
-        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Reports" asp-action="Index" class="@LinkClass("Reports", "Index")"><i class="fa-solid fa-flag"></i><span>@LocalizationService.Get("auth.sidebar.reports")</span></a></li>
-        <li class="sidebar-item"><a asp-area="Admin" asp-controller="Settings" asp-action="Index" class="@LinkClass("Settings", "Index")"><i class="fa-solid fa-gear"></i><span>@LocalizationService.Get("auth.sidebar.settings")</span></a></li>
+
 
         <li class="sidebar-section-title">@LocalizationService.Get("auth.sidebar.catalog")</li>
         <li class="sidebar-item"><a asp-area="Admin" asp-controller="Categories" asp-action="Index" class="@LinkClass("Categories", "Index")"><i class="fa-solid fa-layer-group"></i><span>@LocalizationService.Get("auth.sidebar.categories")</span></a></li>

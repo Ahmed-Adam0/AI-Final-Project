@@ -22,6 +22,9 @@
         "Completed"                => LocalizationService.Get("auth.orders.statusDelivered"),
         "Cancelled"                => LocalizationService.Get("auth.orders.statusCancelled"),
         "Rejected"                 => LocalizationService.Get("auth.orders.statusRejected"),
+        "PendingPayment"           => LocalizationService.Get("auth.orders.statusPendingPayment"),
+        "pendingPayment"           => LocalizationService.Get("auth.orders.statusPendingPayment"),
+        "Pending Payment"          => LocalizationService.Get("auth.orders.statusPendingPayment"),
         _                          => s
     };
 
@@ -71,6 +74,9 @@
         "Completed"                => LocalizationService.Get("auth.orders.statusDelivered"),
         "Cancelled"                => LocalizationService.Get("auth.orders.statusCancelled"),
         "Rejected"                 => LocalizationService.Get("auth.orders.statusRejected"),
+        "PendingPayment"           => LocalizationService.Get("auth.orders.statusPendingPayment"),
+        "pendingPayment"           => LocalizationService.Get("auth.orders.statusPendingPayment"),
+        "Pending Payment"          => LocalizationService.Get("auth.orders.statusPendingPayment"),
         _                          => title
     };
 
@@ -103,6 +109,9 @@
         "Delivered" => "badge-status-active",
         "Cancelled" => "badge-status-inactive",
         "Rejected"  => "badge-status-hidden",
+        "PendingPayment" => "badge-status-pending",
+        "pendingPayment" => "badge-status-pending",
+        "Pending Payment" => "badge-status-pending",
         _           => "badge-status-pending"
     };
 
@@ -112,6 +121,9 @@
         "Delivered" => "fa-solid fa-truck-fast",
         "Cancelled" => "fa-solid fa-circle-xmark",
         "Rejected"  => "fa-solid fa-ban",
+        "PendingPayment" => "fa-solid fa-credit-card",
+        "pendingPayment" => "fa-solid fa-credit-card",
+        "Pending Payment" => "fa-solid fa-credit-card",
         _           => "fa-solid fa-hourglass-half"
     };
 
@@ -231,22 +243,7 @@
             </div>
         </div>
 
-        <div class="glass-card p-4">
-            <h5 class="text-light mb-3">@LocalizationService.Get("auth.orders.changeStatus")</h5>
-            @if (string.Equals(Model.Summary.Status, "Pending", StringComparison.OrdinalIgnoreCase))
-            {
-                <form asp-area="Admin" asp-controller="Orders" asp-action="ChangeStatus" asp-route-id="@Model.Summary.Id" method="post" class="d-grid gap-2">
-                    @Html.AntiForgeryToken()
-                    <button type="submit" class="btn btn-premium btn-premium-primary">
-                        <i class="fa-solid fa-circle-check"></i> @LocalizationService.Get("auth.orders.confirmOrder")
-                    </button>
-                </form>
-            }
-            <a asp-area="Admin" asp-controller="Orders" asp-action="Export" asp-route-id="@Model.Summary.Id"
-               class="btn btn-premium btn-premium-secondary w-100 mt-2">
-                @LocalizationService.Get("auth.orders.exportOrder")
-            </a>
-        </div>
+
     </div>
 </div>
 

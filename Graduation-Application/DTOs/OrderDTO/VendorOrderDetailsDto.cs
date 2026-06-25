@@ -28,5 +28,6 @@ namespace Graduation_Application.DTOs.OrderDTO
         public decimal UnitPrice { get; set; }
         public int Quantity { get; set; }
         public decimal Total { get; set; }
+        public string? ProductImage { get; set; }
     }
 }
