@@ -220,7 +220,7 @@ namespace Graduation_Application.Services
             if (string.IsNullOrWhiteSpace(name))
                 return null;
                 
-            string searchTerm = name.ToLower().Trim();
+            string searchTerm = name.Trim();
 
             var product = await _productRepository
                 .GetAllAsNoTracking()
@@ -234,7 +234,7 @@ namespace Graduation_Application.Services
                 .Include(p => p.MaterialOptions)
                     .ThenInclude(mo => mo.VendorMaterialOption)
                         .ThenInclude(o => o.Group)
-                .FirstOrDefaultAsync(p => (p.NameAr.ToLower().Contains(searchTerm) || p.NameEn.ToLower().Contains(searchTerm)) && p.IsActive && !p.IsHidden);
+                .FirstOrDefaultAsync(p => (p.NameAr.Contains(searchTerm) || p.NameEn.Contains(searchTerm)) && p.IsActive && !p.IsHidden);
 
             if (product == null)
                 return null;
@@ -261,7 +261,7 @@ namespace Graduation_Application.Services
                 .Select(p => new ProductEmbeddingDto
                 {
                     Text =
-                        $"Id: {p.Id} | NameAr: {p.NameAr} | NameEn: {p.NameEn} | DescriptionAr: {p.DescriptionAr} | DescriptionEn: {p.DescriptionEn} | Price: {p.BasePrice} | CategoryNameAr: {p.ProductType.SubCategory.Category.NameAr} | CategoryNameEn: {p.ProductType.SubCategory.Category.NameEn} | SubCategoryNameAr: {p.ProductType.SubCategory.NameAr} | SubCategoryNameEn: {p.ProductType.SubCategory.NameEn} | VendorNameAr: {p.Workshop.WorkshopNameAr} | VendorNameEn: {p.Workshop.WorkshopNameEn}",
+                        $"Id: {p.Id} | NameAr: {p.NameAr} | NameEn: {p.NameEn} | DescriptionAr: {p.DescriptionAr} | DescriptionEn: {p.DescriptionEn} | Price: {p.BasePrice}",
                 })
                 .ToListAsync();
 
@@ -279,7 +279,7 @@ namespace Graduation_Application.Services
                 .GetAllAsNoTracking()
                 .Where(p => p.Id == id)
                 .Select(p =>
-                    $"Id: {p.Id} | NameAr: {p.NameAr} | NameEn: {p.NameEn} | DescriptionAr: {p.DescriptionAr} | DescriptionEn: {p.DescriptionEn} | Price: {p.BasePrice} | CategoryNameAr: {p.ProductType.SubCategory.Category.NameAr} | CategoryNameEn: {p.ProductType.SubCategory.Category.NameEn} | SubCategoryNameAr: {p.ProductType.SubCategory.NameAr} | SubCategoryNameEn: {p.ProductType.SubCategory.NameEn} | VendorNameAr: {p.Workshop.WorkshopNameAr} | VendorNameEn: {p.Workshop.WorkshopNameEn}"
+                    $"Id: {p.Id} | NameAr: {p.NameAr} | NameEn: {p.NameEn} | DescriptionAr: {p.DescriptionAr} | DescriptionEn: {p.DescriptionEn} | Price: {p.BasePrice}"
                 )
                 .FirstOrDefaultAsync();
             return text;

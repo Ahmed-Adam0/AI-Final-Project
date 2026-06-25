@@ -207,6 +207,32 @@ namespace Graduation_API.Controllers
         }
 
         /// <summary>
+        /// Get product details by Name
+        /// </summary>
+        /// <param name="name">Product Name</param>
+        /// <returns>Product details</returns>
+        [HttpGet("by-name")]
+        public async Task<IActionResult> GetProductDetailsByName([FromQuery] string name)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(name))
+                    return BadRequest(new { message = "Invalid product name" });
+
+                var product = await _productService.GetProductDetailsByNameAsync(name);
+
+                if (product == null)
+                    return NotFound(new { message = "Product not found" });
+
+                return Ok(product);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// Create a new product (Vendor/Workshop only)
         /// </summary>
         /// <param name="createProductDto">Product creation data</param>

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Text;
 using Graduation_Application.DTOs.PaymentDTO;
 using Graduation_Application.ExternalServices.EmailServices;
@@ -238,6 +239,26 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
                             }
                             return System.Threading.Tasks.Task.CompletedTask;
                         },
+                        OnTokenValidated = async context =>
+                        {
+                            var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<ApplicationUser>>();
+                            var userId = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier) 
+                                         ?? context.Principal?.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)
+                                         ?? context.Principal?.FindFirstValue(ClaimTypes.Name)
+                                         ?? context.Principal?.FindFirstValue(ClaimTypes.Email);
+
+                            if (string.IsNullOrEmpty(userId))
+                            {
+                                context.Fail("Unauthorized. User ID claim is missing.");
+                                return;
+                            }
+
+                            var user = await userManager.FindByIdAsync(userId);
+                            if (user == null || !user.IsActive)
+                            {
+                                context.Fail("Your account is currently inactive or suspended.");
+                            }
+                        }
                     };
                 });
 
