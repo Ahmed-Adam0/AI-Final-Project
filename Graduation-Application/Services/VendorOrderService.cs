@@ -704,7 +704,7 @@ namespace Graduation_Application.Services
 
             var nonCancelled = statuses.Where(s => s != VendorOrderStatus.Cancelled).ToList();
             if (nonCancelled.All(s => s == VendorOrderStatus.Delivered))
-                return "Completed";
+                return "Delivered";
 
             if (statuses.Any(s => s == VendorOrderStatus.Delivered))
                 return "PartiallyDelivered";
