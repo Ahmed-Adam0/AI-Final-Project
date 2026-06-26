@@ -31,7 +31,7 @@ namespace Graduation_Application.Services
             _logger = logger;
         }
 
-        public async Task<string> CreatePaymentUrlAsync(
+        public async Task<PaymentTransactionResult> CreatePaymentUrlAsync(
             int orderId,
             decimal amount,
             string firstName,
@@ -81,7 +81,11 @@ namespace Graduation_Application.Services
                     paymentUrl
                 );
 
-                return paymentUrl;
+                return new PaymentTransactionResult
+                {
+                    PaymentUrl = paymentUrl,
+                    Transaction = paymentTransaction
+                };
             }
             catch (Exception ex)
             {
@@ -125,7 +129,7 @@ namespace Graduation_Application.Services
                 DeliveryNeeded = false,
                 AmountCents = (long)(amount * 100),
                 Currency = "EGP",
-                MerchantOrderId = orderId.ToString(),
+                MerchantOrderId = $"{orderId}_{DateTime.UtcNow.Ticks}",
             };
 
             var response = await httpClient.PostAsJsonAsync($"{BaseUrl}/ecommerce/orders", request);

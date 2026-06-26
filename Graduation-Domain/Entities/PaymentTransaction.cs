@@ -13,5 +13,6 @@ namespace Graduation_domain.Entities
         public string Currency { get; set; } = "EGP";
         public DateTime? PaidAt { get; set; }
         public string? FailureReason { get; set; }
+        public List<PaymentMilestone> PaymentMilestones { get; set; } = [];
     }
 }

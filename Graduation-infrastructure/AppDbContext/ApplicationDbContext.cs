@@ -39,6 +39,7 @@ namespace Graduation_infrastructure.AppDbContext
         public DbSet<Faq> Faqs { get; set; }
         public DbSet<Banner> Banners { get; set; }
         public DbSet<OrderReviewImage> OrderReviewImages { get; set; }
+        public DbSet<PaymentMilestone> PaymentMilestones { get; set; }
 
         // ── Vendor-Driven Catalog ──────────────────────────────────────────────────
         public DbSet<ProductAttribute> ProductAttributes { get; set; }
@@ -329,6 +330,7 @@ namespace Graduation_infrastructure.AppDbContext
             // Decimal precision configuration to avoid truncation
             builder.Entity<Discount>().Property(d => d.DiscountValue).HasColumnType("decimal(18,2)");
             builder.Entity<Order>().Property(o => o.TotalPrice).HasColumnType("decimal(18,2)");
+            builder.Entity<Order>().Property(o => o.PaymentStatus).HasDefaultValue("Unpaid").HasMaxLength(20);
             builder.Entity<Workshop>().Property(w => w.Rating).HasColumnType("decimal(18,2)");
             // Note: CartItem.CachedPrice, OrderItem snapshot prices, VendorProductListing.BasePrice,
             // and ProductVariant prices are configured in their respective entity blocks above.
@@ -355,6 +357,27 @@ namespace Graduation_infrastructure.AppDbContext
                 entity.Property(wl => wl.Provider).HasMaxLength(100).IsRequired();
                 entity.Property(wl => wl.Payload).HasColumnType("nvarchar(max)").IsRequired();
                 entity.Property(wl => wl.ErrorMessage).HasMaxLength(1000);
+            });
+
+            builder.Entity<PaymentMilestone>(entity =>
+            {
+                entity.ToTable("PaymentMilestones");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Amount).HasColumnType("decimal(18,2)").IsRequired();
+                entity.Property(e => e.MilestoneStatus).HasConversion<string>().HasMaxLength(50).IsRequired();
+                entity.Property(e => e.IsPaid).IsRequired();
+
+                entity.HasOne(e => e.VendorOrder)
+                      .WithMany(vo => vo.PaymentMilestones)
+                      .HasForeignKey(e => e.VendorOrderId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.PaymentTransaction)
+                      .WithMany(pt => pt.PaymentMilestones)
+                      .HasForeignKey(e => e.PaymentTransactionId)
+                      .OnDelete(DeleteBehavior.SetNull);
+
+                entity.HasIndex(e => new { e.VendorOrderId, e.MilestoneStatus }).IsUnique();
             });
 
             // ProductReport relationships

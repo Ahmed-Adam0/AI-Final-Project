@@ -209,17 +209,20 @@ namespace Graduation_MVC.Areas.Admin.Controllers
 
         private string GetLocalizedStatusAr(string status)
         {
-            return status?.ToLower().Replace(" ", "") switch
+            return status?.ToLower().Replace(" ", "").Replace("_", "") switch
             {
-                "pending" => "قيد الانتظار",
-                "awaitingcustomerapproval" => "في انتظار موافقة العميل",
+                "pendingapproval" => "في انتظار الموافقة",
+                "pendingpayment" => "في انتظار الدفع",
                 "confirmed" => "مؤكد",
                 "inprogress" => "قيد التنفيذ",
+                "shipped" => "تم الشحن",
+                "delivered" => "تم التوصيل",
+                "completed" => "مكتمل",
+                "pending" => "قيد الانتظار",
+                "awaitingcustomerapproval" => "في انتظار موافقة العميل",
                 "processing" => "جاري المعالجة",
                 "partiallydelivered" => "تم التوصيل جزئياً",
                 "readyforpickup" => "جاهز للاستلام",
-                "shipped" => "تم الشحن",
-                "delivered" => "تم التوصيل",
                 "cancelled" => "ملغي",
                 "rejected" => "مرفوض",
                 _ => status ?? "غير معروف"
@@ -228,17 +231,20 @@ namespace Graduation_MVC.Areas.Admin.Controllers
 
         private string GetLocalizedStatusEn(string status)
         {
-            return status?.ToLower().Replace(" ", "") switch
+            return status?.ToLower().Replace(" ", "").Replace("_", "") switch
             {
-                "pending" => "Pending",
-                "awaitingcustomerapproval" => "Awaiting Customer Approval",
+                "pendingapproval" => "Pending Approval",
+                "pendingpayment" => "Pending Payment",
                 "confirmed" => "Confirmed",
                 "inprogress" => "In Progress",
+                "shipped" => "Shipped",
+                "delivered" => "Delivered",
+                "completed" => "Completed",
+                "pending" => "Pending",
+                "awaitingcustomerapproval" => "Awaiting Customer Approval",
                 "processing" => "Processing",
                 "partiallydelivered" => "Partially Delivered",
                 "readyforpickup" => "Ready for Pickup",
-                "shipped" => "Shipped",
-                "delivered" => "Delivered",
                 "cancelled" => "Cancelled",
                 "rejected" => "Rejected",
                 _ => status ?? "Unknown"

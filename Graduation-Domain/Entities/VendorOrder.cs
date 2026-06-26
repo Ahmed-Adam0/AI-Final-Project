@@ -25,5 +25,6 @@ namespace Graduation_domain.Entities
 
         public List<OrderItem> Items { get; set; } = [];
         public List<VendorOrderStatusHistory> StatusHistory { get; set; } = [];
+        public List<PaymentMilestone> PaymentMilestones { get; set; } = [];
     }
 }

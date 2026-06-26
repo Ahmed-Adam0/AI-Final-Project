@@ -9,6 +9,6 @@ namespace Graduation_domain.Enums
         InProgress,
         Shipped,
         Delivered,
-        Cancelled,
+        Cancelled
     }
 }

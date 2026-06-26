@@ -185,7 +185,36 @@ namespace Graduation_Application.Services
                         "The proposed delivery date for vendor order #{0} has been rejected"
                     ) 
                 },
+                {
+                    NotificationType.MilestoneCreated,
+                    (
+                        "مرحلة دفع جديدة قيد الانتظار",
+                        "New Payment Milestone Pending",
+                        "تم إنشاء مرحلة الدفع {0} لطلبكم رقم #{2} بقيمة {1} ج.م. يرجى إتمام الدفع.",
+                        "A new payment milestone {0} has been created for your order #{2} with amount EGP {1}. Please proceed with the payment."
+                    )
+                },
+                {
+                    NotificationType.MilestonePaid,
+                    (
+                        "تم سداد مرحلة الدفع",
+                        "Payment Milestone Paid",
+                        "تم سداد مرحلة الدفع {0} لطلبكم رقم #{2} بقيمة {1} ج.م بنجاح. شكراً لثقتكم بنا.",
+                        "The payment milestone {0} for your order #{2} with amount EGP {1} has been successfully paid. Thank you for your trust."
+                    )
+                },
             };
+
+        private static (string Ar, string En) GetStatusTranslations(string statusStr)
+        {
+            return statusStr switch
+            {
+                "PendingPayment" => ("الدفعة المقدمة (30%)", "Down Payment (30%)"),
+                "Shipped" => ("دفعة الشحن (40%)", "Shipping Payment (40%)"),
+                "Delivered" => ("دفعة الاستلام (30%)", "Delivery Payment (30%)"),
+                _ => (statusStr, statusStr)
+            };
+        }
 
         public async Task CreateAsync(string userId, NotificationType type, string? messageParams = null)
         {
@@ -199,8 +228,31 @@ namespace Graduation_Application.Services
             // Format messages with parameters if provided
             if (!string.IsNullOrWhiteSpace(messageParams))
             {
-                messageAr = string.Format(messageAr, messageParams);
-                messageEn = string.Format(messageEn, messageParams);
+                if (messageParams.Contains('|'))
+                {
+                    var splitParams = messageParams.Split('|');
+                    if (type == NotificationType.MilestoneCreated || type == NotificationType.MilestonePaid)
+                    {
+                        var statusStr = splitParams[0];
+                        var (statusAr, statusEn) = GetStatusTranslations(statusStr);
+                        
+                        var paramsAr = new object[] { statusAr, splitParams[1], splitParams[2] };
+                        var paramsEn = new object[] { statusEn, splitParams[1], splitParams[2] };
+                        
+                        messageAr = string.Format(messageAr, paramsAr);
+                        messageEn = string.Format(messageEn, paramsEn);
+                    }
+                    else
+                    {
+                        messageAr = string.Format(messageAr, splitParams);
+                        messageEn = string.Format(messageEn, splitParams);
+                    }
+                }
+                else
+                {
+                    messageAr = string.Format(messageAr, messageParams);
+                    messageEn = string.Format(messageEn, messageParams);
+                }
             }
 
             var notification = new InternalNotification

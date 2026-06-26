@@ -236,8 +236,6 @@ namespace Graduation_infrastructure.Repositories.Admin
                 o.Status == VendorOrderStatus.Confirmed
             );
             var ShippedOrders = await ordersQuery.CountAsync(o =>
-                //o.Status == VendorOrderStatus.ReadyForPickup
-                //||
                 o.Status == VendorOrderStatus.Shipped
             );
             Console.WriteLine($"ShippedOrders: {ShippedOrders}");

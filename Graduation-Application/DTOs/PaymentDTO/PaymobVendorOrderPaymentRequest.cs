@@ -2,10 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Graduation_Application.DTOs.PaymentDTO
 {
-    public class PaymobMasterOrderPaymentRequest
+    public class PaymobVendorOrderPaymentRequest
     {
         [Required]
-        public int MasterOrderId { get; set; }
-
+        public int VendorOrderId { get; set; }
     }
 }

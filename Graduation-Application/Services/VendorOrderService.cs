@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Graduation_Application.DTOs.OrderDTO;
 using Graduation_Application.IRepositories;
 using Graduation_Application.IServices;
+using Graduation_Application.IServices.Admin;
 using Graduation_domain.Entities;
 using Graduation_domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +20,8 @@ namespace Graduation_Application.Services
         private readonly INotificationService _notificationService;
         private readonly IInternalNotificationService _internalNotificationService;
         private readonly IEmailService _emailService;
+        private readonly IPaymentService _paymentService;
+        private readonly ILocalizationService _localizationService;
 
         public VendorOrderService(
             IGenaricRepositories<VendorOrder> vendorOrderRepository,
@@ -26,7 +29,9 @@ namespace Graduation_Application.Services
             IGenaricRepositories<Workshop> workshopRepository,
             INotificationService notificationService,
             IInternalNotificationService internalNotificationService,
-            IEmailService emailService
+            IEmailService emailService,
+            IPaymentService paymentService,
+            ILocalizationService localizationService
         )
         {
             _vendorOrderRepository = vendorOrderRepository;
@@ -35,6 +40,8 @@ namespace Graduation_Application.Services
             _notificationService = notificationService;
             _internalNotificationService = internalNotificationService;
             _emailService = emailService;
+            _paymentService = paymentService;
+            _localizationService = localizationService;
         }
 
         // 1. Get Vendor Orders with Filtering and Pagination
@@ -298,6 +305,11 @@ namespace Graduation_Application.Services
             var oldStatusStr = vendorOrder.Status.ToString();
             vendorOrder.Status = statusEnum;
             vendorOrder.UpdatedAt = DateTime.UtcNow;
+
+            if (statusEnum == VendorOrderStatus.Shipped || statusEnum == VendorOrderStatus.Delivered)
+            {
+                await _paymentService.CreateMilestoneIfNotExistAsync(orderId, statusEnum, vendorOrder.TotalPrice);
+            }
 
             // Add to status history
             vendorOrder.StatusHistory.Add(
@@ -640,6 +652,7 @@ namespace Graduation_Application.Services
                     VendorOrderStatus.AwaitingCustomerApproval,
                     new List<VendorOrderStatus>
                     {
+                        VendorOrderStatus.PendingPayment,
                         VendorOrderStatus.Confirmed,
                         VendorOrderStatus.Pending,
                         VendorOrderStatus.Cancelled,
@@ -699,6 +712,7 @@ namespace Graduation_Application.Services
             if (
                 statuses.Any(s =>
                     s == VendorOrderStatus.AwaitingCustomerApproval
+                    || s == VendorOrderStatus.PendingPayment
                     || s == VendorOrderStatus.Confirmed
                     || s == VendorOrderStatus.InProgress
                     || s == VendorOrderStatus.Shipped
@@ -759,11 +773,9 @@ namespace Graduation_Application.Services
             ProposeDeliveryDateRequestDto dto
         )
         {
-            if (dto.EstimatedDeliveryDate < DateTime.UtcNow.AddMinutes(-5))
+            if (dto.EstimatedDeliveryDate.Date < DateTime.Today)
             {
-                throw new Exception(
-                    "Estimated delivery date must be in the future (current time or later). / يجب أن يكون تاريخ التوصيل المتوقع في المستقبل (الوقت الحالي أو بعده)."
-                );
+                throw new Exception(_localizationService.Get("validation.estimatedDeliveryDateFuture"));
             }
 
             var vendorOrder = await _vendorOrderRepository

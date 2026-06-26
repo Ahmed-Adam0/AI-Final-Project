@@ -24,6 +24,7 @@ using Graduation_infrastructure.AppDbContext;
 using Graduation_Infrastructure.Identity;
 using Graduation_infrastructure.Repositories;
 using Graduation_infrastructure.Services;
+using Graduation_infrastructure.Localization;
 using Graduation_infrastructure.SignalR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
@@ -135,6 +136,7 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             services.AddScoped<IVoiceChatService, VoiceChatService>();
             services.AddScoped<IAdminAuditLogsService, AdminAuditLogsService>();
             services.AddScoped<ILanguageUserService, LanguageUserService>();
+            services.AddScoped<ILocalizationService, LocalizationService>();
             services.AddScoped<IOrderReviewImageRepository, OrderReviewImageRepository>();
             services.AddScoped<IInspirationService, InspirationService>();
             services.AddScoped<IAdminInspirationService, AdminInspirationService>();

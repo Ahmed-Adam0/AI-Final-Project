@@ -1,21 +1,43 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using Graduation_Application.IServices.Admin;
 
 namespace Graduation_Application.DTOs.Common
 {
     public class FutureDateAttribute : ValidationAttribute
     {
+        private const string DefaultMessageKey = "validation.estimatedDeliveryDateFuture";
+
         protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
         {
-            if (value is DateTime dateTime)
+            if (value is DateTime dateTime && dateTime.Date < DateTime.Today)
             {
-                // Allow a small buffer of 5 minutes to account for latency between client and server
-                if (dateTime < DateTime.UtcNow.AddMinutes(-1))
-                {
-                    return new ValidationResult(ErrorMessage ?? "Estimated delivery date must be in the future (current time or later).");
-                }
+                var localizationService = validationContext.GetService(typeof(ILocalizationService)) as ILocalizationService;
+                var messageKey = string.IsNullOrWhiteSpace(ErrorMessage) ? DefaultMessageKey : ErrorMessage;
+                var message = localizationService?.Get(messageKey) ?? "Estimated delivery date must be today or in the future.";
+                return new ValidationResult(message);
             }
+
             return ValidationResult.Success;
+        }
+    }
+
+    public class LocalizedRequiredAttribute : RequiredAttribute
+    {
+        private const string DefaultMessageKey = "validation.estimatedDeliveryDateRequired";
+
+        protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
+        {
+            var isMissing = value == null || (value is string str && string.IsNullOrWhiteSpace(str));
+            if (!isMissing)
+            {
+                return ValidationResult.Success;
+            }
+
+            var localizationService = validationContext.GetService(typeof(ILocalizationService)) as ILocalizationService;
+            var messageKey = string.IsNullOrWhiteSpace(ErrorMessage) ? DefaultMessageKey : ErrorMessage;
+            var message = localizationService?.Get(messageKey) ?? "Estimated delivery date is required.";
+            return new ValidationResult(message);
         }
     }
 }
