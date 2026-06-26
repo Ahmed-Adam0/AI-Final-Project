@@ -20,7 +20,9 @@ namespace Graduation_domain.Enums
         VendorOrderCancelled,
         DeliveryDateProposed,
         DeliveryDateApproved,
-        DeliveryDateRejected
+        DeliveryDateRejected,
+        MilestoneCreated,
+        MilestonePaid
     }
 }
 

@@ -12,5 +12,10 @@ namespace Graduation_Application.IServices
             string transactionId,
             string? failureReason = null
         );
+        Task<decimal> GetRemainingBalanceForMasterOrderAsync(int masterOrderId);
+        Task<decimal> GetRemainingBalanceForVendorOrderAsync(int vendorOrderId);
+        Task<object> GetMilestoneBreakdownForMasterOrderAsync(int masterOrderId);
+        Task<object> GetMilestoneBreakdownForVendorOrderAsync(int vendorOrderId, int? workshopId = null);
+        Task CreateMilestoneIfNotExistAsync(int vendorOrderId, Graduation_domain.Enums.VendorOrderStatus milestoneStatus, decimal totalAmount);
     }
 }

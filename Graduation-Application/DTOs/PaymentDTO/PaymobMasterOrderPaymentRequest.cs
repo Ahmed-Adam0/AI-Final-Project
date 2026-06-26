@@ -6,5 +6,7 @@ namespace Graduation_Application.DTOs.PaymentDTO
     {
         [Required]
         public int MasterOrderId { get; set; }
+
+        public decimal? Amount { get; set; }
     }
 }

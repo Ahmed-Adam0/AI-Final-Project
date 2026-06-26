@@ -27,6 +27,7 @@ namespace Graduation_Application.Services
         private readonly IGenaricRepositories<VendorMaterialOption> _vendorMaterialOptionRepository;
         private readonly IEmailService _emailService;
         private readonly IGenaricRepositories<Address> _addressRepository;
+        private readonly IPaymentService _paymentService;
 
         public OrderService(
             IGenaricRepositories<Order> orderRepository,
@@ -40,7 +41,8 @@ namespace Graduation_Application.Services
             UserManager<ApplicationUser> userManager,
             IGenaricRepositories<VendorMaterialOption> vendorMaterialOptionRepository,
             IEmailService emailService,
-            IGenaricRepositories<Address> addressRepository
+            IGenaricRepositories<Address> addressRepository,
+            IPaymentService paymentService
         )
         {
             _orderRepository = orderRepository;
@@ -55,6 +57,7 @@ namespace Graduation_Application.Services
             _vendorMaterialOptionRepository = vendorMaterialOptionRepository;
             _emailService = emailService;
             _addressRepository = addressRepository;
+            _paymentService = paymentService;
         }
 
         public async Task<List<OrderResponseDto>> GetAllOrdersAsync()
@@ -677,6 +680,9 @@ namespace Graduation_Application.Services
                 OldStatus = oldStatus,
                 NewStatus = VendorOrderStatus.PendingPayment.ToString()
             });
+
+            // Trigger milestone creation
+            await _paymentService.CreateMilestoneIfNotExistAsync(vendorOrderId, VendorOrderStatus.PendingPayment, vendorOrder.TotalPrice);
 
             // Derive MasterOrder status
             var allVendorStatuses = vendorOrder.MasterOrder.VendorOrders

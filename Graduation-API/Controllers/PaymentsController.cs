@@ -4,9 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Security.Claims;
 using Graduation_Application.DTOs.PaymentDTO;
 using Graduation_Application.IRepositories;
 using Graduation_Application.IServices;
+using Graduation_Application.IServices.Admin;
 using Graduation_domain.Entities;
 using Graduation_domain.Enums;
 using Graduation_Domain.Enums;
@@ -28,6 +30,9 @@ namespace Graduation_API.Controllers
         private readonly IPaymentTransactionRepository _paymentTransactionRepository;
         private readonly IGenaricRepositories<VendorOrder> _vendorOrderRepository;
         private readonly IPaymentService _paymentService;
+        private readonly IGenaricRepositories<PaymentMilestone> _milestoneRepository;
+        private readonly IGenaricRepositories<Workshop> _workshopRepository;
+        private readonly ILocalizationService _localizationService;
         private readonly ILogger<PaymentsController> _logger;
 
         public PaymentsController(
@@ -38,6 +43,9 @@ namespace Graduation_API.Controllers
             IPaymentTransactionRepository paymentTransactionRepository,
             IGenaricRepositories<VendorOrder> vendorOrderRepository,
             IPaymentService paymentService,
+            IGenaricRepositories<PaymentMilestone> milestoneRepository,
+            IGenaricRepositories<Workshop> workshopRepository,
+            ILocalizationService localizationService,
             ILogger<PaymentsController> logger
         )
         {
@@ -48,6 +56,9 @@ namespace Graduation_API.Controllers
             _paymentTransactionRepository = paymentTransactionRepository;
             _vendorOrderRepository = vendorOrderRepository;
             _paymentService = paymentService;
+            _milestoneRepository = milestoneRepository;
+            _workshopRepository = workshopRepository;
+            _localizationService = localizationService;
             _logger = logger;
         }
 
@@ -71,26 +82,117 @@ namespace Graduation_API.Controllers
                 if (order.UserId != userId)
                     return Forbid();
 
-                // Get all VendorOrders under this MasterOrder that are in PendingPayment status
-                var pendingPaymentVendorOrders = await _vendorOrderRepository
-                    .Where(vo => vo.MasterOrderId == request.MasterOrderId && vo.Status == VendorOrderStatus.PendingPayment)
+                var eligibleStatuses = new[]
+                {
+                    VendorOrderStatus.Confirmed,
+                    VendorOrderStatus.InProgress,
+                    VendorOrderStatus.Shipped,
+                    VendorOrderStatus.Delivered
+                };
+
+                // Get all eligible vendor orders
+                var eligibleVendorOrders = await _vendorOrderRepository
+                    .Where(vo => vo.MasterOrderId == request.MasterOrderId && eligibleStatuses.Contains(vo.Status))
                     .ToListAsync();
 
-                if (!pendingPaymentVendorOrders.Any())
-                    return BadRequest(new { Message = "No approved vendor orders are pending payment for this master order." });
+                if (!eligibleVendorOrders.Any())
+                {
+                    return BadRequest(new { Message = "No eligible vendor orders found for payment allocation. Orders must be in Confirmed, InProgress, Shipped, or Delivered status." });
+                }
 
-                decimal totalAmount = pendingPaymentVendorOrders.Sum(vo => vo.TotalPrice);
+                // Ensure all 3 milestones exist for all eligible vendor orders and collect unpaid milestones
+                var unpaidMilestones = new List<PaymentMilestone>();
+                foreach (var vo in eligibleVendorOrders)
+                {
+                    await EnsureAllMilestonesCreatedAsync(vo.Id, vo.TotalPrice);
+                    
+                    var voUnpaid = await _milestoneRepository
+                        .Where(m => m.VendorOrderId == vo.Id && !m.IsPaid)
+                        .ToListAsync();
+                    unpaidMilestones.AddRange(voUnpaid);
+                }
 
-                var paymentUrl = await _paymentGateway.CreatePaymentUrlAsync(
+                // Sort unpaid milestones: Shipped first, then Delivered, then PendingPayment (if any somehow left unpaid)
+                unpaidMilestones = unpaidMilestones
+                    .OrderBy(m => m.MilestoneStatus == VendorOrderStatus.Shipped ? 0 :
+                                  m.MilestoneStatus == VendorOrderStatus.Delivered ? 1 : 2)
+                    .ThenBy(m => m.VendorOrderId)
+                    .ThenBy(m => m.Id)
+                    .ToList();
+
+                decimal maxPayableAmount = unpaidMilestones.Sum(m => m.Amount);
+                if (maxPayableAmount <= 0)
+                {
+                    return BadRequest(new { Message = "No active unpaid payment milestones found for this master order." });
+                }
+
+                decimal amountToPay = maxPayableAmount;
+                if (request.Amount.HasValue)
+                {
+                    if (request.Amount.Value <= 0)
+                    {
+                        return BadRequest(new { Message = "Payment amount must be greater than zero." });
+                    }
+                    if (request.Amount.Value > maxPayableAmount)
+                    {
+                        return BadRequest(new { Message = $"Payment amount exceeds the maximum remaining balance of {maxPayableAmount}." });
+                    }
+                    amountToPay = Math.Round(request.Amount.Value, 2);
+                }
+
+                // Create a single Paymob transaction
+                var paymentResult = await _paymentGateway.CreatePaymentUrlAsync(
                     request.MasterOrderId,
-                    totalAmount,
+                    amountToPay,
                     order.FirstName ?? string.Empty,
                     order.LastName ?? string.Empty,
                     order.Email ?? string.Empty,
                     order.PhoneNumber ?? string.Empty
                 );
 
-                return Ok(new PaymobPaymentResponse { PaymentUrl = paymentUrl });
+                // Allocate payment amount among the milestones
+                decimal remainingToAllocate = amountToPay;
+                var milestonesToLink = new List<PaymentMilestone>();
+
+                foreach (var milestone in unpaidMilestones)
+                {
+                    if (remainingToAllocate <= 0) break;
+
+                    if (remainingToAllocate >= milestone.Amount || (milestone.Amount - remainingToAllocate) < 0.01m)
+                    {
+                        // Allocate fully
+                        milestone.PaymentTransactionId = paymentResult.Transaction.Id;
+                        milestonesToLink.Add(milestone);
+                        remainingToAllocate -= milestone.Amount;
+                    }
+                    else
+                    {
+                        // Allocate partially: split milestone
+                        var allocatedAmount = remainingToAllocate;
+                        var remainderAmount = milestone.Amount - remainingToAllocate;
+
+                        // Create a new unpaid milestone for the remainder
+                        var newUnpaidMilestone = new PaymentMilestone
+                        {
+                            VendorOrderId = milestone.VendorOrderId,
+                            MilestoneStatus = milestone.MilestoneStatus,
+                            Amount = remainderAmount,
+                            IsPaid = false
+                        };
+                        await _milestoneRepository.AddAsync(newUnpaidMilestone);
+
+                        // Update current milestone to the allocated amount and link to transaction
+                        milestone.Amount = allocatedAmount;
+                        milestone.PaymentTransactionId = paymentResult.Transaction.Id;
+                        milestonesToLink.Add(milestone);
+
+                        remainingToAllocate = 0;
+                    }
+                }
+
+                await _milestoneRepository.SaveChangesAsync();
+
+                return Ok(new PaymobPaymentResponse { PaymentUrl = paymentResult.PaymentUrl });
             }
             catch (Exception ex)
             {
@@ -101,6 +203,153 @@ namespace Graduation_API.Controllers
                 );
                 return BadRequest(new { Message = ex.Message });
             }
+        }
+
+        [Authorize]
+        [HttpPost("paymob/initiate-vendororder")]
+        public async Task<IActionResult> InitiateVendorOrderPayment(
+            [FromBody] PaymobVendorOrderPaymentRequest request
+        )
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var userId = GetUserId();
+
+                var vendorOrder = await _vendorOrderRepository
+                    .Where(vo => vo.Id == request.VendorOrderId)
+                    .Include(vo => vo.MasterOrder)
+                    .FirstOrDefaultAsync();
+
+                if (vendorOrder == null)
+                    return NotFound(new { Message = "Vendor order not found" });
+
+                if (vendorOrder.MasterOrder.UserId != userId)
+                    return Forbid();
+
+                // Fetch active unpaid milestone matching the vendor order status
+                var activeMilestone = await _milestoneRepository
+                    .Where(m => m.VendorOrderId == request.VendorOrderId 
+                             && m.MilestoneStatus == vendorOrder.Status 
+                             && !m.IsPaid)
+                    .FirstOrDefaultAsync();
+
+                if (activeMilestone == null)
+                {
+                    return BadRequest(new { Message = "No active unpaid payment milestone found matching the current status of the order." });
+                }
+
+                var masterOrder = vendorOrder.MasterOrder;
+
+                var paymentResult = await _paymentGateway.CreatePaymentUrlAsync(
+                    masterOrder.Id,
+                    activeMilestone.Amount,
+                    masterOrder.FirstName ?? string.Empty,
+                    masterOrder.LastName ?? string.Empty,
+                    masterOrder.Email ?? string.Empty,
+                    masterOrder.PhoneNumber ?? string.Empty
+                );
+
+                // Link the active milestone to this transaction
+                activeMilestone.PaymentTransactionId = paymentResult.Transaction.Id;
+                await _milestoneRepository.SaveChangesAsync();
+
+                return Ok(new PaymobPaymentResponse { PaymentUrl = paymentResult.PaymentUrl });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Payment initiation failed for vendor order {VendorOrderId}",
+                    request.VendorOrderId
+                );
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+        [Authorize]
+        [HttpGet("masterorder/{masterOrderId}/remaining-balance")]
+        public async Task<IActionResult> GetMasterOrderRemainingBalance(int masterOrderId)
+        {
+            try
+            {
+                var userId = GetUserId();
+                var masterOrder = await _orderRepository.GetByIdAsync(masterOrderId);
+                if (masterOrder == null)
+                    return NotFound(new { Message = "Master order not found" });
+
+                if (masterOrder.UserId != userId)
+                    return Forbid();
+
+                var breakdown = await _paymentService.GetMilestoneBreakdownForMasterOrderAsync(masterOrderId);
+                return Ok(breakdown);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get remaining balance for master order {MasterOrderId}", masterOrderId);
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+        [Authorize]
+        [HttpGet("vendororder/{vendorOrderId}/remaining-balance")]
+        public async Task<IActionResult> GetVendorOrderRemainingBalance(int vendorOrderId)
+        {
+            try
+            {
+                var userId = GetUserId();
+                var isVendor = User.IsInRole("Vendor");
+                
+                int? workshopId = null;
+                if (isVendor)
+                {
+                    workshopId = await GetVendorWorkshopIdAsync();
+                }
+
+                var vendorOrder = await _vendorOrderRepository
+                    .Where(vo => vo.Id == vendorOrderId)
+                    .Include(vo => vo.MasterOrder)
+                    .FirstOrDefaultAsync();
+
+                if (vendorOrder == null)
+                    return NotFound(new { Message = "Vendor order not found" });
+
+                if (isVendor)
+                {
+                    if (vendorOrder.WorkshopId != workshopId.Value)
+                        return Forbid();
+                }
+                else
+                {
+                    if (vendorOrder.MasterOrder.UserId != userId && !User.IsInRole("Admin") && !User.IsInRole("SuperAdmin"))
+                        return Forbid();
+                }
+
+                var breakdown = await _paymentService.GetMilestoneBreakdownForVendorOrderAsync(vendorOrderId, workshopId);
+                return Ok(breakdown);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get remaining balance for vendor order {VendorOrderId}", vendorOrderId);
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+        private async Task<int> GetVendorWorkshopIdAsync()
+        {
+            var workshopIdClaim = User.FindFirstValue("WorkshopId") ?? User.FindFirst("WorkshopId")?.Value;
+            if (int.TryParse(workshopIdClaim, out var workshopId))
+                return workshopId;
+
+            var userId = GetUserId();
+            var workshop = await _workshopRepository.FirstOrDefaultAsync(w => w.UserId == userId);
+
+            if (workshop == null)
+                throw new KeyNotFoundException("Workshop not found for the authenticated user");
+
+            return workshop.Id;
         }
 
         private string GetUserId()
@@ -127,7 +376,7 @@ namespace Graduation_API.Controllers
 
             try
             {
-                var paymentUrl = await _paymentGateway.CreatePaymentUrlAsync(
+                var paymentResult = await _paymentGateway.CreatePaymentUrlAsync(
                     request.OrderId,
                     request.Amount,
                     request.FirstName,
@@ -136,7 +385,7 @@ namespace Graduation_API.Controllers
                     request.Phone
                 );
 
-                return Ok(new PaymobPaymentResponse { PaymentUrl = paymentUrl });
+                return Ok(new PaymobPaymentResponse { PaymentUrl = paymentResult.PaymentUrl });
             }
             catch (Exception ex)
             {
@@ -374,7 +623,8 @@ namespace Graduation_API.Controllers
 
                 var success = bool.Parse(Request.Query["success"]);
 
-                var localOrderId = int.Parse(Request.Query["merchant_order_id"]);
+                var merchantOrderIdStr = Request.Query["merchant_order_id"].ToString();
+                var localOrderId = int.Parse(merchantOrderIdStr.Split('_')[0]);
 
                 _logger.LogInformation(
                     "OrderId={OrderId}, Success={Success}",
@@ -382,7 +632,17 @@ namespace Graduation_API.Controllers
                     success
                 );
 
-                var transaction = await _paymentTransactionRepository.GetByLocalOrderIdAsync(localOrderId);
+                var paymobOrderId = Request.Query["order"].ToString();
+                PaymentTransaction? transaction = null;
+                if (!string.IsNullOrEmpty(paymobOrderId))
+                {
+                    transaction = await _paymentTransactionRepository.GetByPaymobOrderIdAsync(paymobOrderId);
+                }
+
+                if (transaction == null)
+                {
+                    transaction = await _paymentTransactionRepository.GetByLocalOrderIdAsync(localOrderId);
+                }
 
                 if (transaction == null)
                 {
@@ -411,6 +671,59 @@ namespace Graduation_API.Controllers
         }
 
         // ── Private helpers ───────────────────────────────────────────────────
+ 
+        private async Task EnsureAllMilestonesCreatedAsync(int vendorOrderId, decimal totalPrice)
+        {
+            var existingPending = await _milestoneRepository
+                .FirstOrDefaultAsync(m => m.VendorOrderId == vendorOrderId && m.MilestoneStatus == VendorOrderStatus.PendingPayment);
+            if (existingPending == null)
+            {
+                var amount = Math.Round(totalPrice * 0.30m, 2);
+                var milestone = new PaymentMilestone
+                {
+                    VendorOrderId = vendorOrderId,
+                    MilestoneStatus = VendorOrderStatus.PendingPayment,
+                    Amount = amount,
+                    IsPaid = true,
+                    PaidAt = DateTime.UtcNow
+                };
+                await _milestoneRepository.AddAsync(milestone);
+            }
+
+            var existingShipped = await _milestoneRepository
+                .FirstOrDefaultAsync(m => m.VendorOrderId == vendorOrderId && m.MilestoneStatus == VendorOrderStatus.Shipped);
+            if (existingShipped == null)
+            {
+                var amount = Math.Round(totalPrice * 0.40m, 2);
+                var milestone = new PaymentMilestone
+                {
+                    VendorOrderId = vendorOrderId,
+                    MilestoneStatus = VendorOrderStatus.Shipped,
+                    Amount = amount,
+                    IsPaid = false
+                };
+                await _milestoneRepository.AddAsync(milestone);
+            }
+
+            var existingDelivered = await _milestoneRepository
+                .FirstOrDefaultAsync(m => m.VendorOrderId == vendorOrderId && m.MilestoneStatus == VendorOrderStatus.Delivered);
+            if (existingDelivered == null)
+            {
+                var pendingPaymentAmount = Math.Round(totalPrice * 0.30m, 2);
+                var shippedAmount = Math.Round(totalPrice * 0.40m, 2);
+                var amount = totalPrice - pendingPaymentAmount - shippedAmount;
+                var milestone = new PaymentMilestone
+                {
+                    VendorOrderId = vendorOrderId,
+                    MilestoneStatus = VendorOrderStatus.Delivered,
+                    Amount = amount,
+                    IsPaid = false
+                };
+                await _milestoneRepository.AddAsync(milestone);
+            }
+
+            await _milestoneRepository.SaveChangesAsync();
+        }
 
         /// <summary>
         /// Builds a <see cref="PaymentWebhookLog"/> record and persists it immediately

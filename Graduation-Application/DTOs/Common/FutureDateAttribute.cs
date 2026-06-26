@@ -9,10 +9,9 @@ namespace Graduation_Application.DTOs.Common
         {
             if (value is DateTime dateTime)
             {
-                // Allow a small buffer of 5 minutes to account for latency between client and server
-                if (dateTime < DateTime.UtcNow.AddMinutes(-1))
+                if (dateTime.Date < DateTime.UtcNow.Date)
                 {
-                    return new ValidationResult(ErrorMessage ?? "Estimated delivery date must be in the future (current time or later).");
+                    return new ValidationResult(ErrorMessage ?? "Estimated delivery date must be today or in the future.");
                 }
             }
             return ValidationResult.Success;

@@ -956,5 +956,11 @@
     "pending": "قيد الانتظار",
     "hidden": "مخفي",
     "resolved": "تم الحل"
+  },
+  "email": {
+    "milestoneCreatedSubject": "تم إنشاء مرحلة دفع لطلبكم رقم #{0} - FurniMind",
+    "milestoneCreatedBodyTemplate": "تم إنشاء مرحلة دفع جديدة ({0}) لطلبكم رقم #{2} بقيمة {1} ج.م. يرجى إتمام الدفع.",
+    "milestonePaymentSuccessSubject": "تأكيد سداد مرحلة الدفع لطلبكم رقم #{0} - FurniMind",
+    "milestonePaymentSuccessBodyTemplate": "تم سداد مرحلة الدفع ({0}) لطلبكم رقم #{2} بقيمة {1} ج.م بنجاح. شكراً لثقتكم بنا."
   }
 }

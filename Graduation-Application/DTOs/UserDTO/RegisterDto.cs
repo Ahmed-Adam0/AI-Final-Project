@@ -27,7 +27,7 @@ namespace Graduation_Application.DTOs.UserDTO
            
             public string? PhoneNumber { get; set; } 
 
-            public string PreferredLanguage { get; set; } = "ar";
+            public string PreferredLanguage { get; set; } = "en";
         }
     }
 

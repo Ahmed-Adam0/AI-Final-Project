@@ -957,6 +957,12 @@
     },
     "pending": "Pending",
     "hidden": "Hidden",
-    "resolved": "Resolved"
+    "resolved": "Resolved",
+    "email": {
+      "milestoneCreatedSubject": "Payment Milestone Pending for Order #{0} - FurniMind",
+      "milestoneCreatedBodyTemplate": "A new payment milestone ({0}) has been created for your order #{2} with amount EGP {1}. Please proceed with the payment.",
+      "milestonePaymentSuccessSubject": "Payment Milestone Confirmed for Order #{0} - FurniMind",
+      "milestonePaymentSuccessBodyTemplate": "The payment milestone ({0}) for your order #{2} with amount EGP {1} has been successfully paid. Thank you for your trust."
+    }
   }
 }

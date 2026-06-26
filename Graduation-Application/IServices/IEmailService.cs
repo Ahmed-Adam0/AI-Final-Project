@@ -12,5 +12,7 @@ namespace Graduation_Application.IServices
         Task SendDeliveryDateProposedEmailAsync(string toEmail, int vendorOrderId, System.DateTime proposedDate);
         Task SendDeliveryDateApprovedEmailAsync(string toEmail, int vendorOrderId);
         Task SendDeliveryDateRejectedEmailAsync(string toEmail, int vendorOrderId);
+        Task SendMilestoneCreatedEmailAsync(string toEmail, int vendorOrderId, string milestoneName, decimal amount, string lang);
+        Task SendMilestonePaymentSuccessEmailAsync(string toEmail, int vendorOrderId, string milestoneName, decimal amount, string lang);
     }
 }

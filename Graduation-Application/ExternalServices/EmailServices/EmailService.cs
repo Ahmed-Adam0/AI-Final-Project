@@ -1,5 +1,7 @@
+using System;
 using System.Threading.Tasks;
 using Graduation_Application.IServices;
+using Graduation_Application.IServices.Admin;
 using Microsoft.Extensions.Configuration;
 using SendGrid;
 using SendGrid.Helpers.Mail;
@@ -9,10 +11,12 @@ namespace Graduation_Application.ExternalServices.EmailServices
     public class EmailService : IEmailService
     {
         private readonly IConfiguration _configuration;
+        private readonly ILocalizationService _localizationService;
 
-        public EmailService(IConfiguration configuration)
+        public EmailService(IConfiguration configuration, ILocalizationService localizationService)
         {
             _configuration = configuration;
+            _localizationService = localizationService;
         }
 
         public async Task SendOtpEmailAsync(string toEmail, string otpCode, int expiryMinutes)
@@ -567,6 +571,134 @@ namespace Graduation_Application.ExternalServices.EmailServices
                 </html>";
 
             await SendEmailAsync(toEmail, subject, plainTextContent, htmlContent);
+        }
+
+        public async Task SendMilestoneCreatedEmailAsync(string toEmail, int vendorOrderId, string milestoneName, decimal amount, string lang)
+        {
+            var subjectTemplate = _localizationService.Get("email.milestoneCreatedSubject", lang);
+            var bodyTemplate = _localizationService.Get("email.milestoneCreatedBodyTemplate", lang);
+
+            // Fetch name of the milestone status (localized)
+            var milestoneStatusName = _localizationService.Get($"orders.status{milestoneName}", lang);
+            
+            var subject = string.Format(subjectTemplate, vendorOrderId);
+            var plainTextContent = string.Format(bodyTemplate, milestoneStatusName, amount, vendorOrderId);
+            var htmlContent = GetMilestoneCreatedHtml(lang, milestoneStatusName, amount, vendorOrderId);
+
+            await SendEmailAsync(toEmail, subject, plainTextContent, htmlContent);
+        }
+
+        public async Task SendMilestonePaymentSuccessEmailAsync(string toEmail, int vendorOrderId, string milestoneName, decimal amount, string lang)
+        {
+            var subjectTemplate = _localizationService.Get("email.milestonePaymentSuccessSubject", lang);
+            var bodyTemplate = _localizationService.Get("email.milestonePaymentSuccessBodyTemplate", lang);
+
+            // Fetch name of the milestone status (localized)
+            var milestoneStatusName = _localizationService.Get($"orders.status{milestoneName}", lang);
+
+            var subject = string.Format(subjectTemplate, vendorOrderId);
+            var plainTextContent = string.Format(bodyTemplate, milestoneStatusName, amount, vendorOrderId);
+            var htmlContent = GetMilestonePaidHtml(lang, milestoneStatusName, amount, vendorOrderId);
+
+            await SendEmailAsync(toEmail, subject, plainTextContent, htmlContent);
+        }
+
+        private string GetMilestoneCreatedHtml(string lang, string milestoneName, decimal amount, int vendorOrderId)
+        {
+            var isAr = lang == "ar";
+            var dir = isAr ? "rtl" : "ltr";
+            var align = isAr ? "right" : "left";
+            var title = isAr ? "مرحلة دفع جديدة قيد الانتظار" : "New Payment Milestone Pending";
+            var greeting = isAr ? "مرحبًا،" : "Hello,";
+            var intro = isAr 
+                ? $"تم إنشاء مرحلة الدفع <strong>({milestoneName})</strong> لطلب البائع رقم <strong>#{vendorOrderId}</strong> بقيمة:"
+                : $"A new payment milestone <strong>({milestoneName})</strong> has been created for vendor order <strong>#{vendorOrderId}</strong> with amount:";
+            var note = isAr 
+                ? "يرجى سداد هذه الدفعة لبدء أو مواصلة معالجة طلبكم وشحنه."
+                : "Please proceed with this payment to initiate or continue processing and shipping of your order.";
+            var copyright = isAr ? "© 2026 FurniMind جميع الحقوق محفوظة." : "© 2026 FurniMind. All rights reserved.";
+
+            return $@"
+                <html dir=""{dir}"">
+                <body style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #F7F4EB; direction: {dir}; margin: 0; padding: 0;"">
+                    <div dir=""{dir}"" style=""background-color: #F7F4EB; padding: 35px 15px; text-align: {align}; direction: {dir};"">
+                        <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 1px solid #E6DED4;"">
+                            <tr style=""background-color: #2B1A0A; text-align: center; border-bottom: 3px solid #C5A059;"">
+                                <td style=""padding: 25px 30px; color: #ffffff; font-size: 24px; font-weight: bold;"">{title}</td>
+                            </tr>
+                            <tr>
+                                <td style=""padding: 30px; background-color: #ffffff;"">
+                                    <p style=""color: #4A3F35; font-size: 16px; margin-top: 0;"">{greeting}</p>
+                                    <p style=""color: #4A3F35; font-size: 15px; line-height: 1.6;"">{intro}</p>
+                                    <table border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""background-color: #FAF9F6; border-radius: 10px; border: 1px solid #E6DED4; margin: 25px 0;"">
+                                        <tr>
+                                            <td style=""padding: 20px; text-align: center;"">
+                                                <span style=""color: #8C7E72; font-size: 14px; display: block; margin-bottom: 5px;"">{(isAr ? "مبلغ الدفعة" : "Milestone Amount")}</span>
+                                                <span style=""color: #2B1A0A; font-size: 28px; font-weight: bold;"">{(isAr ? $"{amount} ج.م" : $"EGP {amount}")}</span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <p style=""color: #8C7E72; font-size: 14px; line-height: 1.6;"">{note}</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style=""padding: 20px; background-color: #FAF9F6; border-top: 1px solid #F3ECE3; text-align: center;"">
+                                    <p style=""color: #8C7E72; font-size: 12px; margin: 0;"">{copyright}</p>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </body>
+                </html>";
+        }
+
+        private string GetMilestonePaidHtml(string lang, string milestoneName, decimal amount, int vendorOrderId)
+        {
+            var isAr = lang == "ar";
+            var dir = isAr ? "rtl" : "ltr";
+            var align = isAr ? "right" : "left";
+            var title = isAr ? "تأكيد سداد الدفعة" : "Payment Milestone Confirmed";
+            var greeting = isAr ? "مرحبًا،" : "Hello,";
+            var intro = isAr 
+                ? $"تم سداد مرحلة الدفع <strong>({milestoneName})</strong> لطلب البائع رقم <strong>#{vendorOrderId}</strong> بقيمة:"
+                : $"The payment milestone <strong>({milestoneName})</strong> for vendor order <strong>#{vendorOrderId}</strong> has been successfully paid in the amount of:";
+            var note = isAr 
+                ? "تم استلام الدفعة بنجاح، وسنواصل تجهيز وتوصيل طلبكم."
+                : "Your payment has been successfully received. We will continue processing and delivering your order.";
+            var copyright = isAr ? "© 2026 FurniMind جميع الحقوق محفوظة." : "© 2026 FurniMind. All rights reserved.";
+
+            return $@"
+                <html dir=""{dir}"">
+                <body style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #F7F4EB; direction: {dir}; margin: 0; padding: 0;"">
+                    <div dir=""{dir}"" style=""background-color: #F7F4EB; padding: 35px 15px; text-align: {align}; direction: {dir};"">
+                        <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 1px solid #E6DED4;"">
+                            <tr style=""background-color: #2B1A0A; text-align: center; border-bottom: 3px solid #C5A059;"">
+                                <td style=""padding: 25px 30px; color: #ffffff; font-size: 24px; font-weight: bold;"">{title}</td>
+                            </tr>
+                            <tr>
+                                <td style=""padding: 30px; background-color: #ffffff;"">
+                                    <p style=""color: #4A3F35; font-size: 16px; margin-top: 0;"">{greeting}</p>
+                                    <p style=""color: #4A3F35; font-size: 15px; line-height: 1.6;"">{intro}</p>
+                                    <table border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""background-color: #FAF9F6; border-radius: 10px; border: 1px solid #E6DED4; margin: 25px 0;"">
+                                        <tr>
+                                            <td style=""padding: 20px; text-align: center;"">
+                                                <span style=""color: #8C7E72; font-size: 14px; display: block; margin-bottom: 5px;"">{(isAr ? "المبلغ المدفوع" : "Amount Paid")}</span>
+                                                <span style=""color: #2B1A0A; font-size: 28px; font-weight: bold;"">{(isAr ? $"{amount} ج.م" : $"EGP {amount}")}</span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <p style=""color: #8C7E72; font-size: 14px; line-height: 1.6;"">{note}</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style=""padding: 20px; background-color: #FAF9F6; border-top: 1px solid #F3ECE3; text-align: center;"">
+                                    <p style=""color: #8C7E72; font-size: 12px; margin: 0;"">{copyright}</p>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </body>
+                </html>";
         }
 
         private async Task SendEmailAsync(
