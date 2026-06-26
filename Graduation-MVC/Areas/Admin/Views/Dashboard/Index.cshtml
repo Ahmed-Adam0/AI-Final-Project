@@ -192,11 +192,18 @@
 
             var ctx = revenueCanvas.getContext('2d');
 
+            // Retrieve style variables from root
+            var style = getComputedStyle(document.documentElement);
+            var primaryGold = style.getPropertyValue('--fm-color-primary-500').trim() || '#b8935c';
+            var primaryGoldHover = style.getPropertyValue('--fm-color-primary-600').trim() || '#a37e4c';
+            var primaryGlow = style.getPropertyValue('--fm-color-primary-glow').trim() || 'rgba(184, 147, 92, 0.25)';
+            var textMuted = style.getPropertyValue('--fm-color-neutral-500').trim() || '#8c8375';
+
             // Build gradient fill
             var gradient = ctx.createLinearGradient(0, 0, 0, 320);
-            gradient.addColorStop(0,   'rgba(99, 102, 241, 0.35)');
-            gradient.addColorStop(0.5, 'rgba(99, 102, 241, 0.10)');
-            gradient.addColorStop(1,   'rgba(99, 102, 241, 0.00)');
+            gradient.addColorStop(0,   'rgba(184, 147, 92, 0.35)');
+            gradient.addColorStop(0.5, 'rgba(184, 147, 92, 0.10)');
+            gradient.addColorStop(1,   'rgba(184, 147, 92, 0.00)');
 
             var labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RevenueChart.Labels));
             var values = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RevenueChart.Values));
@@ -210,16 +217,16 @@
                     datasets: [{
                         label: '@Html.Raw(isArabic ? "اتجاه الأرباح" : Model.RevenueChart.Title)',
                         data: values,
-                        borderColor: '#6366f1',
+                        borderColor: primaryGold,
                         borderWidth: 2.5,
                         backgroundColor: gradient,
-                        pointBackgroundColor: '#6366f1',
+                        pointBackgroundColor: primaryGold,
                         pointBorderColor: '#fff',
                         pointBorderWidth: 2,
                         pointRadius: 5,
                         pointHoverRadius: 8,
                         pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: '#6366f1',
+                        pointHoverBorderColor: primaryGoldHover,
                         pointHoverBorderWidth: 3,
                         tension: 0.42,
                         fill: true
@@ -242,7 +249,7 @@
                             position: 'top',
                             align: 'end',
                             labels: {
-                                color: '#94a3b8',
+                                color: textMuted,
                                 font: { size: 12, family: "'Inter', sans-serif" },
                                 boxWidth: 12,
                                 boxHeight: 12,
@@ -255,8 +262,8 @@
                             enabled: true,
                             backgroundColor: 'rgba(15, 23, 42, 0.92)',
                             titleColor: '#e2e8f0',
-                            bodyColor: '#94a3b8',
-                            borderColor: 'rgba(99,102,241,0.4)',
+                            bodyColor: '#e2e8f0',
+                            borderColor: primaryGlow,
                             borderWidth: 1,
                             padding: 12,
                             cornerRadius: 10,
@@ -278,7 +285,7 @@
                                 drawBorder: false
                             },
                             ticks: {
-                                color: '#64748b',
+                                color: textMuted,
                                 font: { size: 11, family: "'Inter', sans-serif" },
                                 maxRotation: 0
                             },
@@ -291,7 +298,7 @@
                                 drawBorder: false
                             },
                             ticks: {
-                                color: '#64748b',
+                                color: textMuted,
                                 font: { size: 11, family: "'Inter', sans-serif" },
                                 padding: 8,
                                 callback: function(val) {
