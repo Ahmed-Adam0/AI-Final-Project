@@ -1,4 +1,8 @@
 {
+  "validation": {
+    "estimatedDeliveryDateRequired": "حقل تاريخ التوصيل المتوقع مطلوب.",
+    "estimatedDeliveryDateFuture": "يجب أن يكون تاريخ التوصيل المتوقع من اليوم فصاعداً."
+  },
   "auth": {
     "layout": {
       "adminPanel": "لوحة الإدارة",

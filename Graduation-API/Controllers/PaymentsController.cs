@@ -84,6 +84,7 @@ namespace Graduation_API.Controllers
 
                 var eligibleStatuses = new[]
                 {
+                    VendorOrderStatus.PendingPayment,
                     VendorOrderStatus.Confirmed,
                     VendorOrderStatus.InProgress,
                     VendorOrderStatus.Shipped,
@@ -120,27 +121,13 @@ namespace Graduation_API.Controllers
                     .ThenBy(m => m.Id)
                     .ToList();
 
-                decimal maxPayableAmount = unpaidMilestones.Sum(m => m.Amount);
-                if (maxPayableAmount <= 0)
+                decimal amountToPay = Math.Round(unpaidMilestones.Sum(m => m.Amount), 2);
+                if (amountToPay <= 0)
                 {
                     return BadRequest(new { Message = "No active unpaid payment milestones found for this master order." });
                 }
 
-                decimal amountToPay = maxPayableAmount;
-                if (request.Amount.HasValue)
-                {
-                    if (request.Amount.Value <= 0)
-                    {
-                        return BadRequest(new { Message = "Payment amount must be greater than zero." });
-                    }
-                    if (request.Amount.Value > maxPayableAmount)
-                    {
-                        return BadRequest(new { Message = $"Payment amount exceeds the maximum remaining balance of {maxPayableAmount}." });
-                    }
-                    amountToPay = Math.Round(request.Amount.Value, 2);
-                }
-
-                // Create a single Paymob transaction
+                // Create a single Paymob transaction for the full remaining balance
                 var paymentResult = await _paymentGateway.CreatePaymentUrlAsync(
                     request.MasterOrderId,
                     amountToPay,
@@ -150,44 +137,9 @@ namespace Graduation_API.Controllers
                     order.PhoneNumber ?? string.Empty
                 );
 
-                // Allocate payment amount among the milestones
-                decimal remainingToAllocate = amountToPay;
-                var milestonesToLink = new List<PaymentMilestone>();
-
                 foreach (var milestone in unpaidMilestones)
                 {
-                    if (remainingToAllocate <= 0) break;
-
-                    if (remainingToAllocate >= milestone.Amount || (milestone.Amount - remainingToAllocate) < 0.01m)
-                    {
-                        // Allocate fully
-                        milestone.PaymentTransactionId = paymentResult.Transaction.Id;
-                        milestonesToLink.Add(milestone);
-                        remainingToAllocate -= milestone.Amount;
-                    }
-                    else
-                    {
-                        // Allocate partially: split milestone
-                        var allocatedAmount = remainingToAllocate;
-                        var remainderAmount = milestone.Amount - remainingToAllocate;
-
-                        // Create a new unpaid milestone for the remainder
-                        var newUnpaidMilestone = new PaymentMilestone
-                        {
-                            VendorOrderId = milestone.VendorOrderId,
-                            MilestoneStatus = milestone.MilestoneStatus,
-                            Amount = remainderAmount,
-                            IsPaid = false
-                        };
-                        await _milestoneRepository.AddAsync(newUnpaidMilestone);
-
-                        // Update current milestone to the allocated amount and link to transaction
-                        milestone.Amount = allocatedAmount;
-                        milestone.PaymentTransactionId = paymentResult.Transaction.Id;
-                        milestonesToLink.Add(milestone);
-
-                        remainingToAllocate = 0;
-                    }
+                    milestone.PaymentTransactionId = paymentResult.Transaction.Id;
                 }
 
                 await _milestoneRepository.SaveChangesAsync();

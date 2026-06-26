@@ -1,4 +1,8 @@
 {
+  "validation": {
+    "estimatedDeliveryDateRequired": "Estimated delivery date is required.",
+    "estimatedDeliveryDateFuture": "Estimated delivery date must be today or in the future."
+  },
   "auth": {
     "layout": {
       "adminPanel": "Admin Panel",
