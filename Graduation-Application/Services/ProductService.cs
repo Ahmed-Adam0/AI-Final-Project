@@ -219,7 +219,7 @@ namespace Graduation_Application.Services
         {
             if (string.IsNullOrWhiteSpace(name))
                 return null;
-                
+
             string searchTerm = name.Trim();
 
             var product = await _productRepository
@@ -234,7 +234,11 @@ namespace Graduation_Application.Services
                 .Include(p => p.MaterialOptions)
                     .ThenInclude(mo => mo.VendorMaterialOption)
                         .ThenInclude(o => o.Group)
-                .FirstOrDefaultAsync(p => (p.NameAr.Contains(searchTerm) || p.NameEn.Contains(searchTerm)) && p.IsActive && !p.IsHidden);
+                .FirstOrDefaultAsync(p =>
+                    (p.NameAr.Contains(searchTerm) || p.NameEn.Contains(searchTerm))
+                    && p.IsActive
+                    && !p.IsHidden
+                );
 
             if (product == null)
                 return null;
@@ -342,7 +346,7 @@ namespace Graduation_Application.Services
                 {
                     using var client = new System.Net.Http.HttpClient();
                     string webhookUrl =
-                        "https://main-production-aa56.up.railway.app/webhook/25fbe542-da87-4604-bfa6-ca1fa5f41f4e";
+                        "https://n8n-production-b540.up.railway.app/webhook/25fbe542-da87-4604-bfa6-ca1fa5f41f4e";
 
                     var jsonPayload = System.Text.Json.JsonSerializer.Serialize(
                         new { text = text }
@@ -459,7 +463,7 @@ namespace Graduation_Application.Services
 
                 // 1. Send delete request to remove the old embedding
                 string deleteWebhookUrl =
-                    "https://main-production-aa56.up.railway.app/webhook/fcaae4f1-d335-4338-827e-b5eb7dc0ee78";
+                    "https://n8n-production-b540.up.railway.app/webhook/fcaae4f1-d335-4338-827e-b5eb7dc0ee78";
                 var deletePayload = System.Text.Json.JsonSerializer.Serialize(
                     new { id = product.Id }
                 );
@@ -475,7 +479,7 @@ namespace Graduation_Application.Services
                 if (!string.IsNullOrEmpty(text))
                 {
                     string addWebhookUrl =
-                        "https://main-production-aa56.up.railway.app/webhook/25fbe542-da87-4604-bfa6-ca1fa5f41f4e";
+                        "https://n8n-production-b540.up.railway.app/webhook/25fbe542-da87-4604-bfa6-ca1fa5f41f4e";
                     var addPayload = System.Text.Json.JsonSerializer.Serialize(new { text = text });
                     var addContent = new System.Net.Http.StringContent(
                         addPayload,
@@ -513,7 +517,7 @@ namespace Graduation_Application.Services
             {
                 using var client = new System.Net.Http.HttpClient();
                 string webhookUrl =
-                    "https://main-production-aa56.up.railway.app/webhook/fcaae4f1-d335-4338-827e-b5eb7dc0ee78";
+                    "https://n8n-production-b540.up.railway.app/webhook/fcaae4f1-d335-4338-827e-b5eb7dc0ee78";
 
                 var jsonPayload = System.Text.Json.JsonSerializer.Serialize(new { id = productId });
                 var content = new System.Net.Http.StringContent(
@@ -860,7 +864,11 @@ namespace Graduation_Application.Services
                 );
         }
 
-        public async Task<string> UploadProduct3DModelAsync(int productId, string userId, Microsoft.AspNetCore.Http.IFormFile file)
+        public async Task<string> UploadProduct3DModelAsync(
+            int productId,
+            string userId,
+            Microsoft.AspNetCore.Http.IFormFile file
+        )
         {
             var product = await _productRepository.GetByIdAsync(productId);
             if (product == null)
@@ -869,7 +877,11 @@ namespace Graduation_Application.Services
             EnsureProductOwnership(product, userId);
 
             var folderName = "products/3d-models";
-            var modelUrl = await _fileService.Save3DModelAsync(file, folderName, product.Product3DModelUrl);
+            var modelUrl = await _fileService.Save3DModelAsync(
+                file,
+                folderName,
+                product.Product3DModelUrl
+            );
 
             product.Product3DModelUrl = modelUrl;
             _productRepository.Update(product);

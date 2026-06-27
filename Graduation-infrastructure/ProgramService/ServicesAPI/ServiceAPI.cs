@@ -9,6 +9,7 @@ using Graduation_Application.IServices;
 using Graduation_Application.IServices.Admin;
 using Graduation_Application.IServices.Vendor;
 using Graduation_Application.Mapper.CategoryMapping;
+using Graduation_Application.Mapper.FavoriteMapping;
 using Graduation_Application.Mapper.InspirationMapping;
 using Graduation_Application.Mapper.NotificationMapping;
 using Graduation_Application.Mapper.ProductMapping;
@@ -84,6 +85,7 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             GooglePayloadMappingConfig.RegisterMappings();
             AuthResponseMappingConfig.Response();
             CategoryMappingConfig.RegisterMappings();
+            FavoriteMappingConfig.RegisterMappings();
             ProductMappingConfig.RegisterMappings();
             ReviewMappingConfig.RegisterMappings();
             UserProfileMappingConfig.RegisterMappings();

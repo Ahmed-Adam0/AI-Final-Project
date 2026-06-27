@@ -8,6 +8,7 @@ using Graduation_Application.IRepositories.Admin;
 using Graduation_Application.IServices;
 using Graduation_Application.IServices.Admin;
 using Graduation_Application.Mapper.Admin;
+using Graduation_Application.Mapper.FavoriteMapping;
 using Graduation_Application.Mapper.InspirationMapping;
 using Graduation_Application.Mapper.ProductMapping;
 using Graduation_Application.Options;
@@ -69,6 +70,7 @@ namespace Graduation_infrastructure.ProgramService.ServicesMVC
 
             // Mapping
             ProductMappingConfig.RegisterMappings();
+            FavoriteMappingConfig.RegisterMappings();
             AdminAuthMappingConfig.RegisterMappings();
             AdminProfileMappingConfig.RegisterMappings();
             AdminUsersMappingConfig.RegisterMappings();
