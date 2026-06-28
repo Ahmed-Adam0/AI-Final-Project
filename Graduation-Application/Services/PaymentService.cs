@@ -78,6 +78,8 @@ namespace Graduation_Application.Services
                     .Where(m => m.PaymentTransactionId == t.Id)
                     .Include(m => m.VendorOrder)
                         .ThenInclude(vo => vo.StatusHistory)
+                    .Include(m => m.VendorOrder)
+                        .ThenInclude(vo => vo.Workshop)
                     .Include(m => m.VendorOrder.MasterOrder)
                         .ThenInclude(mo => mo.VendorOrders)
                     .ToListAsync();
@@ -116,10 +118,16 @@ namespace Graduation_Application.Services
                             var user = await _userManager.FindByIdAsync(userId);
                             var lang = user?.PreferredLanguage ?? "en";
 
-                            // In-app
+                            // Customer In-app Notification
                             await _internalNotificationService.CreateAsync(userId, NotificationType.MilestonePaid, $"{milestone.MilestoneStatus}|{milestone.Amount}|{vo.Id}");
 
-                            // Email
+                            // Vendor In-app Notification
+                            if (vo.Workshop != null && !string.IsNullOrWhiteSpace(vo.Workshop.UserId))
+                            {
+                                await _internalNotificationService.CreateAsync(vo.Workshop.UserId, NotificationType.VendorMilestonePaid, $"{milestone.MilestoneStatus}|{milestone.Amount}|{vo.Id}");
+                            }
+
+                            // Email to Customer
                             if (user != null && !string.IsNullOrWhiteSpace(user.Email))
                             {
                                 await _emailService.SendMilestonePaymentSuccessEmailAsync(user.Email, vo.Id, milestone.MilestoneStatus.ToString(), milestone.Amount, lang);

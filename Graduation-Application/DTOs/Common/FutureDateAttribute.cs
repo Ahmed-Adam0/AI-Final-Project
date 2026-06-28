@@ -10,12 +10,19 @@ namespace Graduation_Application.DTOs.Common
 
         protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
         {
-            if (value is DateTime dateTime && dateTime.Date < DateTime.Today)
+            if (value is DateTime dateTime)
             {
-                var localizationService = validationContext.GetService(typeof(ILocalizationService)) as ILocalizationService;
-                var messageKey = string.IsNullOrWhiteSpace(ErrorMessage) ? DefaultMessageKey : ErrorMessage;
-                var message = localizationService?.Get(messageKey) ?? "Estimated delivery date must be today or in the future.";
-                return new ValidationResult(message);
+                var targetDate = dateTime.Date;
+                var todayLocal = DateTime.Today;
+                var todayUtc = DateTime.UtcNow.Date;
+
+                if (targetDate < todayLocal && targetDate < todayUtc)
+                {
+                    var localizationService = validationContext.GetService(typeof(ILocalizationService)) as ILocalizationService;
+                    var messageKey = string.IsNullOrWhiteSpace(ErrorMessage) ? DefaultMessageKey : ErrorMessage;
+                    var message = localizationService?.Get(messageKey) ?? "Estimated delivery date must be today or in the future.";
+                    return new ValidationResult(message);
+                }
             }
 
             return ValidationResult.Success;

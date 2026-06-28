@@ -60,12 +60,12 @@ namespace Graduation_Application.Services
                     ) 
                 },
                 { 
-                    NotificationType.OrderReadyForPickup, 
+                    NotificationType.OrderShipped, 
                     (
-                        "الطلب جاهز",
-                        "Ready for Pickup",
-                        "طلبك رقم {0} جاهز للاستلام",
-                        "Your order #{0} is ready for pickup"
+                        "تم الشحن",
+                        "Order Shipped",
+                        "تم شحن طلبك رقم {0}",
+                        "Your order #{0} has been shipped"
                     ) 
                 },
                 { 
@@ -203,6 +203,15 @@ namespace Graduation_Application.Services
                         "The payment milestone {0} for your order #{2} with amount EGP {1} has been successfully paid. Thank you for your trust."
                     )
                 },
+                {
+                    NotificationType.VendorMilestonePaid,
+                    (
+                        "تم سداد دفعة الطلب",
+                        "Order Payment Received",
+                        "قام العميل بسداد {0} لطلبك رقم #{2} بقيمة {1} ج.م بنجاح.",
+                        "The customer has successfully paid {0} for your order #{2} with amount EGP {1}."
+                    )
+                },
             };
 
         private static (string Ar, string En) GetStatusTranslations(string statusStr)
@@ -231,7 +240,7 @@ namespace Graduation_Application.Services
                 if (messageParams.Contains('|'))
                 {
                     var splitParams = messageParams.Split('|');
-                    if (type == NotificationType.MilestoneCreated || type == NotificationType.MilestonePaid)
+                    if (type == NotificationType.MilestoneCreated || type == NotificationType.MilestonePaid || type == NotificationType.VendorMilestonePaid)
                     {
                         var statusStr = splitParams[0];
                         var (statusAr, statusEn) = GetStatusTranslations(statusStr);

@@ -498,10 +498,10 @@ namespace Graduation_Application.Services
                         orderId.ToString()
                     );
                     break;
-                case "Ready for Pickup":
+                case "Shipped":
                     await _internalNotificationService.CreateAsync(
                         order.UserId,
-                        NotificationType.OrderReadyForPickup,
+                        NotificationType.OrderShipped,
                         orderId.ToString()
                     );
                     break;
