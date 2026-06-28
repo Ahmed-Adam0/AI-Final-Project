@@ -122,7 +122,7 @@ namespace Graduation_API.Controllers
             {
                 using var client = new System.Net.Http.HttpClient();
                 string webhookUrl =
-                    "https://main-production-aa56.up.railway.app/webhook/25fbe542-da87-4604-bfa6-ca1fa5f41f4e";
+                    "https://n8n-production-b540.up.railway.app/webhook/25fbe542-da87-4604-bfa6-ca1fa5f41f4e";
 
                 int pageNumber = 1;
                 int pageSize = 150;
