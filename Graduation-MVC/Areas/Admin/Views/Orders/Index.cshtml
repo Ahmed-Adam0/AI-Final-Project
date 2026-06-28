@@ -23,10 +23,12 @@
 
     string LocalPayStatus(string s) => (s?.ToLower()) switch
     {
-        "paid"    => LocalizationService.Get("auth.orders.payPaid"),
-        "failed"  => LocalizationService.Get("auth.orders.payFailed"),
-        "pending" => LocalizationService.Get("auth.orders.payPending"),
-        _         => s?.ToUpper()
+        "paid"        => LocalizationService.Get("auth.orders.payPaid"),
+        "failed"      => LocalizationService.Get("auth.orders.payFailed"),
+        "pending"     => LocalizationService.Get("auth.orders.payPending"),
+        "unpaid"      => LocalizationService.Get("auth.orders.payUnpaid"),
+        "partialpaid" => LocalizationService.Get("auth.orders.payPartialPaid"),
+        _             => s?.ToUpper()
     };
 
     // Translate the Label values coming from the Service (hardcoded English)
@@ -193,15 +195,19 @@
                             @{
                                 var paymentStatusClass = order.PaymentStatus?.ToLower() switch
                                 {
-                                    "paid"   => "badge-status-active",
-                                    "failed" => "badge-status-hidden",
-                                    _        => "badge-status-pending"
+                                    "paid"        => "badge-status-active",
+                                    "partialpaid" => "badge-status-inactive",
+                                    "unpaid"      => "badge-status-pending",
+                                    "failed"      => "badge-status-hidden",
+                                    _             => "badge-status-pending"
                                 };
                                 var paymentStatusIcon = order.PaymentStatus?.ToLower() switch
                                 {
-                                    "paid"   => "fa-solid fa-circle-check",
-                                    "failed" => "fa-solid fa-circle-xmark",
-                                    _        => "fa-solid fa-hourglass-half"
+                                    "paid"        => "fa-solid fa-circle-check",
+                                    "partialpaid" => "fa-solid fa-circle-half-stroke",
+                                    "unpaid"      => "fa-solid fa-hourglass-start",
+                                    "failed"      => "fa-solid fa-circle-xmark",
+                                    _             => "fa-solid fa-hourglass-half"
                                 };
                             }
                             <span class="badge-status @paymentStatusClass text-nowrap">

@@ -48,21 +48,29 @@ namespace Graduation_Application.Services
         public async Task ProcessPaymentAsync(
             PaymentTransaction t,
             Order? o,
-            bool success,
+            PaymentStatus targetStatus,
             string transactionId,
             string? failureReason = null
         )
         {
             _logger.LogInformation(
-                "ProcessPaymentAsync called => Success={Success}, TransactionId={TransactionId}",
-                success,
+                "ProcessPaymentAsync called => TargetStatus={TargetStatus}, TransactionId={TransactionId}",
+                targetStatus,
                 transactionId
             );
-            t.TransactionId = transactionId;
 
-            if (success)
+            // Idempotency check: if transaction is already processed successfully, avoid double execution
+            if (t.Status == PaymentStatus.Paid && targetStatus == PaymentStatus.Paid)
             {
-                t.Status = PaymentStatus.Paid;
+                _logger.LogInformation("ProcessPaymentAsync idempotency: Transaction {TransactionId} is already Paid. Skipping.", t.Id);
+                return;
+            }
+
+            t.TransactionId = transactionId;
+            t.Status = targetStatus;
+
+            if (targetStatus == PaymentStatus.Paid)
+            {
                 t.PaidAt = DateTime.UtcNow;
                 t.FailureReason = null;
 
@@ -78,6 +86,8 @@ namespace Graduation_Application.Services
                 {
                     foreach (var milestone in milestones)
                     {
+                        if (milestone.IsPaid) continue; // Skip already paid milestones
+
                         milestone.IsPaid = true;
                         milestone.PaidAt = DateTime.UtcNow;
 
@@ -172,11 +182,72 @@ namespace Graduation_Application.Services
             }
             else
             {
-                t.Status = PaymentStatus.Failed;
                 t.FailureReason = failureReason ?? "Payment failed";
             }
 
+            // Update MasterOrder's PaymentStatus dynamically
+            if (o != null)
+            {
+                await UpdateOrderPaymentStatusAsync(o);
+            }
+
             await _paymentTransactionRepository.SaveChangesAsync();
+        }
+
+        private async Task UpdateOrderPaymentStatusAsync(Order order)
+        {
+            var hasMilestones = await _milestoneRepository
+                .Where(m => m.VendorOrder.MasterOrderId == order.Id)
+                .AnyAsync();
+
+            if (hasMilestones)
+            {
+                var approvedVendorOrders = await _vendorOrderRepository
+                    .Where(vo => vo.MasterOrderId == order.Id && 
+                                (vo.Status == VendorOrderStatus.PendingPayment ||
+                                 vo.Status == VendorOrderStatus.Confirmed ||
+                                 vo.Status == VendorOrderStatus.InProgress ||
+                                 vo.Status == VendorOrderStatus.Shipped ||
+                                 vo.Status == VendorOrderStatus.Delivered))
+                    .ToListAsync();
+
+                var paidMilestones = await _milestoneRepository
+                    .Where(m => m.VendorOrder.MasterOrderId == order.Id && m.IsPaid)
+                    .ToListAsync();
+
+                var totalApprovedAmount = approvedVendorOrders.Sum(vo => vo.TotalPrice);
+                var totalPaidAmount = paidMilestones.Sum(m => m.Amount);
+
+                if (totalApprovedAmount > 0)
+                {
+                    if (totalPaidAmount >= totalApprovedAmount - 0.01m)
+                    {
+                        order.PaymentStatus = "Paid";
+                    }
+                    else if (totalPaidAmount > 0)
+                    {
+                        order.PaymentStatus = "PartialPaid";
+                    }
+                    else
+                    {
+                        order.PaymentStatus = "Unpaid";
+                    }
+                }
+                else
+                {
+                    order.PaymentStatus = "Unpaid";
+                }
+            }
+            else
+            {
+                // Fallback if no milestones (legacy flow)
+                var transaction = await _paymentTransactionRepository.GetByLocalOrderIdAsync(order.Id);
+                var hasPaidTransaction = transaction != null && transaction.Status == PaymentStatus.Paid;
+                order.PaymentStatus = hasPaidTransaction ? "Paid" : "Unpaid";
+            }
+
+            _logger.LogInformation("Updated Order {OrderId} PaymentStatus to: {PaymentStatus} (HasMilestones={HasMilestones})", 
+                order.Id, order.PaymentStatus, hasMilestones);
         }
 
         public async Task<decimal> GetRemainingBalanceForMasterOrderAsync(int masterOrderId)

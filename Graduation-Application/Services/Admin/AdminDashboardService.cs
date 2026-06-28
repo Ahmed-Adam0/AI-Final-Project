@@ -330,13 +330,6 @@ namespace Graduation_Application.Services.Admin
                 .ToListAsync();
             var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
-            // Get all payment transactions for these orders
-            var orderIds = orders.Select(o => o.Id).ToList();
-            var paymentTransactions = await _paymentTransactionRepository
-                .GetAllAsNoTracking()
-                .Where(pt => orderIds.Contains(pt.LocalOrderId))
-                .ToListAsync();
-
             var vendorOptions = await _workshopRepository
                 .GetAllAsNoTracking()
                 .Include(w => w.User)
@@ -377,11 +370,7 @@ namespace Graduation_Application.Services.Admin
                                 : "غير متاح",
                         TotalAmount = o.TotalPrice,
                         Status = o.Status,
-                        PaymentStatus =
-                            paymentTransactions
-                                .FirstOrDefault(pt => pt.LocalOrderId == o.Id)
-                                ?.Status.ToString()
-                            ?? "Pending",
+                        PaymentStatus = o.PaymentStatus,
                         CreatedAt = o.CreatedAt,
                     })
                     .ToList(),
@@ -431,10 +420,6 @@ namespace Graduation_Application.Services.Admin
                 return null;
             }
 
-            // Get payment status
-            var paymentTransaction = await _paymentTransactionRepository
-                .GetAllAsNoTracking()
-                .FirstOrDefaultAsync(pt => pt.LocalOrderId == orderId);
 
             var subtotal =
                 order
@@ -449,7 +434,7 @@ namespace Graduation_Application.Services.Admin
                     Id = order.Id,
                     OrderNumber = $"ORD-{order.Id:D5}",
                     Status = order.Status,
-                    PaymentStatus = paymentTransaction?.Status.ToString() ?? "Pending",
+                    PaymentStatus = order.PaymentStatus,
                     Subtotal = subtotal,
                     ShippingFee = 0m,
                     Tax = 0m,

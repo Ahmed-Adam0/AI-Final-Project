@@ -2,7 +2,8 @@ namespace Graduation_Domain.Enums
 {
     public enum PaymentStatus
     {
-        Pending,
+        Unpaid,
+        PartialPaid,
         Paid,
         Failed,
         Cancelled

@@ -248,6 +248,8 @@
       "payPaid": "مدفوع",
       "payFailed": "فشل",
       "payPending": "قيد الانتظار",
+      "payUnpaid": "لم يتم الدفع",
+      "payPartialPaid": "جاري الدفع",
       "allStatuses": "كل الحالات",
       "allVendors": "كل الموردين",
       "statusChangedFrom": "تم تغيير الحالة من {0} إلى {1}",
