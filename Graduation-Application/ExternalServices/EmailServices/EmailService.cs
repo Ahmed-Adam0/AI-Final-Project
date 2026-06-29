@@ -3,8 +3,11 @@ using System.Threading.Tasks;
 using Graduation_Application.IServices;
 using Graduation_Application.IServices.Admin;
 using Microsoft.Extensions.Configuration;
-using SendGrid;
-using SendGrid.Helpers.Mail;
+//using SendGrid;
+//using SendGrid.Helpers.Mail;
+using MimeKit;
+using MailKit.Net.Smtp;
+using MailKit.Security;
 
 namespace Graduation_Application.ExternalServices.EmailServices
 {
@@ -701,80 +704,6 @@ namespace Graduation_Application.ExternalServices.EmailServices
                 </html>";
         }
 
-        private async Task SendEmailAsync(
-            string toEmail,
-            string subject,
-            string plainTextContent,
-            string htmlContent
-        )
-        {
-            var apiKey = _configuration["SendGrid:ApiKey"];
-            var fromEmail = _configuration["SendGrid:FromEmail"];
-            var fromName = _configuration["SendGrid:FromName"];
-
-            if (string.IsNullOrWhiteSpace(apiKey))
-            {
-                // No SendGrid API key configured; log and skip sending email.
-                System.Console.Error.WriteLine("SendGrid ApiKey is not configured. Skipping email send.");
-                return;
-            }
-
-            try
-            {
-                var client = new SendGridClient(apiKey);
-                var from = new EmailAddress(string.IsNullOrWhiteSpace(fromEmail) ? "no-reply@example.com" : fromEmail, string.IsNullOrWhiteSpace(fromName) ? "NoReply" : fromName);
-                var to = new EmailAddress(toEmail);
-
-                var msg = MailHelper.CreateSingleEmail(
-                    from,
-                    to,
-                    subject,
-                    plainTextContent,
-                    htmlContent
-                );
-
-                var response = await client.SendEmailAsync(msg);
-
-                // Log response for diagnostics
-                var statusCode = (int)response.StatusCode;
-
-                string responseBodyStr = string.Empty;
-                var responseBodyObj = response.Body as object;
-                if (responseBodyObj is string respString)
-                {
-                    responseBodyStr = respString;
-                }
-                else if (responseBodyObj is System.Net.Http.HttpContent httpContent)
-                {
-                    try
-                    {
-                        responseBodyStr = await httpContent.ReadAsStringAsync();
-                    }
-                    catch
-                    {
-                        responseBodyStr = response.ToString();
-                    }
-                }
-                else
-                {
-                    responseBodyStr = response.ToString();
-                }
-
-                if (statusCode >= 200 && statusCode < 300)
-                {
-                    System.Console.WriteLine($"SendGrid email sent to {toEmail} with status {statusCode}. Response: {responseBodyStr}");
-                }
-                else
-                {
-                    System.Console.Error.WriteLine($"SendGrid failed to send email to {toEmail}. Status: {statusCode}. Response: {responseBodyStr}");
-                }
-            }
-            catch (System.Exception ex)
-            {
-                System.Console.Error.WriteLine($"Exception while sending email via SendGrid: {ex.Message}");
-            }
-        }
-        //for smtp email
         //private async Task SendEmailAsync(
         //    string toEmail,
         //    string subject,
@@ -782,66 +711,141 @@ namespace Graduation_Application.ExternalServices.EmailServices
         //    string htmlContent
         //)
         //{
-        //    var emailAddress = _configuration["EmailSettings:Email"];
-        //    var displayName = _configuration["EmailSettings:DisplayName"];
-        //    var password = _configuration["EmailSettings:Password"];
-        //    var host = _configuration["EmailSettings:Host"];
-        //    var port = int.Parse(_configuration["EmailSettings:Port"]!);
+        //    var apiKey = _configuration["SendGrid:ApiKey"];
+        //    var fromEmail = _configuration["SendGrid:FromEmail"];
+        //    var fromName = _configuration["SendGrid:FromName"];
         //
-        //    if (string.IsNullOrWhiteSpace(emailAddress))
-        //        throw new Exception("Email address is not configured");
-        //
-        //    if (string.IsNullOrWhiteSpace(password))
-        //        throw new Exception("Email password is not configured");
-        //
-        //    var email = new MimeMessage();
-        //
-        //    email.From.Add(
-        //        new MailboxAddress(
-        //            displayName,
-        //            emailAddress));
-        //
-        //    email.To.Add(
-        //        MailboxAddress.Parse(
-        //            toEmail));
-        //
-        //    email.Subject = subject;
-        //
-        //    var bodyBuilder = new BodyBuilder
+        //    if (string.IsNullOrWhiteSpace(apiKey))
         //    {
-        //        TextBody = plainTextContent,
-        //        HtmlBody = htmlContent
-        //    };
-        //
-        //    email.Body = bodyBuilder.ToMessageBody();
-        //
-        //    using var smtp = new SmtpClient();
+        //        // No SendGrid API key configured; log and skip sending email.
+        //        System.Console.Error.WriteLine("SendGrid ApiKey is not configured. Skipping email send.");
+        //        return;
+        //    }
         //
         //    try
         //    {
-        //        await smtp.ConnectAsync(
-        //            host,
-        //            port,
-        //            SecureSocketOptions.StartTls);
+        //        var client = new SendGridClient(apiKey);
+        //        var from = new EmailAddress(string.IsNullOrWhiteSpace(fromEmail) ? "no-reply@example.com" : fromEmail, string.IsNullOrWhiteSpace(fromName) ? "NoReply" : fromName);
+        //        var to = new EmailAddress(toEmail);
         //
-        //        await smtp.AuthenticateAsync(
-        //            emailAddress,
-        //            password);
+        //        var msg = MailHelper.CreateSingleEmail(
+        //            from,
+        //            to,
+        //            subject,
+        //            plainTextContent,
+        //            htmlContent
+        //        );
         //
-        //        await smtp.SendAsync(email);
+        //        var response = await client.SendEmailAsync(msg);
         //
-        //        await smtp.DisconnectAsync(true);
+        //        // Log response for diagnostics
+        //        var statusCode = (int)response.StatusCode;
         //
-        //        Console.WriteLine(
-        //            $"Email sent successfully to {toEmail}");
+        //        string responseBodyStr = string.Empty;
+        //        var responseBodyObj = response.Body as object;
+        //        if (responseBodyObj is string respString)
+        //        {
+        //            responseBodyStr = respString;
+        //        }
+        //        else if (responseBodyObj is System.Net.Http.HttpContent httpContent)
+        //        {
+        //            try
+        //            {
+        //                responseBodyStr = await httpContent.ReadAsStringAsync();
+        //            }
+        //            catch
+        //            {
+        //                responseBodyStr = response.ToString();
+        //            }
+        //        }
+        //        else
+        //        {
+        //            responseBodyStr = response.ToString();
+        //        }
+        //
+        //        if (statusCode >= 200 && statusCode < 300)
+        //        {
+        //            System.Console.WriteLine($"SendGrid email sent to {toEmail} with status {statusCode}. Response: {responseBodyStr}");
+        //        }
+        //        else
+        //        {
+        //            System.Console.Error.WriteLine($"SendGrid failed to send email to {toEmail}. Status: {statusCode}. Response: {responseBodyStr}");
+        //        }
         //    }
-        //    catch (Exception ex)
+        //    catch (System.Exception ex)
         //    {
-        //        Console.Error.WriteLine(
-        //            $"Email sending failed: {ex.Message}");
-        //
-        //        throw;
+        //        System.Console.Error.WriteLine($"Exception while sending email via SendGrid: {ex.Message}");
         //    }
         //}
+
+        //for smtp email
+        private async Task SendEmailAsync(
+            string toEmail,
+            string subject,
+            string plainTextContent,
+            string htmlContent
+        )
+        {
+            var emailAddress = _configuration["EmailSettings:Email"];
+            var displayName = _configuration["EmailSettings:DisplayName"];
+            var password = _configuration["EmailSettings:Password"];
+            var host = _configuration["EmailSettings:Host"];
+            var port = int.Parse(_configuration["EmailSettings:Port"]!);
+
+            if (string.IsNullOrWhiteSpace(emailAddress))
+                throw new Exception("Email address is not configured");
+
+            if (string.IsNullOrWhiteSpace(password))
+                throw new Exception("Email password is not configured");
+
+            var email = new MimeMessage();
+
+            email.From.Add(
+                new MailboxAddress(
+                    displayName,
+                    emailAddress));
+
+            email.To.Add(
+                MailboxAddress.Parse(
+                    toEmail));
+
+            email.Subject = subject;
+
+            var bodyBuilder = new BodyBuilder
+            {
+                TextBody = plainTextContent,
+                HtmlBody = htmlContent
+            };
+
+            email.Body = bodyBuilder.ToMessageBody();
+
+            using var smtp = new SmtpClient();
+
+            try
+            {
+                await smtp.ConnectAsync(
+                    host,
+                    port,
+                    SecureSocketOptions.StartTls);
+
+                await smtp.AuthenticateAsync(
+                    emailAddress,
+                    password);
+
+                await smtp.SendAsync(email);
+
+                await smtp.DisconnectAsync(true);
+
+                Console.WriteLine(
+                    $"Email sent successfully to {toEmail}");
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine(
+                    $"Email sending failed: {ex.Message}");
+
+                throw;
+            }
+        }
     }
 }
