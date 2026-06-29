@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -9,7 +9,7 @@ namespace Graduation_Domain.Enums
         Pending = 0,
         Confirmed = 1,
         InProgress = 2,
-        ReadyForPickup = 3,
+        Shipped = 3,
         Delivered = 4,
         Cancelled = 5
     }

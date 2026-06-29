@@ -287,6 +287,7 @@ namespace Graduation_Application.Services
             var vendorOrder = await _vendorOrderRepository
                 .Where(vo => vo.Id == orderId && vo.WorkshopId == workshopId)
                 .Include(vo => vo.StatusHistory)
+                .Include(vo => vo.PaymentMilestones)
                 .Include(vo => vo.MasterOrder)
                     .ThenInclude(mo => mo.VendorOrders)
                 .FirstOrDefaultAsync();
@@ -300,6 +301,18 @@ namespace Graduation_Application.Services
             if (!IsValidStatusTransition(vendorOrder.Status, statusEnum))
             {
                 throw new Exception($"Cannot transition from {vendorOrder.Status} to {newStatus}");
+            }
+
+            // Payment guard: customer must pay shipping milestone (40%) before order can be marked Delivered
+            if (statusEnum == VendorOrderStatus.Delivered)
+            {
+                var shippingMilestone = vendorOrder.PaymentMilestones
+                    .FirstOrDefault(m => m.MilestoneStatus == VendorOrderStatus.Shipped);
+
+                if (shippingMilestone == null || !shippingMilestone.IsPaid)
+                {
+                    throw new Exception("Cannot mark as Delivered: the customer has not paid the shipping installment (40%) yet.");
+                }
             }
 
             var oldStatusStr = vendorOrder.Status.ToString();
@@ -345,7 +358,7 @@ namespace Graduation_Application.Services
                 case "Shipped":
                     await _internalNotificationService.CreateAsync(
                         vendorOrder.MasterOrder.UserId,
-                        NotificationType.OrderReadyForPickup,
+                        NotificationType.OrderShipped,
                         vendorOrder.MasterOrderId.ToString()
                     );
                     break;

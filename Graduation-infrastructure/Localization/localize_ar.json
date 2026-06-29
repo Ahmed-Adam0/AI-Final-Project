@@ -1,7 +1,10 @@
 {
   "validation": {
     "estimatedDeliveryDateRequired": "حقل تاريخ التوصيل المتوقع مطلوب.",
-    "estimatedDeliveryDateFuture": "يجب أن يكون تاريخ التوصيل المتوقع من اليوم فصاعداً."
+    "estimatedDeliveryDateFuture": "يجب أن يكون تاريخ التوصيل المتوقع من اليوم فصاعداً.",
+    "downPaymentUnpaid": "لا يمكن الانتقال إلى 'مؤكد' لأن الدفعة الأولى (30%) لم يتم سدادها بعد من قبل العميل.",
+    "shippingPaymentUnpaid": "لا يمكن الانتقال إلى 'تم الشحن' لأن دفعة الشحن (40%) لم يتم سدادها بعد من قبل العميل.",
+    "deliveryPaymentUnpaid": "لا يمكن الانتقال إلى 'تم التسليم' لأن الدفعة الأخيرة (30%) لم يتم سدادها بعد من قبل العميل."
   },
   "auth": {
     "layout": {
@@ -239,7 +242,6 @@
       "statusInProgress": "قيد التنفيذ",
       "statusProcessing": "جاري المعالجة",
       "statusPartiallyDelivered": "تم التوصيل جزئياً",
-      "statusReadyForPickup": "جاهز للاستلام",
       "statusShipped": "تم الشحن",
       "statusDelivered": "تم التوصيل",
       "statusCompleted": "مكتمل",
@@ -248,6 +250,8 @@
       "payPaid": "مدفوع",
       "payFailed": "فشل",
       "payPending": "قيد الانتظار",
+      "payUnpaid": "لم يتم الدفع",
+      "payPartialPaid": "جاري الدفع",
       "allStatuses": "كل الحالات",
       "allVendors": "كل الموردين",
       "statusChangedFrom": "تم تغيير الحالة من {0} إلى {1}",
@@ -312,7 +316,7 @@
       "cancelled": "ملغاة",
       "inProgress": "جار التنفيذ",
       "confirmed": "مؤكد",
-      "readyForPickup": "قيد الشحن",
+      "shipped": "تم الشحن",
       "awaitingApproval": "في انتظار الموافقة",
       "pendingPayment": "بانتظار الدفع",
       "revenue": "الإيرادات",

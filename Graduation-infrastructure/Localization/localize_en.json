@@ -1,7 +1,10 @@
 {
   "validation": {
     "estimatedDeliveryDateRequired": "Estimated delivery date is required.",
-    "estimatedDeliveryDateFuture": "Estimated delivery date must be today or in the future."
+    "estimatedDeliveryDateFuture": "Estimated delivery date must be today or in the future.",
+    "downPaymentUnpaid": "Cannot transition to Confirmed because the Down Payment (30%) has not been paid by the customer.",
+    "shippingPaymentUnpaid": "Cannot transition to Shipped because the Shipping Payment (40%) has not been paid by the customer.",
+    "deliveryPaymentUnpaid": "Cannot transition to Delivered because the Delivery Payment (30%) has not been paid by the customer."
   },
   "auth": {
     "layout": {
@@ -239,7 +242,6 @@
       "statusInProgress": "In Progress",
       "statusProcessing": "Processing",
       "statusPartiallyDelivered": "Partially Delivered",
-      "statusReadyForPickup": "Ready for Pickup",
       "statusShipped": "Shipped",
       "statusDelivered": "Delivered",
       "statusCompleted": "Completed",
@@ -248,6 +250,8 @@
       "payPaid": "Paid",
       "payFailed": "Failed",
       "payPending": "Pending",
+      "payUnpaid": "Unpaid",
+      "payPartialPaid": "Partially Paid",
       "allStatuses": "All Statuses",
       "allVendors": "All Vendors",
       "statusChangedFrom": "Status changed from {0} to {1}",
@@ -312,7 +316,7 @@
       "cancelled": "Cancelled",
       "inProgress": "In Progress",
       "confirmed": "Confirmed",
-      "readyForPickup": "Shipped",
+      "shipped": "Shipped",
       "awaitingApproval": "Awaiting Approval",
       "pendingPayment": "Pending Payment",
       "revenue": "Revenue",

@@ -95,7 +95,6 @@ namespace Graduation_API.Controllers
                 "awaitingcustomerapproval" => "في انتظار موافقة العميل",
                 "processing" => "جاري المعالجة",
                 "partiallydelivered" => "تم التوصيل جزئياً",
-                "readyforpickup" => "جاهز للاستلام",
                 "cancelled" => "ملغي",
                 "rejected" => "مرفوض",
                 _ => status ?? "غير معروف"
@@ -117,7 +116,6 @@ namespace Graduation_API.Controllers
                 "awaitingcustomerapproval" => "Awaiting Customer Approval",
                 "processing" => "Processing",
                 "partiallydelivered" => "Partially Delivered",
-                "readyforpickup" => "Ready for Pickup",
                 "cancelled" => "Cancelled",
                 "rejected" => "Rejected",
                 _ => status ?? "Unknown"

@@ -88,6 +88,8 @@ namespace Graduation_infrastructure.ProgramService.ServicesMVC
             services.AddScoped<ILocalizationService, LocalizationService>();
             services.AddScoped<IOrderReviewImageRepository, OrderReviewImageRepository>();
             services.AddScoped<IAdminInspirationService, AdminInspirationService>();
+            services.AddScoped<IPaymentService, PaymentService>();
+            services.AddScoped<IOrderRepository, OrderRepository>();
             // Application Services
             services.AddScoped<IJwtTokenGenerator, NullJwtTokenGenerator>();
             // Do not register existing IAuthService here for MVC; register Admin auth service instead

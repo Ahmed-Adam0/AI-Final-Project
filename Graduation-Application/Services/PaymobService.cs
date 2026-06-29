@@ -64,7 +64,7 @@ namespace Graduation_Application.Services
                     LocalOrderId = orderId,
                     PaymobOrderId = paymobOrderId,
                     PaymentToken = paymentToken,
-                    Status = PaymentStatus.Pending,
+                    Status = PaymentStatus.Unpaid,
                     Amount = amount,
                     Currency = "EGP",
                 };

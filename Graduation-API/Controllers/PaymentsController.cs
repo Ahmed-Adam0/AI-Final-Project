@@ -491,7 +491,7 @@ namespace Graduation_API.Controllers
                     await _paymentService.ProcessPaymentAsync(
                         transaction,
                         order,
-                        true,
+                        PaymentStatus.Paid,
                         paymobTransactionId.ToString()
                     );
 
@@ -504,11 +504,13 @@ namespace Graduation_API.Controllers
                 }
                 else if (payload.Obj.IsVoided)
                 {
-                    transaction.Status = PaymentStatus.Cancelled;
-                    transaction.TransactionId = paymobTransactionId.ToString();
-                    transaction.FailureReason = "Transaction voided";
-
-                    await _paymentTransactionRepository.SaveChangesAsync();
+                    await _paymentService.ProcessPaymentAsync(
+                        transaction,
+                        order,
+                        PaymentStatus.Cancelled,
+                        paymobTransactionId.ToString(),
+                        "Transaction voided"
+                    );
 
                     _logger.LogInformation(
                         "Payment VOIDED — TransactionId: {TransactionId}, PaymobOrderId: {PaymobOrderId}, LocalOrderId: {LocalOrderId}",
@@ -522,7 +524,7 @@ namespace Graduation_API.Controllers
                     await _paymentService.ProcessPaymentAsync(
                         transaction,
                         order,
-                        false,
+                        PaymentStatus.Failed,
                         paymobTransactionId.ToString(),
                         payload.Obj.Data?.ContainsKey("error") == true
                             ? payload.Obj.Data["error"]?.ToString()
@@ -603,11 +605,13 @@ namespace Graduation_API.Controllers
                     return Ok(new { Message = "Transaction not found" });
                 }
 
-                transaction.Status = success ? PaymentStatus.Paid : PaymentStatus.Failed;
-
-                transaction.TransactionId = Request.Query["id"];
-
-                await _paymentTransactionRepository.SaveChangesAsync();
+                var order = await _orderRepository.GetByIdAsync(localOrderId);
+                await _paymentService.ProcessPaymentAsync(
+                    transaction,
+                    order,
+                    success ? PaymentStatus.Paid : PaymentStatus.Failed,
+                    Request.Query["id"].ToString()
+                );
 
                 return Ok(new { Message = "Success" });
             }

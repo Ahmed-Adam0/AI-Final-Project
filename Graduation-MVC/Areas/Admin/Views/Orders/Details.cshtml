@@ -15,8 +15,6 @@
         "Processing"               => LocalizationService.Get("auth.orders.statusProcessing"),
         "PartiallyDelivered"       => LocalizationService.Get("auth.orders.statusPartiallyDelivered"),
         "Partially Delivered"      => LocalizationService.Get("auth.orders.statusPartiallyDelivered"),
-        "Ready for Pickup"         => LocalizationService.Get("auth.orders.statusReadyForPickup"),
-        "ReadyForPickup"           => LocalizationService.Get("auth.orders.statusReadyForPickup"),
         "Shipped"                  => LocalizationService.Get("auth.orders.statusShipped"),
         "Delivered"                => LocalizationService.Get("auth.orders.statusDelivered"),
         "Completed"                => LocalizationService.Get("auth.orders.statusDelivered"),
@@ -30,10 +28,12 @@
 
     string LocalPayStatus(string s) => s switch
     {
-        "Paid"    => LocalizationService.Get("auth.orders.payPaid"),
-        "Failed"  => LocalizationService.Get("auth.orders.payFailed"),
-        "Pending" => LocalizationService.Get("auth.orders.payPending"),
-        _         => s
+        "Paid"        => LocalizationService.Get("auth.orders.payPaid"),
+        "Failed"      => LocalizationService.Get("auth.orders.payFailed"),
+        "Pending"     => LocalizationService.Get("auth.orders.payPending"),
+        "Unpaid"      => LocalizationService.Get("auth.orders.payUnpaid"),
+        "PartialPaid" => LocalizationService.Get("auth.orders.payPartialPaid"),
+        _             => s
     };
 
     string FormatCurrency(decimal amount)
@@ -67,8 +67,6 @@
         "Processing"               => LocalizationService.Get("auth.orders.statusProcessing"),
         "PartiallyDelivered"       => LocalizationService.Get("auth.orders.statusPartiallyDelivered"),
         "Partially Delivered"      => LocalizationService.Get("auth.orders.statusPartiallyDelivered"),
-        "Ready for Pickup"         => LocalizationService.Get("auth.orders.statusReadyForPickup"),
-        "ReadyForPickup"           => LocalizationService.Get("auth.orders.statusReadyForPickup"),
         "Shipped"                  => LocalizationService.Get("auth.orders.statusShipped"),
         "Delivered"                => LocalizationService.Get("auth.orders.statusDelivered"),
         "Completed"                => LocalizationService.Get("auth.orders.statusDelivered"),
@@ -129,16 +127,20 @@
 
     var paymentStatusClass = Model.Summary.PaymentStatus switch
     {
-        "Paid"   => "badge-status-active",
-        "Failed" => "badge-status-hidden",
-        _        => "badge-status-pending"
+        "Paid"        => "badge-status-active",
+        "PartialPaid" => "badge-status-inactive",
+        "Unpaid"      => "badge-status-pending",
+        "Failed"      => "badge-status-hidden",
+        _             => "badge-status-pending"
     };
 
     var paymentStatusIcon = Model.Summary.PaymentStatus switch
     {
-        "Paid"   => "fa-solid fa-circle-check",
-        "Failed" => "fa-solid fa-circle-xmark",
-        _        => "fa-solid fa-hourglass-half"
+        "Paid"        => "fa-solid fa-circle-check",
+        "PartialPaid" => "fa-solid fa-circle-half-stroke",
+        "Unpaid"      => "fa-solid fa-hourglass-start",
+        "Failed"      => "fa-solid fa-circle-xmark",
+        _             => "fa-solid fa-hourglass-half"
     };
 }
 

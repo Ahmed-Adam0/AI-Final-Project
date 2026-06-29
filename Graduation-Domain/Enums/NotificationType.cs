@@ -6,7 +6,7 @@ namespace Graduation_domain.Enums
         OrderPending,
         OrderConfirmed,
         OrderInProgress,
-        OrderReadyForPickup,
+        OrderShipped,
         OrderDelivered,
         OrderCancelled,
         PasswordReset,
@@ -22,7 +22,8 @@ namespace Graduation_domain.Enums
         DeliveryDateApproved,
         DeliveryDateRejected,
         MilestoneCreated,
-        MilestonePaid
+        MilestonePaid,
+        VendorMilestonePaid
     }
 }
 

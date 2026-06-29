@@ -8,7 +8,7 @@ namespace Graduation_Application.IServices
         Task ProcessPaymentAsync(
             PaymentTransaction t,
             Order? o,
-            bool success,
+            Graduation_Domain.Enums.PaymentStatus targetStatus,
             string transactionId,
             string? failureReason = null
         );

@@ -498,10 +498,10 @@ namespace Graduation_Application.Services
                         orderId.ToString()
                     );
                     break;
-                case "Ready for Pickup":
+                case "Shipped":
                     await _internalNotificationService.CreateAsync(
                         order.UserId,
-                        NotificationType.OrderReadyForPickup,
+                        NotificationType.OrderShipped,
                         orderId.ToString()
                     );
                     break;
@@ -583,9 +583,6 @@ namespace Graduation_Application.Services
 
         private async Task<OrderResponseDto> MapToDtoAsync(Order order)
         {
-            var paymentTransaction = await _paymentTransactionRepository.GetByLocalOrderIdAsync(
-                order.Id
-            );
 
             return new OrderResponseDto
             {
@@ -640,7 +637,7 @@ namespace Graduation_Application.Services
                         })
                         .FirstOrDefault()
                     : null,
-                PaymentStatus = paymentTransaction?.Status.ToString() ?? "Unpaid",
+                PaymentStatus = order.PaymentStatus,
             };
         }
 
