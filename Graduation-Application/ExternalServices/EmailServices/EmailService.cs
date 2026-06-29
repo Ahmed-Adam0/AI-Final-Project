@@ -13,6 +13,8 @@ namespace Graduation_Application.ExternalServices.EmailServices
 {
     public class EmailService : IEmailService
     {
+        private const string BackgroundImageUrl = "https://home-ai.runasp.net/images/email/background.png";
+
         private readonly IConfiguration _configuration;
         private readonly ILocalizationService _localizationService;
 
@@ -30,12 +32,14 @@ namespace Graduation_Application.ExternalServices.EmailServices
             var htmlContent =
                 $@"
                 <html dir=""rtl"">
-                <body style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #F7F4EB; direction: rtl; margin: 0; padding: 0;"">
-                    <div dir=""rtl"" style=""background-color: #F7F4EB; padding: 35px 15px; text-align: right; direction: rtl;"">
-                        <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 1px solid #E6DED4;"">
+                <body style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0;"">
+                    <table width=""100%"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""background-color: #F7F4EB;"">
+                        <tr>
+                            <td align=""center"" style=""padding: 35px 15px;"">
+                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" background=""{BackgroundImageUrl}"" style=""max-width: 600px; background-image: url('{BackgroundImageUrl}'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: right; direction: rtl;"">
                             <!-- Logo Header -->
                             <tr>
-                                <td style=""padding: 25px 30px; text-align: center; background-color: #2B1A0A; border-bottom: 3px solid #C5A059;"">
+                                <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle;"">
                                     <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""margin: 0 auto; direction: ltr;"">
                                         <tr>
                                             <td style=""padding-right: 12px; vertical-align: middle;"">
@@ -62,7 +66,7 @@ namespace Graduation_Application.ExternalServices.EmailServices
                                                 </table>
                                             </td>
                                             <td style=""vertical-align: middle; line-height: 1;"">
-                                                <span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #ffffff; letter-spacing: 0.5px;"">Furni</span><span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #C5A059; letter-spacing: 0.5px;"">Mind</span>
+                                                <span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #ffffff; letter-spacing: 0.5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);"">Furni</span><span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #C5A059; letter-spacing: 0.5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);"">Mind</span>
                                             </td>
                                         </tr>
                                     </table>
@@ -71,33 +75,42 @@ namespace Graduation_Application.ExternalServices.EmailServices
                             
                             <!-- Card Body -->
                             <tr>
-                                <td style=""padding: 30px 30px 20px 30px; background-color: #ffffff;"">
-                                    <h2 style=""color: #2B1A0A; font-size: 24px; margin-top: 0; margin-bottom: 10px; font-weight: 700; text-align: center;"">رمز التحقق (OTP)</h2>
-                                    <div style=""width: 80px; height: 2px; background-color: #E6DED4; margin: 0 auto 20px auto;""></div>
+                                <td style=""padding: 30px 55px 20px 55px;"">
+                                    <h2 style=""color: #2b1a0a; font-weight: bold; font-size: 24px; margin-top: 0; margin-bottom: 10px; font-weight: 700; text-align: center;"">رمز التحقق (OTP)</h2>
+                                    <div style=""width: 80px; height: 1px; background-color: #7c6d61; margin: 5px auto 20px auto;""></div>
                                     
-                                    <p style=""color: #4A3F35; font-size: 15px; line-height: 1.6; text-align: right; margin-bottom: 20px; direction: rtl;"">
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 15px; line-height: 1.6; text-align: right; margin-bottom: 20px; direction: rtl;"">
                                         مرحبًا،<br/>
                                         لقد طلبت رمز تحقق لتسجيل الدخول أو إتمام عملية حساسة على حسابك. يرجى استخدام الكود التالي:
                                     </p>
                                     
                                     <!-- Centered OTP Box -->
-                                    <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""margin: 20px auto; text-align: center; width: 100%; max-width: 400px;"">
+                                    <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""margin: 20px auto; text-align: center; width: 100%; max-width: 400px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"">
                                         <tr>
-                                            <td style=""background-color: #FAF6F0; border: 1.5px dashed #C5A059; border-radius: 8px; padding: 15px 0; text-align: center;"">
-                                                <span style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 32px; font-weight: bold; color: #000000; letter-spacing: 5px; display: block; text-align: center;"">{otpCode}</span>
+                                            <td style=""background-color: #ffffff; border: 8px solid #3d2511; border-radius: 12px; padding: 12px 0; text-align: center; box-shadow: inset 0 2px 5px rgba(0,0,0,0.15);"">
+                                                <span style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 32px; font-weight: bold; color: #3d2511; letter-spacing: 5px; display: block; text-align: center;"">{otpCode}</span>
                                             </td>
                                         </tr>
                                     </table>
                                     
-                                    <p style=""color: #C5A059; font-size: 15px; font-weight: bold; text-align: center; margin-top: 15px; margin-bottom: 25px;"">
-                                        صلاحية الرمز: {expiryMinutes} دقائق
-                                    </p>
+                                    <!-- Validity Pill -->
+                                    <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""margin: 15px auto; direction: rtl;"">
+                                        <tr>
+                                            <td style=""color: #2b1a0a; font-size: 15px; font-weight: bold; padding-left: 8px; vertical-align: middle;"">
+                                                صلاحية الرمز
+                                            </td>
+                                            <td style=""background-color: #2b1a0a; color: #ffffff; padding: 3px 10px; border-radius: 4px; font-size: 14px; font-weight: bold; vertical-align: middle; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;"">
+                                                {expiryMinutes} دقائق
+                                            </td>
+                                        </tr>
+                                    </table>
                                     
                                     <!-- Security Warning Banner -->
-                                    <table border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""background-color: #FAF5F5; border-right: 4px solid #D9534F; border-radius: 4px; margin: 20px 0;"">
+                                    <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 450px; background-color: #faf6f0; border: 1.5px solid #c0b7ad; border-radius: 8px; margin: 20px auto; box-shadow: 0 2px 5px rgba(0,0,0,0.05); direction: rtl;"">
                                         <tr>
-                                            <td style=""padding: 12px 15px; color: #D9534F; font-size: 14px; font-weight: bold; text-align: right; direction: rtl;"">
-                                                ⚠️ لا تشارك هذا الرمز مع أي شخص لحماية حسابك.
+                                            <td style=""padding: 10px 15px; color: #2b1a0a; font-size: 14px; font-weight: bold; text-align: center; vertical-align: middle;"">
+                                                <span style=""color: #c5a059; font-size: 16px; margin-left: 5px; vertical-align: middle;"">⚠️</span>
+                                                لا تشارك هذا الرمز مع أي شخص لحماية حسابك.
                                             </td>
                                         </tr>
                                     </table>
@@ -106,12 +119,14 @@ namespace Graduation_Application.ExternalServices.EmailServices
                             
                             <!-- Footer -->
                             <tr>
-                                <td style=""padding: 20px; background-color: #FAF9F6; border-top: 1px solid #F3ECE3; text-align: center;"">
-                                    <p style=""color: #8C7E72; font-size: 12px; text-align: center; margin: 0; font-weight: 500;"">© 2026 FurniMind جميع الحقوق محفوظة.</p>
+                                <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center;"">
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 12px; text-align: center; margin: 0; font-weight: 500;"">© 2026 FurniMind جميع الحقوق محفوظة.</p>
                                 </td>
                             </tr>
                         </table>
-                    </div>
+                            </td>
+                        </tr>
+                    </table>
                 </body>
                 </html>";
 
@@ -126,12 +141,14 @@ namespace Graduation_Application.ExternalServices.EmailServices
             var htmlContent =
                 $@"
                 <html dir=""rtl"">
-                <body style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #F7F4EB; direction: rtl; margin: 0; padding: 0;"">
-                    <div dir=""rtl"" style=""background-color: #F7F4EB; padding: 35px 15px; text-align: right; direction: rtl;"">
-                        <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 1px solid #E6DED4;"">
+                <body style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0;"">
+                    <table width=""100%"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""background-color: #F7F4EB;"">
+                        <tr>
+                            <td align=""center"" style=""padding: 35px 15px;"">
+                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" background=""{BackgroundImageUrl}"" style=""max-width: 600px; background-image: url('{BackgroundImageUrl}'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: right; direction: rtl;"">
                             <!-- Logo Header -->
                             <tr>
-                                <td style=""padding: 25px 30px; text-align: center; background-color: #2B1A0A; border-bottom: 3px solid #C5A059;"">
+                                <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle;"">
                                     <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""margin: 0 auto; direction: ltr;"">
                                         <tr>
                                             <td style=""padding-right: 12px; vertical-align: middle;"">
@@ -158,7 +175,7 @@ namespace Graduation_Application.ExternalServices.EmailServices
                                                 </table>
                                             </td>
                                             <td style=""vertical-align: middle; line-height: 1;"">
-                                                <span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #ffffff; letter-spacing: 0.5px;"">Furni</span><span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #C5A059; letter-spacing: 0.5px;"">Mind</span>
+                                                <span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #ffffff; letter-spacing: 0.5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);"">Furni</span><span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #C5A059; letter-spacing: 0.5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);"">Mind</span>
                                             </td>
                                         </tr>
                                     </table>
@@ -167,33 +184,42 @@ namespace Graduation_Application.ExternalServices.EmailServices
                             
                             <!-- Card Body -->
                             <tr>
-                                <td style=""padding: 30px 30px 20px 30px; background-color: #ffffff;"">
-                                    <h2 style=""color: #2B1A0A; font-size: 24px; margin-top: 0; margin-bottom: 10px; font-weight: 700; text-align: center;"">تأكيد بريدك الإلكتروني</h2>
-                                    <div style=""width: 80px; height: 2px; background-color: #E6DED4; margin: 0 auto 20px auto;""></div>
+                                <td style=""padding: 30px 55px 20px 55px;"">
+                                    <h2 style=""color: #2b1a0a; font-weight: bold; font-size: 24px; margin-top: 0; margin-bottom: 10px; font-weight: 700; text-align: center;"">تأكيد بريدك الإلكتروني</h2>
+                                    <div style=""width: 80px; height: 1px; background-color: #7c6d61; margin: 5px auto 20px auto;""></div>
                                     
-                                    <p style=""color: #4A3F35; font-size: 15px; line-height: 1.6; text-align: right; margin-bottom: 20px; direction: rtl;"">
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 15px; line-height: 1.6; text-align: right; margin-bottom: 20px; direction: rtl;"">
                                         مرحبًا،<br/>
                                         يرجى استخدام رمز التحقق التالي لتأكيد بريدك الإلكتروني وتفعيل حسابك في FurniMind:
                                     </p>
                                     
                                     <!-- Centered OTP Box -->
-                                    <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""margin: 20px auto; text-align: center; width: 100%; max-width: 400px;"">
+                                    <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""margin: 20px auto; text-align: center; width: 100%; max-width: 400px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"">
                                         <tr>
-                                            <td style=""background-color: #FAF6F0; border: 1.5px dashed #C5A059; border-radius: 8px; padding: 15px 0; text-align: center;"">
-                                                <span style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 32px; font-weight: bold; color: #000000; letter-spacing: 5px; display: block; text-align: center;"">{otpCode}</span>
+                                            <td style=""background-color: #ffffff; border: 8px solid #3d2511; border-radius: 12px; padding: 12px 0; text-align: center; box-shadow: inset 0 2px 5px rgba(0,0,0,0.15);"">
+                                                <span style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 32px; font-weight: bold; color: #3d2511; letter-spacing: 5px; display: block; text-align: center;"">{otpCode}</span>
                                             </td>
                                         </tr>
                                     </table>
                                     
-                                    <p style=""color: #C5A059; font-size: 15px; font-weight: bold; text-align: center; margin-top: 15px; margin-bottom: 25px;"">
-                                        صلاحية الرمز: {expiryMinutes} دقائق
-                                    </p>
+                                    <!-- Validity Pill -->
+                                    <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""margin: 15px auto; direction: rtl;"">
+                                        <tr>
+                                            <td style=""color: #2b1a0a; font-size: 15px; font-weight: bold; padding-left: 8px; vertical-align: middle;"">
+                                                صلاحية الرمز
+                                            </td>
+                                            <td style=""background-color: #2b1a0a; color: #ffffff; padding: 3px 10px; border-radius: 4px; font-size: 14px; font-weight: bold; vertical-align: middle; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;"">
+                                                {expiryMinutes} دقائق
+                                            </td>
+                                        </tr>
+                                    </table>
                                     
                                     <!-- Security Warning Banner -->
-                                    <table border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""background-color: #FAF5F5; border-right: 4px solid #D9534F; border-radius: 4px; margin: 20px 0;"">
+                                    <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 450px; background-color: #faf6f0; border: 1.5px solid #c0b7ad; border-radius: 8px; margin: 20px auto; box-shadow: 0 2px 5px rgba(0,0,0,0.05); direction: rtl;"">
                                         <tr>
-                                            <td style=""padding: 12px 15px; color: #D9534F; font-size: 14px; font-weight: bold; text-align: right; direction: rtl;"">
-                                                ⚠️ لا تشارك هذا الرمز مع أي شخص لحماية حسابك.
+                                            <td style=""padding: 10px 15px; color: #2b1a0a; font-size: 14px; font-weight: bold; text-align: center; vertical-align: middle;"">
+                                                <span style=""color: #c5a059; font-size: 16px; margin-left: 5px; vertical-align: middle;"">⚠️</span>
+                                                لا تشارك هذا الرمز مع أي شخص لحماية حسابك.
                                             </td>
                                         </tr>
                                     </table>
@@ -202,12 +228,14 @@ namespace Graduation_Application.ExternalServices.EmailServices
                             
                             <!-- Footer -->
                             <tr>
-                                <td style=""padding: 20px; background-color: #FAF9F6; border-top: 1px solid #F3ECE3; text-align: center;"">
-                                    <p style=""color: #8C7E72; font-size: 12px; text-align: center; margin: 0; font-weight: 500;"">© 2026 FurniMind جميع الحقوق محفوظة.</p>
+                                <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center;"">
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 12px; text-align: center; margin: 0; font-weight: 500;"">© 2026 FurniMind جميع الحقوق محفوظة.</p>
                                 </td>
                             </tr>
                         </table>
-                    </div>
+                            </td>
+                        </tr>
+                    </table>
                 </body>
                 </html>";
 
@@ -221,12 +249,14 @@ namespace Graduation_Application.ExternalServices.EmailServices
             var htmlContent =
                 $@"
                 <html dir=""rtl"">
-                <body style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #F7F4EB; direction: rtl; margin: 0; padding: 0;"">
-                    <div dir=""rtl"" style=""background-color: #F7F4EB; padding: 35px 15px; text-align: right; direction: rtl;"">
-                        <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 1px solid #E6DED4;"">
+                <body style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0;"">
+                    <table width=""100%"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""background-color: #F7F4EB;"">
+                        <tr>
+                            <td align=""center"" style=""padding: 35px 15px;"">
+                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" background=""{BackgroundImageUrl}"" style=""max-width: 600px; background-image: url('{BackgroundImageUrl}'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: right; direction: rtl;"">
                             <!-- Logo Header -->
                             <tr>
-                                <td style=""padding: 25px 30px; text-align: center; background-color: #2B1A0A; border-bottom: 3px solid #C5A059;"">
+                                <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle;"">
                                     <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""margin: 0 auto; direction: ltr;"">
                                         <tr>
                                             <td style=""padding-right: 12px; vertical-align: middle;"">
@@ -253,7 +283,7 @@ namespace Graduation_Application.ExternalServices.EmailServices
                                                 </table>
                                             </td>
                                             <td style=""vertical-align: middle; line-height: 1;"">
-                                                <span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #ffffff; letter-spacing: 0.5px;"">Furni</span><span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #C5A059; letter-spacing: 0.5px;"">Mind</span>
+                                                <span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #ffffff; letter-spacing: 0.5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);"">Furni</span><span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #C5A059; letter-spacing: 0.5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);"">Mind</span>
                                             </td>
                                         </tr>
                                     </table>
@@ -262,37 +292,39 @@ namespace Graduation_Application.ExternalServices.EmailServices
                             
                             <!-- Card Body -->
                             <tr>
-                                <td style=""padding: 30px 30px 20px 30px; background-color: #ffffff;"">
-                                    <h2 style=""color: #2B1A0A; font-size: 24px; margin-top: 0; margin-bottom: 10px; font-weight: 700; text-align: center;"">تأكيد إنشاء الطلب</h2>
-                                    <div style=""width: 80px; height: 2px; background-color: #E6DED4; margin: 0 auto 20px auto;""></div>
+                                <td style=""padding: 30px 55px 20px 55px;"">
+                                    <h2 style=""color: #2b1a0a; font-weight: bold; font-size: 24px; margin-top: 0; margin-bottom: 10px; font-weight: 700; text-align: center;"">تأكيد إنشاء الطلب</h2>
+                                    <div style=""width: 80px; height: 1px; background-color: #7c6d61; margin: 5px auto 20px auto;""></div>
                                     
-                                    <p style=""color: #4A3F35; font-size: 15px; line-height: 1.6; text-align: right; margin-bottom: 20px; direction: rtl;"">
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 15px; line-height: 1.6; text-align: right; margin-bottom: 20px; direction: rtl;"">
                                         مرحبًا،<br/>
                                         نسعد باختياركم لـ <strong>FurniMind</strong>! تم إنشاء طلبكم بنجاح وهو قيد المراجعة الآن.
                                     </p>
                                     
                                     <!-- Order Detail Card -->
-                                    <table border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""background-color: #FAF9F6; border-radius: 10px; border: 1px solid #E6DED4; margin: 25px 0;"">
+                                    <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 400px; background-color: #ffffff; border: 8px solid #3d2511; border-radius: 12px; margin: 25px auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"">
                                         <tr>
-                                            <td style=""padding: 20px; text-align: center;"">
-                                                <span style=""color: #8C7E72; font-size: 14px; display: block; margin-bottom: 5px;"">رقم الطلب</span>
-                                                <span style=""color: #2B1A0A; font-size: 26px; font-weight: bold;"">#{orderId}</span>
+                                            <td style=""padding: 20px; text-align: center; box-shadow: inset 0 2px 5px rgba(0,0,0,0.15);"">
+                                                <span style=""color: #2b1a0a; font-weight: bold; font-size: 14px; display: block; margin-bottom: 5px;"">رقم الطلب</span>
+                                                <span style=""color: #3d2511; font-weight: bold; font-size: 28px;"">#{orderId}</span>
                                             </td>
                                         </tr>
                                     </table>
                                     
-                                    <p style=""color: #4A3F35; font-size: 15px; line-height: 1.6; text-align: right; margin-bottom: 15px;"">سنقوم بإرسال إشعارات وتحديثات أخرى بمجرد تغيير حالة الطلب أو البدء في التجهيز.</p>
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 15px; line-height: 1.6; text-align: right; margin-bottom: 15px;"">سنقوم بإرسال إشعارات وتحديثات أخرى بمجرد تغيير حالة الطلب أو البدء في التجهيز.</p>
                                 </td>
                             </tr>
                             
                             <!-- Footer -->
                             <tr>
-                                <td style=""padding: 20px; background-color: #FAF9F6; border-top: 1px solid #F3ECE3; text-align: center;"">
-                                    <p style=""color: #8C7E72; font-size: 12px; text-align: center; margin: 0; font-weight: 500;"">© 2026 FurniMind جميع الحقوق محفوظة.</p>
+                                <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center;"">
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 12px; text-align: center; margin: 0; font-weight: 500;"">© 2026 FurniMind جميع الحقوق محفوظة.</p>
                                 </td>
                             </tr>
                         </table>
-                    </div>
+                            </td>
+                        </tr>
+                    </table>
                 </body>
                 </html>";
 
@@ -306,12 +338,14 @@ namespace Graduation_Application.ExternalServices.EmailServices
             var htmlContent =
                 $@"
                 <html dir=""rtl"">
-                <body style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #F7F4EB; direction: rtl; margin: 0; padding: 0;"">
-                    <div dir=""rtl"" style=""background-color: #F7F4EB; padding: 35px 15px; text-align: right; direction: rtl;"">
-                        <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 1px solid #E6DED4;"">
+                <body style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0;"">
+                    <table width=""100%"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""background-color: #F7F4EB;"">
+                        <tr>
+                            <td align=""center"" style=""padding: 35px 15px;"">
+                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" background=""{BackgroundImageUrl}"" style=""max-width: 600px; background-image: url('{BackgroundImageUrl}'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: right; direction: rtl;"">
                             <!-- Logo Header -->
                             <tr>
-                                <td style=""padding: 25px 30px; text-align: center; background-color: #2B1A0A; border-bottom: 3px solid #C5A059;"">
+                                <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle;"">
                                     <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""margin: 0 auto; direction: ltr;"">
                                         <tr>
                                             <td style=""padding-right: 12px; vertical-align: middle;"">
@@ -330,7 +364,7 @@ namespace Graduation_Application.ExternalServices.EmailServices
                                                 </table>
                                             </td>
                                             <td style=""vertical-align: middle; line-height: 1;"">
-                                                <span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #ffffff; letter-spacing: 0.5px;"">Furni</span><span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #C5A059; letter-spacing: 0.5px;"">Mind</span>
+                                                <span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #ffffff; letter-spacing: 0.5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);"">Furni</span><span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #C5A059; letter-spacing: 0.5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);"">Mind</span>
                                             </td>
                                         </tr>
                                     </table>
@@ -339,37 +373,39 @@ namespace Graduation_Application.ExternalServices.EmailServices
                             
                             <!-- Card Body -->
                             <tr>
-                                <td style=""padding: 30px 30px 20px 30px; background-color: #ffffff;"">
-                                    <h2 style=""color: #2B1A0A; font-size: 24px; margin-top: 0; margin-bottom: 10px; font-weight: 700; text-align: center;"">طلب بائع جديد</h2>
-                                    <div style=""width: 80px; height: 2px; background-color: #E6DED4; margin: 0 auto 20px auto;""></div>
+                                <td style=""padding: 30px 55px 20px 55px;"">
+                                    <h2 style=""color: #2b1a0a; font-weight: bold; font-size: 24px; margin-top: 0; margin-bottom: 10px; font-weight: 700; text-align: center;"">طلب بائع جديد</h2>
+                                    <div style=""width: 80px; height: 1px; background-color: #7c6d61; margin: 5px auto 20px auto;""></div>
                                     
-                                    <p style=""color: #4A3F35; font-size: 15px; line-height: 1.6; text-align: right; margin-bottom: 20px; direction: rtl;"">
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 15px; line-height: 1.6; text-align: right; margin-bottom: 20px; direction: rtl;"">
                                         مرحبًا،<br/>
                                         لقد تلقيت طلبًا جديدًا من أحد العملاء في <strong>FurniMind</strong>. يرجى الدخول إلى لوحة التحكم الخاصة بك للقبول والبدء بالتجهيز:
                                     </p>
                                     
                                     <!-- Order Detail Card -->
-                                    <table border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""background-color: #FAF9F6; border-radius: 10px; border: 1px solid #E6DED4; margin: 25px 0;"">
+                                    <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 400px; background-color: #ffffff; border: 8px solid #3d2511; border-radius: 12px; margin: 25px auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"">
                                         <tr>
-                                            <td style=""padding: 20px; text-align: center;"">
-                                                <span style=""color: #8C7E72; font-size: 14px; display: block; margin-bottom: 5px;"">رقم طلب البائع الخاص بك</span>
-                                                <span style=""color: #2B1A0A; font-size: 26px; font-weight: bold;"">#{vendorOrderId}</span>
+                                            <td style=""padding: 20px; text-align: center; box-shadow: inset 0 2px 5px rgba(0,0,0,0.15);"">
+                                                <span style=""color: #2b1a0a; font-weight: bold; font-size: 14px; display: block; margin-bottom: 5px;"">رقم طلب البائع الخاص بك</span>
+                                                <span style=""color: #3d2511; font-weight: bold; font-size: 28px;"">#{vendorOrderId}</span>
                                             </td>
                                         </tr>
                                     </table>
                                     
-                                    <p style=""color: #4A3F35; font-size: 15px; line-height: 1.6; text-align: right; margin-bottom: 15px;"">يرجى الالتزام بمواعيد التجهيز المحددة وجودة التصنيع المطلوبة.</p>
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 15px; line-height: 1.6; text-align: right; margin-bottom: 15px;"">يرجى الالتزام بمواعيد التجهيز المحددة وجودة التصنيع المطلوبة.</p>
                                 </td>
                             </tr>
                             
                             <!-- Footer -->
                             <tr>
-                                <td style=""padding: 20px; background-color: #FAF9F6; border-top: 1px solid #F3ECE3; text-align: center;"">
-                                    <p style=""color: #8C7E72; font-size: 12px; text-align: center; margin: 0; font-weight: 500;"">© 2026 FurniMind جميع الحقوق محفوظة.</p>
+                                <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center;"">
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 12px; text-align: center; margin: 0; font-weight: 500;"">© 2026 FurniMind جميع الحقوق محفوظة.</p>
                                 </td>
                             </tr>
                         </table>
-                    </div>
+                            </td>
+                        </tr>
+                    </table>
                 </body>
                 </html>";
 
@@ -387,12 +423,14 @@ namespace Graduation_Application.ExternalServices.EmailServices
             var htmlContent =
                 $@"
                 <html dir=""rtl"">
-                <body style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #F7F4EB; direction: rtl; margin: 0; padding: 0;"">
-                    <div dir=""rtl"" style=""background-color: #F7F4EB; padding: 35px 15px; text-align: right; direction: rtl;"">
-                        <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 1px solid #E6DED4;"">
+                <body style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0;"">
+                    <table width=""100%"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""background-color: #F7F4EB;"">
+                        <tr>
+                            <td align=""center"" style=""padding: 35px 15px;"">
+                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" background=""{BackgroundImageUrl}"" style=""max-width: 600px; background-image: url('{BackgroundImageUrl}'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: right; direction: rtl;"">
                             <!-- Logo Header -->
                             <tr>
-                                <td style=""padding: 25px 30px; text-align: center; background-color: #2B1A0A; border-bottom: 3px solid #C5A059;"">
+                                <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle;"">
                                      <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""margin: 0 auto; direction: ltr;"">
                                         <tr>
                                             <td style=""padding-right: 12px; vertical-align: middle;"">
@@ -419,7 +457,7 @@ namespace Graduation_Application.ExternalServices.EmailServices
                                                 </table>
                                             </td>
                                             <td style=""vertical-align: middle; line-height: 1;"">
-                                                <span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #ffffff; letter-spacing: 0.5px;"">Furni</span><span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #C5A059; letter-spacing: 0.5px;"">Mind</span>
+                                                <span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #ffffff; letter-spacing: 0.5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);"">Furni</span><span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #C5A059; letter-spacing: 0.5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);"">Mind</span>
                                             </td>
                                         </tr>
                                     </table>
@@ -428,41 +466,43 @@ namespace Graduation_Application.ExternalServices.EmailServices
                             
                             <!-- Card Body -->
                             <tr>
-                                <td style=""padding: 30px 30px 20px 30px; background-color: #ffffff;"">
-                                    <h2 style=""color: #2B1A0A; font-size: 24px; margin-top: 0; margin-bottom: 10px; font-weight: 700; text-align: center;"">تحديث حالة الطلب</h2>
-                                    <div style=""width: 80px; height: 2px; background-color: #E6DED4; margin: 0 auto 20px auto;""></div>
+                                <td style=""padding: 30px 55px 20px 55px;"">
+                                    <h2 style=""color: #2b1a0a; font-weight: bold; font-size: 24px; margin-top: 0; margin-bottom: 10px; font-weight: 700; text-align: center;"">تحديث حالة الطلب</h2>
+                                    <div style=""width: 80px; height: 1px; background-color: #7c6d61; margin: 5px auto 20px auto;""></div>
                                     
-                                    <p style=""color: #4A3F35; font-size: 15px; line-height: 1.6; text-align: right; margin-bottom: 20px; direction: rtl;"">
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 15px; line-height: 1.6; text-align: right; margin-bottom: 20px; direction: rtl;"">
                                         مرحبًا،<br/>
                                         نود إعلامكم بأنه قد تم تحديث حالة طلبكم بنجاح.
                                     </p>
                                     
                                     <!-- Order Status Card -->
-                                    <table border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""background-color: #FAF9F6; border-radius: 10px; border: 1px solid #E6DED4; margin: 25px 0;"">
+                                    <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 450px; background-color: #ffffff; border: 4px solid #3d2511; border-radius: 12px; margin: 25px auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1); direction: rtl;"">
                                         <tr>
-                                            <td style=""padding: 20px; text-align: center; border-left: 1px solid #E6DED4; width: 50%;"">
-                                                <span style=""color: #8C7E72; font-size: 14px; display: block; margin-bottom: 5px;"">رقم الطلب</span>
-                                                <span style=""color: #2B1A0A; font-size: 20px; font-weight: bold;"">#{orderId}</span>
+                                            <td style=""padding: 20px; text-align: center; border-left: 2px solid #e0d8cf; width: 50%; box-shadow: inset 1px 0 0 rgba(255,255,255,0.8);"">
+                                                <span style=""color: #2b1a0a; font-weight: bold; font-size: 14px; display: block; margin-bottom: 5px;"">رقم الطلب</span>
+                                                <span style=""color: #3d2511; font-weight: bold; font-size: 20px;"">#{orderId}</span>
                                             </td>
                                             <td style=""padding: 20px; text-align: center; width: 50%;"">
-                                                <span style=""color: #8C7E72; font-size: 14px; display: block; margin-bottom: 5px;"">الحالة الجديدة</span>
-                                                <span style=""background-color: #C5A059; color: #ffffff; font-size: 14px; font-weight: bold; padding: 6px 16px; border-radius: 20px; display: inline-block;"">{newStatus}</span>
+                                                <span style=""color: #2b1a0a; font-weight: bold; font-size: 14px; display: block; margin-bottom: 5px;"">الحالة الجديدة</span>
+                                                <span style=""background-color: #2b1a0a; color: #ffffff; font-size: 14px; font-weight: bold; padding: 6px 16px; border-radius: 4px; display: inline-block;"">{newStatus}</span>
                                             </td>
                                         </tr>
                                     </table>
                                     
-                                    <p style=""color: #4A3F35; font-size: 15px; line-height: 1.6; text-align: right; margin-bottom: 15px;"">شكراً لاختياركم FurniMind وثقتكم بنا.</p>
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 15px; line-height: 1.6; text-align: right; margin-bottom: 15px;"">شكراً لاختياركم FurniMind وثقتكم بنا.</p>
                                 </td>
                             </tr>
                             
                             <!-- Footer -->
                             <tr>
-                                <td style=""padding: 20px; background-color: #FAF9F6; border-top: 1px solid #F3ECE3; text-align: center;"">
-                                    <p style=""color: #8C7E72; font-size: 12px; text-align: center; margin: 0; font-weight: 500;"">© 2026 FurniMind جميع الحقوق محفوظة.</p>
+                                <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center;"">
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 12px; text-align: center; margin: 0; font-weight: 500;"">© 2026 FurniMind جميع الحقوق محفوظة.</p>
                                 </td>
                             </tr>
                         </table>
-                    </div>
+                            </td>
+                        </tr>
+                    </table>
                 </body>
                 </html>";
 
@@ -476,34 +516,74 @@ namespace Graduation_Application.ExternalServices.EmailServices
             var htmlContent =
                 $@"
                 <html dir=""rtl"">
-                <body style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #F7F4EB; direction: rtl; margin: 0; padding: 0;"">
-                    <div dir=""rtl"" style=""background-color: #F7F4EB; padding: 35px 15px; text-align: right; direction: rtl;"">
-                        <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 1px solid #E6DED4;"">
-                            <tr style=""background-color: #2B1A0A; text-align: center; border-bottom: 3px solid #C5A059;"">
-                                <td style=""padding: 25px 30px; color: #ffffff; font-size: 24px; font-weight: bold;"">مقترح تاريخ التوصيل</td>
-                            </tr>
+                <body style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0;"">
+                    <table width=""100%"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""background-color: #F7F4EB;"">
+                        <tr>
+                            <td align=""center"" style=""padding: 35px 15px;"">
+                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" background=""{BackgroundImageUrl}"" style=""max-width: 600px; background-image: url('{BackgroundImageUrl}'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: right; direction: rtl;"">
+                            <!-- Logo Header -->
                             <tr>
-                                <td style=""padding: 30px; background-color: #ffffff;"">
-                                    <p>مرحبًا،</p>
-                                    <p>تم تقديم مقترح لتاريخ التوصيل لطلب البائع رقم <strong>#{vendorOrderId}</strong>:</p>
-                                    <table border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""background-color: #FAF9F6; border-radius: 10px; border: 1px solid #E6DED4; margin: 25px 0;"">
+                                <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle;"">
+                                    <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""margin: 0 auto; direction: ltr;"">
                                         <tr>
-                                            <td style=""padding: 20px; text-align: center;"">
-                                                <span style=""color: #8C7E72; font-size: 14px; display: block; margin-bottom: 5px;"">التاريخ المقترح</span>
-                                                <span style=""color: #2B1A0A; font-size: 22px; font-weight: bold;"">{proposedDate:yyyy-MM-dd}</span>
+                                            <td style=""padding-right: 12px; vertical-align: middle;"">
+                                                <table border=""0"" cellpadding=""0"" cellspacing=""0"" style=""width: 26px; height: 26px;"">
+                                                    <tr>
+                                                        <td colspan=""5"" style=""height: 5px; background-color: #C5A059; border-radius: 3px 3px 0 0; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                    </tr>
+                                                    <tr height=""2""><td colspan=""5"" style=""font-size: 1px; line-height: 1px;"">&nbsp;</td></tr>
+                                                    <tr>
+                                                        <td valign=""top"" style=""width: 5px; height: 19px; background-color: #C5A059; border-radius: 0 0 2px 2px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                        <td style=""width: 4px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                        <td valign=""bottom"" style=""width: 5px; height: 14px; background-color: #A38042; border-radius: 2px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                        <td style=""width: 4px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                        <td valign=""bottom"" style=""width: 5px; height: 9px; background-color: #6D522B; border-radius: 2px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                            <td style=""vertical-align: middle; line-height: 1;"">
+                                                <span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #ffffff; letter-spacing: 0.5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);"">Furni</span><span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #C5A059; letter-spacing: 0.5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);"">Mind</span>
                                             </td>
                                         </tr>
                                     </table>
-                                    <p>يرجى الدخول إلى حسابك للمراجعة والقبول أو الرفض.</p>
                                 </td>
                             </tr>
+                            
+                            <!-- Card Body -->
                             <tr>
-                                <td style=""padding: 20px; background-color: #FAF9F6; border-top: 1px solid #F3ECE3; text-align: center;"">
-                                    <p style=""color: #8C7E72; font-size: 12px; margin: 0;"">© 2026 FurniMind جميع الحقوق محفوظة.</p>
+                                <td style=""padding: 30px 55px 20px 55px;"">
+                                    <h2 style=""color: #2b1a0a; font-weight: bold; font-size: 24px; margin-top: 0; margin-bottom: 10px; font-weight: 700; text-align: center;"">مقترح تاريخ التوصيل</h2>
+                                    <div style=""width: 80px; height: 1px; background-color: #7c6d61; margin: 5px auto 20px auto;""></div>
+                                    
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 15px; line-height: 1.6; text-align: right; margin-bottom: 20px;"">مرحبًا،</p>
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 15px; line-height: 1.6; text-align: right; margin-bottom: 20px;"">
+                                        تم تقديم مقترح لتاريخ التوصيل لطلب البائع رقم <strong>#{vendorOrderId}</strong>:
+                                    </p>
+                                    
+                                    <!-- Proposed Date Card -->
+                                    <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 400px; background-color: #ffffff; border: 8px solid #3d2511; border-radius: 12px; margin: 25px auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"">
+                                        <tr>
+                                            <td style=""padding: 20px; text-align: center; box-shadow: inset 0 2px 5px rgba(0,0,0,0.15);"">
+                                                <span style=""color: #2b1a0a; font-weight: bold; font-size: 14px; display: block; margin-bottom: 5px;"">التاريخ المقترح</span>
+                                                <span style=""color: #3d2511; font-weight: bold; font-size: 24px;"">{proposedDate:yyyy-MM-dd}</span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 15px; line-height: 1.6; text-align: right;"">يرجى الدخول إلى حسابك للمراجعة والقبول أو الرفض.</p>
+                                </td>
+                            </tr>
+                            
+                            <!-- Footer -->
+                            <tr>
+                                <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center;"">
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 12px; text-align: center; margin: 0; font-weight: 500;"">© 2026 FurniMind جميع الحقوق محفوظة.</p>
                                 </td>
                             </tr>
                         </table>
-                    </div>
+                            </td>
+                        </tr>
+                    </table>
                 </body>
                 </html>";
 
@@ -517,26 +597,63 @@ namespace Graduation_Application.ExternalServices.EmailServices
             var htmlContent =
                 $@"
                 <html dir=""rtl"">
-                <body style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #F7F4EB; direction: rtl; margin: 0; padding: 0;"">
-                    <div dir=""rtl"" style=""background-color: #F7F4EB; padding: 35px 15px; text-align: right; direction: rtl;"">
-                        <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 1px solid #E6DED4;"">
-                            <tr style=""background-color: #2B1A0A; text-align: center; border-bottom: 3px solid #C5A059;"">
-                                <td style=""padding: 25px 30px; color: #ffffff; font-size: 24px; font-weight: bold;"">تم قبول تاريخ التوصيل</td>
-                            </tr>
+                <body style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0;"">
+                    <table width=""100%"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""background-color: #F7F4EB;"">
+                        <tr>
+                            <td align=""center"" style=""padding: 35px 15px;"">
+                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" background=""{BackgroundImageUrl}"" style=""max-width: 600px; background-image: url('{BackgroundImageUrl}'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: right; direction: rtl;"">
+                            <!-- Logo Header -->
                             <tr>
-                                <td style=""padding: 30px; background-color: #ffffff;"">
-                                    <p>مرحبًا،</p>
-                                    <p>نود إعلامكم بأن العميل قد <strong>قبل</strong> تاريخ التوصيل المقترح لطلب البائع رقم <strong>#{vendorOrderId}</strong>.</p>
-                                    <p>يمكنكم الآن البدء في عملية التجهيز والتنفيذ.</p>
+                                <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle;"">
+                                    <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""margin: 0 auto; direction: ltr;"">
+                                        <tr>
+                                            <td style=""padding-right: 12px; vertical-align: middle;"">
+                                                <table border=""0"" cellpadding=""0"" cellspacing=""0"" style=""width: 26px; height: 26px;"">
+                                                    <tr>
+                                                        <td colspan=""5"" style=""height: 5px; background-color: #C5A059; border-radius: 3px 3px 0 0; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                    </tr>
+                                                    <tr height=""2""><td colspan=""5"" style=""font-size: 1px; line-height: 1px;"">&nbsp;</td></tr>
+                                                    <tr>
+                                                        <td valign=""top"" style=""width: 5px; height: 19px; background-color: #C5A059; border-radius: 0 0 2px 2px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                        <td style=""width: 4px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                        <td valign=""bottom"" style=""width: 5px; height: 14px; background-color: #A38042; border-radius: 2px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                        <td style=""width: 4px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                        <td valign=""bottom"" style=""width: 5px; height: 9px; background-color: #6D522B; border-radius: 2px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                            <td style=""vertical-align: middle; line-height: 1;"">
+                                                <span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #ffffff; letter-spacing: 0.5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);"">Furni</span><span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #C5A059; letter-spacing: 0.5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);"">Mind</span>
+                                            </td>
+                                        </tr>
+                                    </table>
                                 </td>
                             </tr>
+                            
+                            <!-- Card Body -->
                             <tr>
-                                <td style=""padding: 20px; background-color: #FAF9F6; border-top: 1px solid #F3ECE3; text-align: center;"">
-                                    <p style=""color: #8C7E72; font-size: 12px; margin: 0;"">© 2026 FurniMind جميع الحقوق محفوظة.</p>
+                                <td style=""padding: 30px 55px 20px 55px;"">
+                                    <h2 style=""color: #2b1a0a; font-weight: bold; font-size: 24px; margin-top: 0; margin-bottom: 10px; font-weight: 700; text-align: center;"">تم قبول تاريخ التوصيل</h2>
+                                    <div style=""width: 80px; height: 1px; background-color: #7c6d61; margin: 5px auto 20px auto;""></div>
+                                    
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 15px; line-height: 1.6; text-align: right; margin-bottom: 20px;"">مرحبًا،</p>
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 15px; line-height: 1.6; text-align: right;"">
+                                        نود إعلامكم بأن العميل قد <strong>قبل</strong> تاريخ التوصيل المقترح لطلب البائع رقم <strong>#{vendorOrderId}</strong>.
+                                    </p>
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 15px; line-height: 1.6; text-align: right;"">يمكنكم الآن البدء في عملية التجهيز والتنفيذ.</p>
+                                </td>
+                            </tr>
+                            
+                            <!-- Footer -->
+                            <tr>
+                                <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center;"">
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 12px; text-align: center; margin: 0; font-weight: 500;"">© 2026 FurniMind جميع الحقوق محفوظة.</p>
                                 </td>
                             </tr>
                         </table>
-                    </div>
+                            </td>
+                        </tr>
+                    </table>
                 </body>
                 </html>";
 
@@ -550,26 +667,63 @@ namespace Graduation_Application.ExternalServices.EmailServices
             var htmlContent =
                 $@"
                 <html dir=""rtl"">
-                <body style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #F7F4EB; direction: rtl; margin: 0; padding: 0;"">
-                    <div dir=""rtl"" style=""background-color: #F7F4EB; padding: 35px 15px; text-align: right; direction: rtl;"">
-                        <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 1px solid #E6DED4;"">
-                            <tr style=""background-color: #FAF5F5; text-align: center; border-bottom: 3px solid #D9534F;"">
-                                <td style=""padding: 25px 30px; color: #D9534F; font-size: 24px; font-weight: bold;"">تم رفض تاريخ التوصيل</td>
-                            </tr>
+                <body style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0;"">
+                    <table width=""100%"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""background-color: #F7F4EB;"">
+                        <tr>
+                            <td align=""center"" style=""padding: 35px 15px;"">
+                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" background=""{BackgroundImageUrl}"" style=""max-width: 600px; background-image: url('{BackgroundImageUrl}'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: right; direction: rtl;"">
+                            <!-- Logo Header -->
                             <tr>
-                                <td style=""padding: 30px; background-color: #ffffff;"">
-                                    <p>مرحبًا،</p>
-                                    <p>قام العميل <strong>برفض</strong> تاريخ التوصيل المقترح لطلب البائع رقم <strong>#{vendorOrderId}</strong>.</p>
-                                    <p>يرجى الدخول إلى حسابك وتقديم مقترح جديد لتاريخ التوصيل لتفادي تأخر الطلب.</p>
+                                <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle;"">
+                                    <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""margin: 0 auto; direction: ltr;"">
+                                        <tr>
+                                            <td style=""padding-right: 12px; vertical-align: middle;"">
+                                                <table border=""0"" cellpadding=""0"" cellspacing=""0"" style=""width: 26px; height: 26px;"">
+                                                    <tr>
+                                                        <td colspan=""5"" style=""height: 5px; background-color: #C5A059; border-radius: 3px 3px 0 0; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                    </tr>
+                                                    <tr height=""2""><td colspan=""5"" style=""font-size: 1px; line-height: 1px;"">&nbsp;</td></tr>
+                                                    <tr>
+                                                        <td valign=""top"" style=""width: 5px; height: 19px; background-color: #C5A059; border-radius: 0 0 2px 2px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                        <td style=""width: 4px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                        <td valign=""bottom"" style=""width: 5px; height: 14px; background-color: #A38042; border-radius: 2px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                        <td style=""width: 4px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                        <td valign=""bottom"" style=""width: 5px; height: 9px; background-color: #6D522B; border-radius: 2px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                            <td style=""vertical-align: middle; line-height: 1;"">
+                                                <span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #ffffff; letter-spacing: 0.5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);"">Furni</span><span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #C5A059; letter-spacing: 0.5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);"">Mind</span>
+                                            </td>
+                                        </tr>
+                                    </table>
                                 </td>
                             </tr>
+                            
+                            <!-- Card Body -->
                             <tr>
-                                <td style=""padding: 20px; background-color: #FAF9F6; border-top: 1px solid #F3ECE3; text-align: center;"">
-                                    <p style=""color: #8C7E72; font-size: 12px; margin: 0;"">© 2026 FurniMind جميع الحقوق محفوظة.</p>
+                                <td style=""padding: 30px 55px 20px 55px;"">
+                                    <h2 style=""color: #2b1a0a; font-weight: bold; font-size: 24px; margin-top: 0; margin-bottom: 10px; font-weight: 700; text-align: center;"">تم رفض تاريخ التوصيل</h2>
+                                    <div style=""width: 80px; height: 1px; background-color: #7c6d61; margin: 5px auto 20px auto;""></div>
+                                    
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 15px; line-height: 1.6; text-align: right; margin-bottom: 20px;"">مرحبًا،</p>
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 15px; line-height: 1.6; text-align: right;"">
+                                        قام العميل <strong>برفض</strong> تاريخ التوصيل المقترح لطلب البائع رقم <strong>#{vendorOrderId}</strong>.
+                                    </p>
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 15px; line-height: 1.6; text-align: right;"">يرجى الدخول إلى حسابك وتقديم مقترح جديد لتاريخ التوصيل لتفادي تأخر الطلب.</p>
+                                </td>
+                            </tr>
+                            
+                            <!-- Footer -->
+                            <tr>
+                                <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center;"">
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 12px; text-align: center; margin: 0; font-weight: 500;"">© 2026 FurniMind جميع الحقوق محفوظة.</p>
                                 </td>
                             </tr>
                         </table>
-                    </div>
+                            </td>
+                        </tr>
+                    </table>
                 </body>
                 </html>";
 
@@ -618,39 +772,76 @@ namespace Graduation_Application.ExternalServices.EmailServices
                 : $"A new payment milestone <strong>({milestoneName})</strong> has been created for vendor order <strong>#{vendorOrderId}</strong> with amount:";
             var note = isAr 
                 ? "يرجى سداد هذه الدفعة لبدء أو مواصلة معالجة طلبكم وشحنه."
-                : "Please proceed with this payment to initiate or continue processing and shipping of your order.";
+                : "Please proceed with this payment to continue processing and shipping of your order.";
             var copyright = isAr ? "© 2026 FurniMind جميع الحقوق محفوظة." : "© 2026 FurniMind. All rights reserved.";
 
             return $@"
                 <html dir=""{dir}"">
-                <body style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #F7F4EB; direction: {dir}; margin: 0; padding: 0;"">
-                    <div dir=""{dir}"" style=""background-color: #F7F4EB; padding: 35px 15px; text-align: {align}; direction: {dir};"">
-                        <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 1px solid #E6DED4;"">
-                            <tr style=""background-color: #2B1A0A; text-align: center; border-bottom: 3px solid #C5A059;"">
-                                <td style=""padding: 25px 30px; color: #ffffff; font-size: 24px; font-weight: bold;"">{title}</td>
-                            </tr>
+                <body style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0;"">
+                    <table width=""100%"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""background-color: #F7F4EB;"">
+                        <tr>
+                            <td align=""center"" style=""padding: 35px 15px;"">
+                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" background=""{BackgroundImageUrl}"" style=""max-width: 600px; background-image: url('{BackgroundImageUrl}'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: {align}; direction: {dir};"">
+                            <!-- Logo Header -->
                             <tr>
-                                <td style=""padding: 30px; background-color: #ffffff;"">
-                                    <p style=""color: #4A3F35; font-size: 16px; margin-top: 0;"">{greeting}</p>
-                                    <p style=""color: #4A3F35; font-size: 15px; line-height: 1.6;"">{intro}</p>
-                                    <table border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""background-color: #FAF9F6; border-radius: 10px; border: 1px solid #E6DED4; margin: 25px 0;"">
+                                <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle;"">
+                                    <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""margin: 0 auto; direction: ltr;"">
                                         <tr>
-                                            <td style=""padding: 20px; text-align: center;"">
-                                                <span style=""color: #8C7E72; font-size: 14px; display: block; margin-bottom: 5px;"">{(isAr ? "مبلغ الدفعة" : "Milestone Amount")}</span>
-                                                <span style=""color: #2B1A0A; font-size: 28px; font-weight: bold;"">{(isAr ? $"{amount} ج.م" : $"EGP {amount}")}</span>
+                                            <td style=""padding-right: 12px; vertical-align: middle;"">
+                                                <table border=""0"" cellpadding=""0"" cellspacing=""0"" style=""width: 26px; height: 26px;"">
+                                                    <tr>
+                                                        <td colspan=""5"" style=""height: 5px; background-color: #C5A059; border-radius: 3px 3px 0 0; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                    </tr>
+                                                    <tr height=""2""><td colspan=""5"" style=""font-size: 1px; line-height: 1px;"">&nbsp;</td></tr>
+                                                    <tr>
+                                                        <td valign=""top"" style=""width: 5px; height: 19px; background-color: #C5A059; border-radius: 0 0 2px 2px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                        <td style=""width: 4px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                        <td valign=""bottom"" style=""width: 5px; height: 14px; background-color: #A38042; border-radius: 2px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                        <td style=""width: 4px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                        <td valign=""bottom"" style=""width: 5px; height: 9px; background-color: #6D522B; border-radius: 2px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                            <td style=""vertical-align: middle; line-height: 1;"">
+                                                <span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #ffffff; letter-spacing: 0.5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);"">Furni</span><span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #C5A059; letter-spacing: 0.5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);"">Mind</span>
                                             </td>
                                         </tr>
                                     </table>
-                                    <p style=""color: #8C7E72; font-size: 14px; line-height: 1.6;"">{note}</p>
                                 </td>
                             </tr>
+                            
+                            <!-- Card Body -->
                             <tr>
-                                <td style=""padding: 20px; background-color: #FAF9F6; border-top: 1px solid #F3ECE3; text-align: center;"">
-                                    <p style=""color: #8C7E72; font-size: 12px; margin: 0;"">{copyright}</p>
+                                <td style=""padding: 30px 55px 20px 55px;"">
+                                    <h2 style=""color: #2b1a0a; font-weight: bold; font-size: 24px; margin-top: 0; margin-bottom: 10px; font-weight: 700; text-align: center;"">{title}</h2>
+                                    <div style=""width: 80px; height: 1px; background-color: #7c6d61; margin: 5px auto 20px auto;""></div>
+                                    
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 16px; margin-top: 0;"">{greeting}</p>
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 15px; line-height: 1.6;"">{intro}</p>
+                                    
+                                    <!-- Amount Card -->
+                                    <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 400px; background-color: #ffffff; border: 8px solid #3d2511; border-radius: 12px; margin: 25px auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"">
+                                        <tr>
+                                            <td style=""padding: 20px; text-align: center; box-shadow: inset 0 2px 5px rgba(0,0,0,0.15);"">
+                                                <span style=""color: #2b1a0a; font-weight: bold; font-size: 14px; display: block; margin-bottom: 5px;"">{(isAr ? "مبلغ الدفعة" : "Milestone Amount")}</span>
+                                                <span style=""color: #3d2511; font-weight: bold; font-size: 28px;"">{(isAr ? $"{amount} ج.م" : $"EGP {amount}")}</span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 14px; line-height: 1.6;"">{note}</p>
+                                </td>
+                            </tr>
+                            
+                            <!-- Footer -->
+                            <tr>
+                                <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center;"">
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 12px; margin: 0; font-weight: 500;"">{copyright}</p>
                                 </td>
                             </tr>
                         </table>
-                    </div>
+                            </td>
+                        </tr>
+                    </table>
                 </body>
                 </html>";
         }
@@ -672,34 +863,71 @@ namespace Graduation_Application.ExternalServices.EmailServices
 
             return $@"
                 <html dir=""{dir}"">
-                <body style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #F7F4EB; direction: {dir}; margin: 0; padding: 0;"">
-                    <div dir=""{dir}"" style=""background-color: #F7F4EB; padding: 35px 15px; text-align: {align}; direction: {dir};"">
-                        <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 1px solid #E6DED4;"">
-                            <tr style=""background-color: #2B1A0A; text-align: center; border-bottom: 3px solid #C5A059;"">
-                                <td style=""padding: 25px 30px; color: #ffffff; font-size: 24px; font-weight: bold;"">{title}</td>
-                            </tr>
+                <body style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0;"">
+                    <table width=""100%"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""background-color: #F7F4EB;"">
+                        <tr>
+                            <td align=""center"" style=""padding: 35px 15px;"">
+                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" background=""{BackgroundImageUrl}"" style=""max-width: 600px; background-image: url('{BackgroundImageUrl}'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: {align}; direction: {dir};"">
+                            <!-- Logo Header -->
                             <tr>
-                                <td style=""padding: 30px; background-color: #ffffff;"">
-                                    <p style=""color: #4A3F35; font-size: 16px; margin-top: 0;"">{greeting}</p>
-                                    <p style=""color: #4A3F35; font-size: 15px; line-height: 1.6;"">{intro}</p>
-                                    <table border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""background-color: #FAF9F6; border-radius: 10px; border: 1px solid #E6DED4; margin: 25px 0;"">
+                                <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle;"">
+                                    <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""margin: 0 auto; direction: ltr;"">
                                         <tr>
-                                            <td style=""padding: 20px; text-align: center;"">
-                                                <span style=""color: #8C7E72; font-size: 14px; display: block; margin-bottom: 5px;"">{(isAr ? "المبلغ المدفوع" : "Amount Paid")}</span>
-                                                <span style=""color: #2B1A0A; font-size: 28px; font-weight: bold;"">{(isAr ? $"{amount} ج.م" : $"EGP {amount}")}</span>
+                                            <td style=""padding-right: 12px; vertical-align: middle;"">
+                                                <table border=""0"" cellpadding=""0"" cellspacing=""0"" style=""width: 26px; height: 26px;"">
+                                                    <tr>
+                                                        <td colspan=""5"" style=""height: 5px; background-color: #C5A059; border-radius: 3px 3px 0 0; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                    </tr>
+                                                    <tr height=""2""><td colspan=""5"" style=""font-size: 1px; line-height: 1px;"">&nbsp;</td></tr>
+                                                    <tr>
+                                                        <td valign=""top"" style=""width: 5px; height: 19px; background-color: #C5A059; border-radius: 0 0 2px 2px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                        <td style=""width: 4px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                        <td valign=""bottom"" style=""width: 5px; height: 14px; background-color: #A38042; border-radius: 2px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                        <td style=""width: 4px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                        <td valign=""bottom"" style=""width: 5px; height: 9px; background-color: #6D522B; border-radius: 2px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                            <td style=""vertical-align: middle; line-height: 1;"">
+                                                <span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #ffffff; letter-spacing: 0.5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);"">Furni</span><span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #C5A059; letter-spacing: 0.5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);"">Mind</span>
                                             </td>
                                         </tr>
                                     </table>
-                                    <p style=""color: #8C7E72; font-size: 14px; line-height: 1.6;"">{note}</p>
                                 </td>
                             </tr>
+                            
+                            <!-- Card Body -->
                             <tr>
-                                <td style=""padding: 20px; background-color: #FAF9F6; border-top: 1px solid #F3ECE3; text-align: center;"">
-                                    <p style=""color: #8C7E72; font-size: 12px; margin: 0;"">{copyright}</p>
+                                <td style=""padding: 30px 55px 20px 55px;"">
+                                    <h2 style=""color: #2b1a0a; font-weight: bold; font-size: 24px; margin-top: 0; margin-bottom: 10px; font-weight: 700; text-align: center;"">{title}</h2>
+                                    <div style=""width: 80px; height: 1px; background-color: #7c6d61; margin: 5px auto 20px auto;""></div>
+                                    
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 16px; margin-top: 0;"">{greeting}</p>
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 15px; line-height: 1.6;"">{intro}</p>
+                                    
+                                    <!-- Amount Card -->
+                                    <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 400px; background-color: #ffffff; border: 8px solid #3d2511; border-radius: 12px; margin: 25px auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"">
+                                        <tr>
+                                            <td style=""padding: 20px; text-align: center; box-shadow: inset 0 2px 5px rgba(0,0,0,0.15);"">
+                                                <span style=""color: #2b1a0a; font-weight: bold; font-size: 14px; display: block; margin-bottom: 5px;"">{(isAr ? "المبلغ المدفوع" : "Amount Paid")}</span>
+                                                <span style=""color: #3d2511; font-weight: bold; font-size: 28px;"">{(isAr ? $"{amount} ج.م" : $"EGP {amount}")}</span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 14px; line-height: 1.6;"">{note}</p>
+                                </td>
+                            </tr>
+                            
+                            <!-- Footer -->
+                            <tr>
+                                <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center;"">
+                                    <p style=""color: #2b1a0a; font-weight: bold; font-size: 12px; margin: 0; font-weight: 500;"">{copyright}</p>
                                 </td>
                             </tr>
                         </table>
-                    </div>
+                            </td>
+                        </tr>
+                    </table>
                 </body>
                 </html>";
         }
