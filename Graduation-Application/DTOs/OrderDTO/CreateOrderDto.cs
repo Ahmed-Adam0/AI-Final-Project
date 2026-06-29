@@ -20,7 +20,11 @@ namespace Graduation_Application.DTOs.OrderDTO
         [Required(ErrorMessage = "Address is required")]
         public string Address { get; set; } = string.Empty;
 
+        public int? AddressId { get; set; }
+
         public string? SecondaryAddress { get; set; }
+
+        public int? SecondaryAddressId { get; set; }
 
         public string? Notes { get; set; }
     }
