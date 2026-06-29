@@ -201,27 +201,71 @@ namespace Graduation_Application.Services
                 VendorOrders = vendorOrders
             };
 
-            // Save primary address to the Addresses table
-            var primaryAddressEntity = new Address
+            // Check for matching primary address
+            Address? matchedPrimary = null;
+            if (request.AddressId.HasValue)
             {
-                UserId = userId,
-                City = request.Address,
-                Street = request.Address,
-                Notes = request.Notes ?? string.Empty
-            };
-            await _addressRepository.AddAsync(primaryAddressEntity);
+                matchedPrimary = await _addressRepository.FirstOrDefaultAsync(a => a.Id == request.AddressId.Value && a.UserId == userId);
+            }
 
-            // Save secondary address to the Addresses table if provided
-            if (!string.IsNullOrWhiteSpace(request.SecondaryAddress))
+            if (matchedPrimary == null)
             {
-                var secondaryAddressEntity = new Address
+                var candidatePrimary = new Address
                 {
                     UserId = userId,
-                    City = request.SecondaryAddress,
-                    Street = request.SecondaryAddress,
-                    Notes = "Secondary Address from Order"
+                    City = request.Address,
+                    Street = request.Address,
+                    Notes = request.Notes ?? string.Empty
                 };
-                await _addressRepository.AddAsync(secondaryAddressEntity);
+
+                matchedPrimary = await _addressRepository.FirstOrDefaultAsync(a =>
+                    a.UserId == userId &&
+                    a.City == candidatePrimary.City &&
+                    a.Street == candidatePrimary.Street &&
+                    (a.Area == candidatePrimary.Area || (string.IsNullOrEmpty(a.Area) && string.IsNullOrEmpty(candidatePrimary.Area))) &&
+                    (a.BuildingNumber == candidatePrimary.BuildingNumber || (string.IsNullOrEmpty(a.BuildingNumber) && string.IsNullOrEmpty(candidatePrimary.BuildingNumber))) &&
+                    (a.Notes == candidatePrimary.Notes || (string.IsNullOrEmpty(a.Notes) && string.IsNullOrEmpty(candidatePrimary.Notes)))
+                );
+
+                if (matchedPrimary == null)
+                {
+                    await _addressRepository.AddAsync(candidatePrimary);
+                }
+            }
+
+            // Check for matching secondary address if provided
+            if (!string.IsNullOrWhiteSpace(request.SecondaryAddress))
+            {
+                Address? matchedSecondary = null;
+                if (request.SecondaryAddressId.HasValue)
+                {
+                    matchedSecondary = await _addressRepository.FirstOrDefaultAsync(a => a.Id == request.SecondaryAddressId.Value && a.UserId == userId);
+                }
+
+                if (matchedSecondary == null)
+                {
+                    var candidateSecondary = new Address
+                    {
+                        UserId = userId,
+                        City = request.SecondaryAddress,
+                        Street = request.SecondaryAddress,
+                        Notes = "Secondary Address from Order"
+                    };
+
+                    matchedSecondary = await _addressRepository.FirstOrDefaultAsync(a =>
+                        a.UserId == userId &&
+                        a.City == candidateSecondary.City &&
+                        a.Street == candidateSecondary.Street &&
+                        (a.Area == candidateSecondary.Area || (string.IsNullOrEmpty(a.Area) && string.IsNullOrEmpty(candidateSecondary.Area))) &&
+                        (a.BuildingNumber == candidateSecondary.BuildingNumber || (string.IsNullOrEmpty(a.BuildingNumber) && string.IsNullOrEmpty(candidateSecondary.BuildingNumber))) &&
+                        (a.Notes == candidateSecondary.Notes || (string.IsNullOrEmpty(a.Notes) && string.IsNullOrEmpty(candidateSecondary.Notes)))
+                    );
+
+                    if (matchedSecondary == null)
+                    {
+                        await _addressRepository.AddAsync(candidateSecondary);
+                    }
+                }
             }
 
             // Add the master order (EF Core will cascade add vendor orders & items)
