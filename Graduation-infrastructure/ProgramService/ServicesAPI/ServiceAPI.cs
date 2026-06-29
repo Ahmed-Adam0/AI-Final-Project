@@ -23,9 +23,9 @@ using Graduation_Application.Services.Vendor;
 using Graduation_domain.Entities;
 using Graduation_infrastructure.AppDbContext;
 using Graduation_Infrastructure.Identity;
+using Graduation_infrastructure.Localization;
 using Graduation_infrastructure.Repositories;
 using Graduation_infrastructure.Services;
-using Graduation_infrastructure.Localization;
 using Graduation_infrastructure.SignalR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
@@ -142,6 +142,7 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             services.AddScoped<IOrderReviewImageRepository, OrderReviewImageRepository>();
             services.AddScoped<IInspirationService, InspirationService>();
             services.AddScoped<IAdminInspirationService, AdminInspirationService>();
+            services.AddScoped<IGeminiRoomDesignService, GeminiRoomDesignService>();
             services.AddScoped<IShowcaseService, ShowcaseService>();
             services.AddHttpClient();
             services.AddHttpClient(
@@ -246,11 +247,17 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
                         },
                         OnTokenValidated = async context =>
                         {
-                            var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<ApplicationUser>>();
-                            var userId = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier) 
-                                         ?? context.Principal?.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)
-                                         ?? context.Principal?.FindFirstValue(ClaimTypes.Name)
-                                         ?? context.Principal?.FindFirstValue(ClaimTypes.Email);
+                            var userManager =
+                                context.HttpContext.RequestServices.GetRequiredService<
+                                    UserManager<ApplicationUser>
+                                >();
+                            var userId =
+                                context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier)
+                                ?? context.Principal?.FindFirstValue(
+                                    System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub
+                                )
+                                ?? context.Principal?.FindFirstValue(ClaimTypes.Name)
+                                ?? context.Principal?.FindFirstValue(ClaimTypes.Email);
 
                             if (string.IsNullOrEmpty(userId))
                             {
@@ -263,7 +270,7 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
                             {
                                 context.Fail("Your account is currently inactive or suspended.");
                             }
-                        }
+                        },
                     };
                 });
 
