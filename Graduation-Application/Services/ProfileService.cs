@@ -108,11 +108,6 @@ namespace Graduation_Application.Services
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null) throw new System.Exception("User not found");
 
-            if (!string.IsNullOrEmpty(user.GoogleId))
-            {
-                throw new System.Exception("Password change is not available for Google accounts.");
-            }
-
             // Check if old password equals new password
             if (dto.OldPassword == dto.NewPassword)
             {

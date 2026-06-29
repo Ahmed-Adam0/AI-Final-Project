@@ -157,11 +157,6 @@ namespace Graduation_Application.Services
                 throw new Exception($"User with email '{dto.Email}' not found");
             }
 
-            if (!string.IsNullOrEmpty(user.GoogleId))
-            {
-                throw new Exception("Password reset is not available for Google accounts.");
-            }
-
             if (!user.IsActive)
             {
                 throw new Exception("Email address is not Active. Please Active your email first");
@@ -207,11 +202,6 @@ namespace Graduation_Application.Services
             if (user == null)
             {
                 throw new Exception($"User with email '{dto.Email}' not found");
-            }
-
-            if (!string.IsNullOrEmpty(user.GoogleId))
-            {
-                throw new Exception("Password reset is not available for Google accounts.");
             }
 
             if (user.OtpCode != dto.OtpCode)
