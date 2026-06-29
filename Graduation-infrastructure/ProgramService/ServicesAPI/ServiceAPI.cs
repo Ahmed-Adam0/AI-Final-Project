@@ -142,6 +142,7 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             services.AddScoped<IOrderReviewImageRepository, OrderReviewImageRepository>();
             services.AddScoped<IInspirationService, InspirationService>();
             services.AddScoped<IAdminInspirationService, AdminInspirationService>();
+            services.AddScoped<IShowcaseService, ShowcaseService>();
             services.AddHttpClient();
             services.AddHttpClient(
                 "N8NChatClient",

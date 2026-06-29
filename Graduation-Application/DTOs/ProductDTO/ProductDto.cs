@@ -28,5 +28,10 @@ namespace Graduation_Application.DTOs.ProductDTO
         public DateTime CreatedAt { get; set; }
         public bool IsActive { get; set; }
         public string MainImageUrl { get; set; } = string.Empty;
+        public List<ProductImageDto> Images { get; set; } = new();
+        public string? Product3DModelUrl { get; set; }
+        public decimal AverageRating { get; set; }
+        public decimal? Discount { get; set; }
+        public bool Availability { get; set; }
     }
 }

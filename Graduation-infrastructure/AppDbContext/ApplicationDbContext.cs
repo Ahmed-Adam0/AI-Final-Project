@@ -40,6 +40,8 @@ namespace Graduation_infrastructure.AppDbContext
         public DbSet<Banner> Banners { get; set; }
         public DbSet<OrderReviewImage> OrderReviewImages { get; set; }
         public DbSet<PaymentMilestone> PaymentMilestones { get; set; }
+        public DbSet<ShowcaseSlide> ShowcaseSlides { get; set; }
+        public DbSet<ShowcaseHotspot> ShowcaseHotspots { get; set; }
 
         // ── Vendor-Driven Catalog ──────────────────────────────────────────────────
         public DbSet<ProductAttribute> ProductAttributes { get; set; }
@@ -326,6 +328,45 @@ namespace Graduation_infrastructure.AppDbContext
                 .HasForeignKey(h => h.PerformedByAdminId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // ── ShowcaseSlide Configuration ──────────────────────────────────────────
+            builder.Entity<ShowcaseSlide>(entity =>
+            {
+                entity.ToTable("ShowcaseSlides");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.TitleAr).HasMaxLength(200).IsRequired();
+                entity.Property(e => e.TitleEn).HasMaxLength(200).IsRequired();
+                entity.Property(e => e.SubtitleAr).HasMaxLength(500);
+                entity.Property(e => e.SubtitleEn).HasMaxLength(500);
+                entity.Property(e => e.ButtonTextAr).HasMaxLength(100);
+                entity.Property(e => e.ButtonTextEn).HasMaxLength(100);
+                entity.Property(e => e.ButtonLink).HasMaxLength(500).IsRequired();
+                entity.Property(e => e.BackgroundImageUrl).HasMaxLength(1000).IsRequired();
+
+                entity.HasOne(e => e.Workshop)
+                      .WithMany()
+                      .HasForeignKey(e => e.WorkshopId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ── ShowcaseHotspot Configuration ────────────────────────────────────────
+            builder.Entity<ShowcaseHotspot>(entity =>
+            {
+                entity.ToTable("ShowcaseHotspots");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.X).HasColumnType("decimal(18,4)").IsRequired();
+                entity.Property(e => e.Y).HasColumnType("decimal(18,4)").IsRequired();
+
+                entity.HasOne(e => e.ShowcaseSlide)
+                      .WithMany(s => s.Hotspots)
+                      .HasForeignKey(e => e.ShowcaseSlideId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.Product)
+                      .WithMany()
+                      .HasForeignKey(e => e.ProductId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
 
             // Decimal precision configuration to avoid truncation
             builder.Entity<Discount>().Property(d => d.DiscountValue).HasColumnType("decimal(18,2)");
