@@ -34,6 +34,9 @@ namespace Graduation_Application.Mapper.ProductMapping
                 .Map(dest => dest.WorkshopNameEn, src => src.Workshop != null ? src.Workshop.WorkshopNameEn : string.Empty)
                 .Map(dest => dest.CreatedAt, src => src.CreatedAt)
                 .Map(dest => dest.IsActive, src => src.IsActive)
+                .Map(dest => dest.Product3DModelUrl, src => src.Product3DModelUrl)
+                .Map(dest => dest.Images, src => src.Images != null ? src.Images.Adapt<List<ProductImageDto>>() : new List<ProductImageDto>())
+                .Map(dest => dest.Availability, src => src.IsActive && !src.IsHidden)
                 .AfterMapping((src, dest) =>
                 {
                     dest.MainImageUrl = GetMainImageUrl(src.Images);

@@ -4,6 +4,7 @@ using Graduation_infrastructure.AppDbContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Graduation_infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260629094851_AddShowcaseSlidesAndHotspots")]
+    partial class AddShowcaseSlidesAndHotspots
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1555,12 +1558,7 @@ namespace Graduation_infrastructure.Migrations
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("WorkshopId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("WorkshopId");
 
                     b.ToTable("ShowcaseSlides", (string)null);
                 });
@@ -2470,17 +2468,6 @@ namespace Graduation_infrastructure.Migrations
                     b.Navigation("Product");
 
                     b.Navigation("ShowcaseSlide");
-                });
-
-            modelBuilder.Entity("Graduation_domain.Entities.ShowcaseSlide", b =>
-                {
-                    b.HasOne("Graduation_domain.Entities.Workshop", "Workshop")
-                        .WithMany()
-                        .HasForeignKey("WorkshopId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Workshop");
                 });
 
             modelBuilder.Entity("Graduation_domain.Entities.SubCategory", b =>
