@@ -15,7 +15,7 @@ namespace Graduation_domain.Entities
         public string EmptyRoom { get; set; }
 
         [Column("generateImage")]
-        public string GenerateImageUrl { get; set; }
+        public string? GenerateImageUrl { get; set; }
         public int? OrderID { get; set; }
 
         [ForeignKey("OrderID")]

@@ -96,8 +96,7 @@ namespace Graduation_API.Controllers
                 {
                     UserID = userId,
                     EmptyRoom = dto.EmptyRoom,
-                    GenerateImageUrl = dto.GenerateImage,
-                    OrderID = dto.OrderID,
+
                     Length = dto.Length,
                     Width = dto.Width,
                     Height = dto.Height
