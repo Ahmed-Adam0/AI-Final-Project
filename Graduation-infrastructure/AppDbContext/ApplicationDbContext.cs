@@ -42,6 +42,7 @@ namespace Graduation_infrastructure.AppDbContext
         public DbSet<PaymentMilestone> PaymentMilestones { get; set; }
         public DbSet<ShowcaseSlide> ShowcaseSlides { get; set; }
         public DbSet<ShowcaseHotspot> ShowcaseHotspots { get; set; }
+        public DbSet<GenerateImage> GenerateImages { get; set; }
 
         // ── Vendor-Driven Catalog ──────────────────────────────────────────────────
         public DbSet<ProductAttribute> ProductAttributes { get; set; }
@@ -471,6 +472,23 @@ namespace Graduation_infrastructure.AppDbContext
                 .HasIndex(u => u.GoogleId)
                 .HasFilter("[GoogleId] IS NOT NULL")
                 .IsUnique();
+
+            // ── GenerateImage Configuration ────────────────────────────────
+            builder.Entity<GenerateImage>(entity =>
+            {
+                entity.ToTable("generateImages");
+                entity.HasKey(e => e.Id);
+                
+                entity.HasOne(e => e.User)
+                      .WithMany()
+                      .HasForeignKey(e => e.UserID)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.Order)
+                      .WithMany()
+                      .HasForeignKey(e => e.OrderID)
+                      .OnDelete(DeleteBehavior.NoAction); 
+            });
         }
     }
 }

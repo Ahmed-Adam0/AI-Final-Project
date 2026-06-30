@@ -1,8 +1,12 @@
+using Graduation_domain.Entities;
+using Graduation_Application.IRepositories;
 using Graduation_Application.DTOs.RoomDesignDTO;
 using Graduation_Application.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Security.Claims;
 
 namespace Graduation_API.Controllers
 {
@@ -11,10 +15,14 @@ namespace Graduation_API.Controllers
     public class RoomDesignController : ControllerBase
     {
         private readonly IGeminiRoomDesignService _geminiRoomDesignService;
+        private readonly IGenaricRepositories<GenerateImage> _generateImageRepo;
 
-        public RoomDesignController(IGeminiRoomDesignService geminiRoomDesignService)
+        public RoomDesignController(
+            IGeminiRoomDesignService geminiRoomDesignService,
+            IGenaricRepositories<GenerateImage> generateImageRepo)
         {
             _geminiRoomDesignService = geminiRoomDesignService;
+            _generateImageRepo = generateImageRepo;
         }
 
         [HttpPost("generate")]
@@ -67,5 +75,43 @@ namespace Graduation_API.Controllers
         }
 
 
+        [HttpPost("save-image")]
+        [Authorize]
+        public async Task<IActionResult> SaveGeneratedImage([FromBody] SaveGeneratedImageDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User is not authenticated.");
+            }
+
+            try
+            {
+                var generateImage = new GenerateImage
+                {
+                    UserID = userId,
+                    EmptyRoom = dto.EmptyRoom,
+                    GenerateImageUrl = dto.GenerateImage,
+                    OrderID = dto.OrderID,
+                    Length = dto.Length,
+                    Width = dto.Width,
+                    Height = dto.Height
+                };
+
+                await _generateImageRepo.AddAsync(generateImage);
+                await _generateImageRepo.SaveChangesAsync();
+
+                return Ok(new { message = "Image saved successfully", id = generateImage.Id });
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, $"An error occurred while saving the image: {ex.Message}");
+            }
+        }
     }
 }
