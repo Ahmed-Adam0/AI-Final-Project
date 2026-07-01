@@ -207,5 +207,41 @@ namespace Graduation_API.Controllers
                 );
             }
         }
+
+        [HttpPost("format-test")]
+        [AllowAnonymous]
+        public IActionResult FormatTest([FromBody] System.Collections.Generic.List<N8NChatResponseDto> payload)
+        {
+            if (payload == null || payload.Count == 0)
+            {
+                return BadRequest("Payload is empty.");
+            }
+
+            var n8nResponse = payload[0];
+            
+            var reply = string.IsNullOrWhiteSpace(n8nResponse.Output)
+                ? n8nResponse.Reply
+                : n8nResponse.Output;
+
+            if (string.IsNullOrWhiteSpace(reply))
+            {
+                return BadRequest("No reply or output found in payload.");
+            }
+
+            string? imageUrl = null;
+            var match = System.Text.RegularExpressions.Regex.Match(reply, @"(?:\*\*)?\[.*?\]\((https?://[^\s)]+)\)(?:\*\*)?");
+            if (match.Success)
+            {
+                imageUrl = match.Groups[1].Value;
+                reply = reply.Replace(match.Value, "").Trim();
+            }
+
+            return Ok(new
+            {
+                Success = true,
+                Message = "Format parsed successfully",
+                Data = new ChatReplyDto { Reply = reply, ImageUrl = imageUrl }
+            });
+        }
     }
 }

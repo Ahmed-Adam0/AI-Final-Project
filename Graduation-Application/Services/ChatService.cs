@@ -1,12 +1,16 @@
 using System;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Graduation_Application.DTOs.ChatDTO;
+using Graduation_Application.IRepositories;
 using Graduation_Application.IServices;
 using Graduation_Application.Options;
+using Graduation_domain.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -19,16 +23,19 @@ namespace Graduation_Application.Services
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly N8NOptions _options;
         private readonly ILogger<ChatService> _logger;
+        private readonly IGenaricRepositories<GenerateImage> _generateImageRepo;
 
         public ChatService(
             IHttpClientFactory httpClientFactory,
             IOptions<N8NOptions> options,
-            ILogger<ChatService> logger
+            ILogger<ChatService> logger,
+            IGenaricRepositories<GenerateImage> generateImageRepo
         )
         {
             _httpClientFactory = httpClientFactory;
             _options = options.Value;
             _logger = logger;
+            _generateImageRepo = generateImageRepo;
         }
 
         public async Task<ChatReplyDto> SendMessageAsync(
@@ -88,13 +95,24 @@ namespace Graduation_Application.Services
                     );
                 }
 
-                N8NChatResponseDto? n8nResponse;
+                N8NChatResponseDto? n8nResponse = null;
                 try
                 {
-                    n8nResponse = JsonSerializer.Deserialize<N8NChatResponseDto>(
-                        responseBody,
-                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-                    );
+                    if (responseBody.TrimStart().StartsWith("["))
+                    {
+                        var list = JsonSerializer.Deserialize<System.Collections.Generic.List<N8NChatResponseDto>>(
+                            responseBody,
+                            new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                        );
+                        n8nResponse = list != null && list.Count > 0 ? list[0] : null;
+                    }
+                    else
+                    {
+                        n8nResponse = JsonSerializer.Deserialize<N8NChatResponseDto>(
+                            responseBody,
+                            new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                        );
+                    }
                 }
                 catch (JsonException ex)
                 {
@@ -123,9 +141,9 @@ namespace Graduation_Application.Services
                     throw new InvalidOperationException("Chat service failed to process the request.");
                 }
 
-                var reply = string.IsNullOrWhiteSpace(n8nResponse.Reply)
-                    ? n8nResponse.Output
-                    : n8nResponse.Reply;
+                var reply = string.IsNullOrWhiteSpace(n8nResponse.Output)
+                    ? n8nResponse.Reply
+                    : n8nResponse.Output;
 
                 if (string.IsNullOrWhiteSpace(reply))
                 {
@@ -133,7 +151,18 @@ namespace Graduation_Application.Services
                     throw new InvalidOperationException("Chat service returned an invalid reply.");
                 }
 
-                return new ChatReplyDto { Reply = reply };
+                string? imageUrl = null;
+                var lastImage = await _generateImageRepo
+                    .Where(x => x.UserID == request.UserId)
+                    .OrderByDescending(x => x.Id)
+                    .FirstOrDefaultAsync(cancellationToken);
+                
+                if (lastImage != null && !string.IsNullOrEmpty(lastImage.GenerateImageUrl))
+                {
+                    imageUrl = lastImage.GenerateImageUrl;
+                }
+
+                return new ChatReplyDto { Reply = reply, ImageUrl = imageUrl };
             }
             catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
             {
