@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Graduation_Application.IServices;
 using Graduation_Application.IServices.Admin;
+using Graduation_Application.DTOs.ContactDTO;
 using Microsoft.Extensions.Configuration;
 //using SendGrid;
 //using SendGrid.Helpers.Mail;
@@ -36,10 +37,10 @@ namespace Graduation_Application.ExternalServices.EmailServices
                     <table width=""100%"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""background-color: #F7F4EB;"">
                         <tr>
                             <td align=""center"" style=""padding: 35px 15px;"">
-                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" background=""{BackgroundImageUrl}"" style=""max-width: 600px; background-image: url('{BackgroundImageUrl}'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: right; direction: rtl;"">
+                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: right; direction: rtl;"">
                             <!-- Logo Header -->
                             <tr>
-                                <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle;"">
+                                <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle; background-color: #3d2511;"">
                                     <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""margin: 0 auto; direction: ltr;"">
                                         <tr>
                                             <td style=""padding-right: 12px; vertical-align: middle;"">
@@ -119,7 +120,7 @@ namespace Graduation_Application.ExternalServices.EmailServices
                             
                             <!-- Footer -->
                             <tr>
-                                <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center;"">
+                                <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center; background-color: #faf6f0;"">
                                     <p style=""color: #2b1a0a; font-weight: bold; font-size: 12px; text-align: center; margin: 0; font-weight: 500;"">© 2026 FurniMind جميع الحقوق محفوظة.</p>
                                 </td>
                             </tr>
@@ -145,10 +146,10 @@ namespace Graduation_Application.ExternalServices.EmailServices
                     <table width=""100%"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""background-color: #F7F4EB;"">
                         <tr>
                             <td align=""center"" style=""padding: 35px 15px;"">
-                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" background=""{BackgroundImageUrl}"" style=""max-width: 600px; background-image: url('{BackgroundImageUrl}'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: right; direction: rtl;"">
+                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: right; direction: rtl;"">
                             <!-- Logo Header -->
                             <tr>
-                                <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle;"">
+                                <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle; background-color: #3d2511;"">
                                     <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""margin: 0 auto; direction: ltr;"">
                                         <tr>
                                             <td style=""padding-right: 12px; vertical-align: middle;"">
@@ -228,7 +229,7 @@ namespace Graduation_Application.ExternalServices.EmailServices
                             
                             <!-- Footer -->
                             <tr>
-                                <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center;"">
+                                <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center; background-color: #faf6f0;"">
                                     <p style=""color: #2b1a0a; font-weight: bold; font-size: 12px; text-align: center; margin: 0; font-weight: 500;"">© 2026 FurniMind جميع الحقوق محفوظة.</p>
                                 </td>
                             </tr>
@@ -253,10 +254,10 @@ namespace Graduation_Application.ExternalServices.EmailServices
                     <table width=""100%"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""background-color: #F7F4EB;"">
                         <tr>
                             <td align=""center"" style=""padding: 35px 15px;"">
-                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" background=""{BackgroundImageUrl}"" style=""max-width: 600px; background-image: url('{BackgroundImageUrl}'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: right; direction: rtl;"">
+                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: right; direction: rtl;"">
                             <!-- Logo Header -->
                             <tr>
-                                <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle;"">
+                                <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle; background-color: #3d2511;"">
                                     <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""margin: 0 auto; direction: ltr;"">
                                         <tr>
                                             <td style=""padding-right: 12px; vertical-align: middle;"">
@@ -317,7 +318,7 @@ namespace Graduation_Application.ExternalServices.EmailServices
                             
                             <!-- Footer -->
                             <tr>
-                                <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center;"">
+                                <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center; background-color: #faf6f0;"">
                                     <p style=""color: #2b1a0a; font-weight: bold; font-size: 12px; text-align: center; margin: 0; font-weight: 500;"">© 2026 FurniMind جميع الحقوق محفوظة.</p>
                                 </td>
                             </tr>
@@ -342,10 +343,10 @@ namespace Graduation_Application.ExternalServices.EmailServices
                     <table width=""100%"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""background-color: #F7F4EB;"">
                         <tr>
                             <td align=""center"" style=""padding: 35px 15px;"">
-                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" background=""{BackgroundImageUrl}"" style=""max-width: 600px; background-image: url('{BackgroundImageUrl}'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: right; direction: rtl;"">
+                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: right; direction: rtl;"">
                             <!-- Logo Header -->
                             <tr>
-                                <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle;"">
+                                <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle; background-color: #3d2511;"">
                                     <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""margin: 0 auto; direction: ltr;"">
                                         <tr>
                                             <td style=""padding-right: 12px; vertical-align: middle;"">
@@ -398,7 +399,7 @@ namespace Graduation_Application.ExternalServices.EmailServices
                             
                             <!-- Footer -->
                             <tr>
-                                <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center;"">
+                                <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center; background-color: #faf6f0;"">
                                     <p style=""color: #2b1a0a; font-weight: bold; font-size: 12px; text-align: center; margin: 0; font-weight: 500;"">© 2026 FurniMind جميع الحقوق محفوظة.</p>
                                 </td>
                             </tr>
@@ -427,10 +428,10 @@ namespace Graduation_Application.ExternalServices.EmailServices
                     <table width=""100%"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""background-color: #F7F4EB;"">
                         <tr>
                             <td align=""center"" style=""padding: 35px 15px;"">
-                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" background=""{BackgroundImageUrl}"" style=""max-width: 600px; background-image: url('{BackgroundImageUrl}'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: right; direction: rtl;"">
+                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: right; direction: rtl;"">
                             <!-- Logo Header -->
                             <tr>
-                                <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle;"">
+                                <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle; background-color: #3d2511;"">
                                      <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""margin: 0 auto; direction: ltr;"">
                                         <tr>
                                             <td style=""padding-right: 12px; vertical-align: middle;"">
@@ -495,7 +496,7 @@ namespace Graduation_Application.ExternalServices.EmailServices
                             
                             <!-- Footer -->
                             <tr>
-                                <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center;"">
+                                <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center; background-color: #faf6f0;"">
                                     <p style=""color: #2b1a0a; font-weight: bold; font-size: 12px; text-align: center; margin: 0; font-weight: 500;"">© 2026 FurniMind جميع الحقوق محفوظة.</p>
                                 </td>
                             </tr>
@@ -520,10 +521,10 @@ namespace Graduation_Application.ExternalServices.EmailServices
                     <table width=""100%"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""background-color: #F7F4EB;"">
                         <tr>
                             <td align=""center"" style=""padding: 35px 15px;"">
-                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" background=""{BackgroundImageUrl}"" style=""max-width: 600px; background-image: url('{BackgroundImageUrl}'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: right; direction: rtl;"">
+                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: right; direction: rtl;"">
                             <!-- Logo Header -->
                             <tr>
-                                <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle;"">
+                                <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle; background-color: #3d2511;"">
                                     <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""margin: 0 auto; direction: ltr;"">
                                         <tr>
                                             <td style=""padding-right: 12px; vertical-align: middle;"">
@@ -576,7 +577,7 @@ namespace Graduation_Application.ExternalServices.EmailServices
                             
                             <!-- Footer -->
                             <tr>
-                                <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center;"">
+                                <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center; background-color: #faf6f0;"">
                                     <p style=""color: #2b1a0a; font-weight: bold; font-size: 12px; text-align: center; margin: 0; font-weight: 500;"">© 2026 FurniMind جميع الحقوق محفوظة.</p>
                                 </td>
                             </tr>
@@ -601,10 +602,10 @@ namespace Graduation_Application.ExternalServices.EmailServices
                     <table width=""100%"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""background-color: #F7F4EB;"">
                         <tr>
                             <td align=""center"" style=""padding: 35px 15px;"">
-                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" background=""{BackgroundImageUrl}"" style=""max-width: 600px; background-image: url('{BackgroundImageUrl}'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: right; direction: rtl;"">
+                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: right; direction: rtl;"">
                             <!-- Logo Header -->
                             <tr>
-                                <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle;"">
+                                <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle; background-color: #3d2511;"">
                                     <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""margin: 0 auto; direction: ltr;"">
                                         <tr>
                                             <td style=""padding-right: 12px; vertical-align: middle;"">
@@ -646,7 +647,7 @@ namespace Graduation_Application.ExternalServices.EmailServices
                             
                             <!-- Footer -->
                             <tr>
-                                <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center;"">
+                                <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center; background-color: #faf6f0;"">
                                     <p style=""color: #2b1a0a; font-weight: bold; font-size: 12px; text-align: center; margin: 0; font-weight: 500;"">© 2026 FurniMind جميع الحقوق محفوظة.</p>
                                 </td>
                             </tr>
@@ -671,10 +672,10 @@ namespace Graduation_Application.ExternalServices.EmailServices
                     <table width=""100%"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""background-color: #F7F4EB;"">
                         <tr>
                             <td align=""center"" style=""padding: 35px 15px;"">
-                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" background=""{BackgroundImageUrl}"" style=""max-width: 600px; background-image: url('{BackgroundImageUrl}'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: right; direction: rtl;"">
+                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: right; direction: rtl;"">
                             <!-- Logo Header -->
                             <tr>
-                                <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle;"">
+                                <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle; background-color: #3d2511;"">
                                     <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""margin: 0 auto; direction: ltr;"">
                                         <tr>
                                             <td style=""padding-right: 12px; vertical-align: middle;"">
@@ -716,7 +717,7 @@ namespace Graduation_Application.ExternalServices.EmailServices
                             
                             <!-- Footer -->
                             <tr>
-                                <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center;"">
+                                <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center; background-color: #faf6f0;"">
                                     <p style=""color: #2b1a0a; font-weight: bold; font-size: 12px; text-align: center; margin: 0; font-weight: 500;"">© 2026 FurniMind جميع الحقوق محفوظة.</p>
                                 </td>
                             </tr>
@@ -781,10 +782,10 @@ namespace Graduation_Application.ExternalServices.EmailServices
                     <table width=""100%"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""background-color: #F7F4EB;"">
                         <tr>
                             <td align=""center"" style=""padding: 35px 15px;"">
-                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" background=""{BackgroundImageUrl}"" style=""max-width: 600px; background-image: url('{BackgroundImageUrl}'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: {align}; direction: {dir};"">
+                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: {align}; direction: {dir};"">
                             <!-- Logo Header -->
                             <tr>
-                                <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle;"">
+                                <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle; background-color: #3d2511;"">
                                     <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""margin: 0 auto; direction: ltr;"">
                                         <tr>
                                             <td style=""padding-right: 12px; vertical-align: middle;"">
@@ -834,7 +835,7 @@ namespace Graduation_Application.ExternalServices.EmailServices
                             
                             <!-- Footer -->
                             <tr>
-                                <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center;"">
+                                <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center; background-color: #faf6f0;"">
                                     <p style=""color: #2b1a0a; font-weight: bold; font-size: 12px; margin: 0; font-weight: 500;"">{copyright}</p>
                                 </td>
                             </tr>
@@ -867,10 +868,10 @@ namespace Graduation_Application.ExternalServices.EmailServices
                     <table width=""100%"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""background-color: #F7F4EB;"">
                         <tr>
                             <td align=""center"" style=""padding: 35px 15px;"">
-                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" background=""{BackgroundImageUrl}"" style=""max-width: 600px; background-image: url('{BackgroundImageUrl}'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: {align}; direction: {dir};"">
+                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: {align}; direction: {dir};"">
                             <!-- Logo Header -->
                             <tr>
-                                <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle;"">
+                                <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle; background-color: #3d2511;"">
                                     <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""margin: 0 auto; direction: ltr;"">
                                         <tr>
                                             <td style=""padding-right: 12px; vertical-align: middle;"">
@@ -920,7 +921,7 @@ namespace Graduation_Application.ExternalServices.EmailServices
                             
                             <!-- Footer -->
                             <tr>
-                                <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center;"">
+                                <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center; background-color: #faf6f0;"">
                                     <p style=""color: #2b1a0a; font-weight: bold; font-size: 12px; margin: 0; font-weight: 500;"">{copyright}</p>
                                 </td>
                             </tr>
@@ -1007,11 +1008,122 @@ namespace Graduation_Application.ExternalServices.EmailServices
         //}
 
         //for smtp email
+        public async Task SendContactInquiryEmailAsync(ContactFormDto inquiry)
+        {
+            var subject = $"[FurniMind Contact] {inquiry.Subject}";
+            var recipientEmail = "furnimindai@gmail.com";
+
+            var name = System.Net.WebUtility.HtmlEncode(inquiry.Name);
+            var email = System.Net.WebUtility.HtmlEncode(inquiry.Email);
+            var phone = System.Net.WebUtility.HtmlEncode(inquiry.Phone);
+            var inquirySubject = System.Net.WebUtility.HtmlEncode(inquiry.Subject);
+            var message = System.Net.WebUtility.HtmlEncode(inquiry.Message);
+
+            var plainTextContent = $@"New Contact Inquiry:
+Sender Name: {inquiry.Name}
+Email: {inquiry.Email}
+Phone: {inquiry.Phone}
+Subject: {inquiry.Subject}
+
+Message:
+{inquiry.Message}";
+
+            var htmlContent = $@"
+                <html>
+                <body style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0;"">
+                    <table width=""100%"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""background-color: #F7F4EB;"">
+                        <tr>
+                            <td align=""center"" style=""padding: 35px 15px;"">
+                                <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" width=""100%"" style=""max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(43, 26, 10, 0.06); border: 2px solid #c0b7ad; text-align: left; direction: ltr;"">
+                                    <!-- Logo Header -->
+                                    <tr>
+                                        <td style=""padding: 32px 30px 24px 30px; text-align: center; vertical-align: middle; background-color: #3d2511;"">
+                                            <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""margin: 0 auto; direction: ltr;"">
+                                                <tr>
+                                                    <td style=""padding-right: 12px; vertical-align: middle;"">
+                                                        <table border=""0"" cellpadding=""0"" cellspacing=""0"" style=""width: 26px; height: 26px;"">
+                                                            <tr>
+                                                                <td colspan=""5"" style=""height: 5px; background-color: #C5A059; border-radius: 3px 3px 0 0; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                            </tr>
+                                                            <tr height=""2""><td colspan=""5"" style=""font-size: 1px; line-height: 1px;"">&nbsp;</td></tr>
+                                                            <tr>
+                                                                <td valign=""top"" style=""width: 5px; height: 19px; background-color: #C5A059; border-radius: 0 0 2px 2px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                                <td style=""width: 4px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                                <td valign=""bottom"" style=""width: 5px; height: 14px; background-color: #A38042; border-radius: 2px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                                <td style=""width: 4px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                                <td valign=""bottom"" style=""width: 5px; height: 9px; background-color: #6D522B; border-radius: 2px; font-size: 1px; line-height: 1px;"">&nbsp;</td>
+                                                            </tr>
+                                                        </table>
+                                                    </td>
+                                                    <td style=""vertical-align: middle; line-height: 1;"">
+                                                        <span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #ffffff; letter-spacing: 0.5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);"">Furni</span><span style=""font-family: 'Outfit', 'Segoe UI', Tahoma, sans-serif; font-size: 26px; font-weight: bold; color: #C5A059; letter-spacing: 0.5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);"">Mind</span>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    
+                                    <!-- Card Body -->
+                                    <tr>
+                                        <td style=""padding: 30px 45px 20px 45px; background-color: #ffffff;"">
+                                            <h2 style=""color: #2b1a0a; font-weight: bold; font-size: 24px; margin-top: 0; margin-bottom: 10px; text-align: center;"">New Contact Inquiry</h2>
+                                            <div style=""width: 80px; height: 1px; background-color: #7c6d61; margin: 5px auto 20px auto;""></div>
+                                            
+                                            <table width=""100%"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""margin-bottom: 25px;"">
+                                                <tr>
+                                                    <td style=""padding: 8px 0; font-weight: bold; width: 30%; color: #3d2511; font-size: 15px;"">Sender Name:</td>
+                                                    <td style=""padding: 8px 0; color: #2b1a0a; font-size: 15px;"">{name}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style=""padding: 8px 0; font-weight: bold; color: #3d2511; font-size: 15px;"">Email:</td>
+                                                    <td style=""padding: 8px 0; color: #2b1a0a; font-size: 15px;""><a href=""mailto:{email}"" style=""color: #A38042; text-decoration: none; font-weight: bold;"">{email}</a></td>
+                                                </tr>
+                                                <tr>
+                                                    <td style=""padding: 8px 0; font-weight: bold; color: #3d2511; font-size: 15px;"">Phone:</td>
+                                                    <td style=""padding: 8px 0; color: #2b1a0a; font-size: 15px;""><a href=""tel:{phone}"" style=""color: #A38042; text-decoration: none; font-weight: bold;"">{phone}</a></td>
+                                                </tr>
+                                                <tr>
+                                                    <td style=""padding: 8px 0; font-weight: bold; color: #3d2511; font-size: 15px;"">Subject:</td>
+                                                    <td style=""padding: 8px 0; color: #2b1a0a; font-size: 15px; font-style: italic;"">{inquirySubject}</td>
+                                                </tr>
+                                            </table>
+                                            
+                                            <h3 style=""color: #2b1a0a; border-bottom: 1.5px solid #c0b7ad; padding-bottom: 8px; margin-top: 20px; font-size: 18px;"">Message</h3>
+                                            <div style=""background-color: #ffffff; border: 1.5px solid #c0b7ad; border-radius: 8px; padding: 15px; color: #2b1a0a; font-size: 15px; white-space: pre-wrap; margin-top: 10px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);"">{message}</div>
+                                            
+                                            <table align=""center"" border=""0"" cellpadding=""0"" cellspacing=""0"" style=""margin: 30px auto 10px auto;"">
+                                                <tr>
+                                                    <td align=""center"">
+                                                        <a href=""mailto:{email}"" style=""display: inline-block; padding: 12px 30px; color: #ffffff; background-color: #3d2511; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); border: 1.5px solid #2b1a0a;"">Reply to {name}</a>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    
+                                    <!-- Footer -->
+                                    <tr>
+                                        <td style=""padding: 20px; border-top: 1px solid #d6cdce; text-align: center; background-color: #faf6f0;"">
+                                            <p style=""color: #2b1a0a; font-weight: bold; font-size: 12px; text-align: center; margin: 0; font-weight: 500;"">© 2026 FurniMind. All rights reserved.</p>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </body>
+                </html>";
+
+            await SendEmailAsync(recipientEmail, subject, plainTextContent, htmlContent, replyToEmail: inquiry.Email);
+        }
+
+        //for smtp email
         private async Task SendEmailAsync(
             string toEmail,
             string subject,
             string plainTextContent,
-            string htmlContent
+            string htmlContent,
+            string? replyToEmail = null
         )
         {
             var emailAddress = _configuration["EmailSettings:Email"];
@@ -1036,6 +1148,11 @@ namespace Graduation_Application.ExternalServices.EmailServices
             email.To.Add(
                 MailboxAddress.Parse(
                     toEmail));
+
+            if (!string.IsNullOrEmpty(replyToEmail))
+            {
+                email.ReplyTo.Add(MailboxAddress.Parse(replyToEmail));
+            }
 
             email.Subject = subject;
 

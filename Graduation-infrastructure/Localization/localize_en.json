@@ -972,5 +972,19 @@
       "milestonePaymentSuccessSubject": "Payment Milestone Confirmed for Order #{0} - FurniMind",
       "milestonePaymentSuccessBodyTemplate": "The payment milestone ({0}) for your order #{2} with amount EGP {1} has been successfully paid. Thank you for your trust."
     }
+  },
+  "contact": {
+    "success": "Your message has been sent successfully. We will get back to you shortly.",
+    "error": "An error occurred while sending your message. Please try again later.",
+    "nameRequired": "Name is required",
+    "nameMinLength": "Name must be at least 3 characters",
+    "emailRequired": "Email is required",
+    "emailInvalid": "Invalid email address",
+    "phoneRequired": "Phone number is required",
+    "phoneInvalid": "Invalid Egyptian phone number",
+    "subjectRequired": "Subject is required",
+    "subjectMinLength": "Subject must be at least 5 characters",
+    "messageRequired": "Message is required",
+    "messageMinLength": "Message must be at least 10 characters"
   }
 }
