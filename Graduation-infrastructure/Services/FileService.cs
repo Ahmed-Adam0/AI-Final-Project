@@ -47,6 +47,11 @@ namespace Graduation_infrastructure.Services
             if (result == null || result.SecureUrl == null)
                 throw new Exception("Upload failed");
 
+            if (!string.IsNullOrWhiteSpace(oldFileUrl))
+            {
+                await DeleteAsync(oldFileUrl);
+            }
+
             return result.SecureUrl.ToString();
         }
 
@@ -54,13 +59,23 @@ namespace Graduation_infrastructure.Services
         {
             if (string.IsNullOrWhiteSpace(fileUrl)) return;
 
-            // استخرج الـ PublicId من الـ URL
-            var uri = new Uri(fileUrl);
-            var segments = uri.Segments;
-            var publicId = string.Join("", segments[^2..]).Replace(".jpg", "").Replace(".jpeg", "").Replace(".png", "").TrimEnd('/');
+            try
+            {
+                // استخرج الـ PublicId من الـ URL
+                var uri = new Uri(fileUrl);
+                var segments = uri.Segments;
+                if (segments.Length >= 2)
+                {
+                    var publicId = string.Join("", segments[^2..]).Replace(".jpg", "").Replace(".jpeg", "").Replace(".png", "").TrimEnd('/');
 
-            var deleteParams = new DeletionParams(publicId);
-            await _cloudinary.DestroyAsync(deleteParams);
+                    var deleteParams = new DeletionParams(publicId);
+                    await _cloudinary.DestroyAsync(deleteParams);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Error deleting image from Cloudinary: {ex.Message}");
+            }
         }
 
         public async Task<string> Save3DModelAsync(IFormFile file, string folderName, string? oldFileUrl = null)

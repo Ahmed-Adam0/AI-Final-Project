@@ -970,5 +970,19 @@
     "milestoneCreatedBodyTemplate": "تم إنشاء مرحلة دفع جديدة ({0}) لطلبكم رقم #{2} بقيمة {1} ج.م. يرجى إتمام الدفع.",
     "milestonePaymentSuccessSubject": "تأكيد سداد مرحلة الدفع لطلبكم رقم #{0} - FurniMind",
     "milestonePaymentSuccessBodyTemplate": "تم سداد مرحلة الدفع ({0}) لطلبكم رقم #{2} بقيمة {1} ج.م بنجاح. شكراً لثقتكم بنا."
+  },
+  "contact": {
+    "success": "تم إرسال رسالتك بنجاح. وسنتواصل معك قريبًا.",
+    "error": "حدث خطأ أثناء إرسال رسالتك. يرجى المحاولة مرة أخرى لاحقًا.",
+    "nameRequired": "الاسم مطلوب",
+    "nameMinLength": "يجب أن يتكون الاسم من 3 أحرف على الأقل",
+    "emailRequired": "البريد الإلكتروني مطلوب",
+    "emailInvalid": "عنوان بريد إلكتروني غير صالح",
+    "phoneRequired": "رقم الهاتف مطلوب",
+    "phoneInvalid": "رقم هاتف مصري غير صالح",
+    "subjectRequired": "الموضوع مطلوب",
+    "subjectMinLength": "يجب أن يتكون الموضوع من 5 أحرف على الأقل",
+    "messageRequired": "الرسالة مطلوبة",
+    "messageMinLength": "يجب أن تتكون الرسالة من 10 أحرف على الأقل"
   }
 }

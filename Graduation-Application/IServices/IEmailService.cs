@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Graduation_Application.DTOs.ContactDTO;
 
 namespace Graduation_Application.IServices
 {
@@ -14,5 +15,6 @@ namespace Graduation_Application.IServices
         Task SendDeliveryDateRejectedEmailAsync(string toEmail, int vendorOrderId);
         Task SendMilestoneCreatedEmailAsync(string toEmail, int vendorOrderId, string milestoneName, decimal amount, string lang);
         Task SendMilestonePaymentSuccessEmailAsync(string toEmail, int vendorOrderId, string milestoneName, decimal amount, string lang);
+        Task SendContactInquiryEmailAsync(ContactFormDto inquiry);
     }
 }
