@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 
 namespace Graduation_Application.DTOs.RoomDesignDTO
@@ -5,7 +6,7 @@ namespace Graduation_Application.DTOs.RoomDesignDTO
     public class SaveGeneratedImageDto
     {
         [Required]
-        public string EmptyRoom { get; set; }
+        public IFormFile EmptyRoom { get; set; }
         
         [Required]
         public decimal Length { get; set; }
