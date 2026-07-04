@@ -184,6 +184,28 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             //    );
             //});
 
+            //services.AddCors(options =>
+            //{
+            //    options.AddPolicy(
+            //        "AllowVercel",
+            //        policy =>
+            //        {
+            //            policy
+            //                .WithOrigins(
+            //                    "http://localhost:4200",
+            //                    "https://localhost:4200",
+            //                    "https://home-ai-angular.vercel.app",
+            //                    "https://home-ai-angular-4ckfe970j-ahmed-adams-projects-f69659da.vercel.app"
+            //                )
+            //                .AllowAnyHeader()
+            //                .AllowAnyMethod()
+            //                .AllowCredentials();
+            //        }
+            //    );
+            //});
+
+
+
             services.AddCors(options =>
             {
                 options.AddPolicy(
@@ -191,15 +213,10 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
                     policy =>
                     {
                         policy
-                            .WithOrigins(
-                                "http://localhost:4200",
-                                "https://localhost:4200",
-                                "https://home-ai-angular.vercel.app",
-                                "https://home-ai-angular-4ckfe970j-ahmed-adams-projects-f69659da.vercel.app"
-                            )
+                            .AllowAnyOrigin() // 👈 يخلي أي سيرفر (سواء فيرسيل SSR أو لوكال أو الدومين الملوح) يعرف يجيب الداتا بسلام
                             .AllowAnyHeader()
-                            .AllowAnyMethod()
-                            .AllowCredentials();
+                            .AllowAnyMethod();
+                        // ملحوظة: شيلنا AllowCredentials() لأنها مبتشتغلش مع AllowAnyOrigin()
                     }
                 );
             });
