@@ -319,6 +319,14 @@ namespace Graduation_Application.Services
                     {
                         await _emailService.SendNewOrderVendorEmailAsync(workshop.User.Email, vendorOrder.Id);
                     }
+
+                    // Send WhatsApp notification to the vendor
+                    await _notificationService.SendVendorNewOrderAsync(
+                        vendorUserId,
+                        vendorOrder.Id,
+                        appUser.FullName ?? "Customer",
+                        vendorOrder.TotalPrice
+                    );
                 }
             }
 
