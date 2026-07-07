@@ -48,23 +48,23 @@ namespace Graduation_Application.Services
                 await _emailService.SendOrderCreatedEmailAsync(user.Email, orderId);
             }
 
-            //if (user != null && !string.IsNullOrWhiteSpace(user.PhoneNumber))
-            //{
-            //    await _whatsAppService.SendTemplateAsync(
-            //        new WhatsAppNotificationRequest
-            //        {
-            //            To = user.PhoneNumber,
-            //            TemplateName = "flow_after_create_order",
-            //            LanguageCode = _whatsAppSettings.DefaultLanguageCode,
-            //            BodyParameters = new List<string>
-            //            {
-            //                user.FullName,
-            //                orderId.ToString(),
-            //                totalPrice.ToString(),
-            //            },
-            //        }
-            //    );
-            //}
+            if (user != null && !string.IsNullOrWhiteSpace(user.PhoneNumber))
+            {
+                await _whatsAppService.SendTemplateAsync(
+                    new WhatsAppNotificationRequest
+                    {
+                        To = user.PhoneNumber,
+                        TemplateName = "flow_after_create_order",
+                        LanguageCode = _whatsAppSettings.DefaultLanguageCode,
+                        BodyParameters = new List<string>
+                        {
+                            user.FullName,
+                            orderId.ToString(),
+                            totalPrice.ToString(),
+                        },
+                    }
+                );
+            }
         }
 
         public async Task SendOrderStatusUpdateAsync(string userId, int orderId, string newStatus)
@@ -84,23 +84,23 @@ namespace Graduation_Application.Services
                 );
             }
 
-            //if (user != null && !string.IsNullOrWhiteSpace(user.PhoneNumber))
-            //{
-            //    await _whatsAppService.SendTemplateAsync(
-            //        new WhatsAppNotificationRequest
-            //        {
-            //            To = user.PhoneNumber,
-            //            TemplateName = "flow_order_status_update",
-            //            LanguageCode = _whatsAppSettings.DefaultLanguageCode,
-            //            BodyParameters = new List<string>
-            //            {
-            //                user.FullName,
-            //                orderId.ToString(),
-            //                newStatus,
-            //            },
-            //        }
-            //    );
-            //}
+            if (user != null && !string.IsNullOrWhiteSpace(user.PhoneNumber))
+            {
+                await _whatsAppService.SendTemplateAsync(
+                    new WhatsAppNotificationRequest
+                    {
+                        To = user.PhoneNumber,
+                        TemplateName = "flow_order_status_update",
+                        LanguageCode = _whatsAppSettings.DefaultLanguageCode,
+                        BodyParameters = new List<string>
+                        {
+                            user.FullName,
+                            orderId.ToString(),
+                            newStatus,
+                        },
+                    }
+                );
+            }
         }
 
         public async Task SendOrderCancellationAsync(string userId, int orderId)
@@ -120,14 +120,102 @@ namespace Graduation_Application.Services
                 );
             }
 
+            //if (user != null && !string.IsNullOrWhiteSpace(user.PhoneNumber))
+            //{
+            //    await _whatsAppService.SendTemplateAsync(
+            //        new WhatsAppNotificationRequest
+            //        {
+            //            To = user.PhoneNumber,
+            //            TemplateName = _whatsAppSettings.DefaultTemplateName,
+            //            LanguageCode = _whatsAppSettings.DefaultLanguageCode,
+            //        }
+            //    );
+            //}
+
             if (user != null && !string.IsNullOrWhiteSpace(user.PhoneNumber))
             {
                 await _whatsAppService.SendTemplateAsync(
                     new WhatsAppNotificationRequest
                     {
                         To = user.PhoneNumber,
-                        TemplateName = _whatsAppSettings.DefaultTemplateName,
+                        TemplateName = "flow_order_status_update",
                         LanguageCode = _whatsAppSettings.DefaultLanguageCode,
+                        BodyParameters = new List<string>
+                        {
+                            user.FullName,
+                            orderId.ToString(),
+                            "Cancelled",
+                        },
+                    }
+                );
+            }
+        }
+
+        public async Task SendVendorNewOrderAsync(string vendorUserId, int vendorOrderId, string customerName, decimal totalPrice)
+        {
+            var vendor = await ResolveUserAsync(vendorUserId);
+
+            if (vendor != null && !string.IsNullOrWhiteSpace(vendor.PhoneNumber))
+            {
+                await _whatsAppService.SendTemplateAsync(
+                    new WhatsAppNotificationRequest
+                    {
+                        To = vendor.PhoneNumber,
+                        TemplateName = "flow_vendor_neworder",
+                        LanguageCode = _whatsAppSettings.DefaultLanguageCode,
+                        BodyParameters = new List<string>
+                        {
+                            vendor.FullName,
+                            vendorOrderId.ToString(),
+                            customerName,
+                            totalPrice.ToString()
+                        },
+                    }
+                );
+            }
+        }
+
+        public async Task SendCustomerFirstPaymentAsync(string userId, int orderId, decimal amountPaid)
+        {
+            var user = await ResolveUserAsync(userId);
+
+            if (user != null && !string.IsNullOrWhiteSpace(user.PhoneNumber))
+            {
+                await _whatsAppService.SendTemplateAsync(
+                    new WhatsAppNotificationRequest
+                    {
+                        To = user.PhoneNumber,
+                        TemplateName = "flow_after_payment",
+                        LanguageCode = _whatsAppSettings.DefaultLanguageCode,
+                        BodyParameters = new List<string>
+                        {
+                            user.FullName,
+                            orderId.ToString(),
+                            amountPaid.ToString()
+                        },
+                    }
+                );
+            }
+        }
+
+        public async Task SendVendorAfterPaymentAsync(string vendorUserId, int vendorOrderId, decimal amountPaid)
+        {
+            var vendor = await ResolveUserAsync(vendorUserId);
+
+            if (vendor != null && !string.IsNullOrWhiteSpace(vendor.PhoneNumber))
+            {
+                await _whatsAppService.SendTemplateAsync(
+                    new WhatsAppNotificationRequest
+                    {
+                        To = vendor.PhoneNumber,
+                        TemplateName = "flow_after_payment_vendor",
+                        LanguageCode = _whatsAppSettings.DefaultLanguageCode,
+                        BodyParameters = new List<string>
+                        {
+                            vendor.FullName,
+                            vendorOrderId.ToString(),
+                            amountPaid.ToString()
+                        },
                     }
                 );
             }

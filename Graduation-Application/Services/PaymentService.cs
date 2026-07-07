@@ -19,6 +19,7 @@ namespace Graduation_Application.Services
         private readonly IPaymentTransactionRepository _paymentTransactionRepository;
         private readonly IGenaricRepositories<VendorOrder> _vendorOrderRepository;
         private readonly IInternalNotificationService _internalNotificationService;
+        private readonly INotificationService _notificationService;
         private readonly IGenaricRepositories<PaymentMilestone> _milestoneRepository;
         private readonly IEmailService _emailService;
         private readonly UserManager<ApplicationUser> _userManager;
@@ -29,6 +30,7 @@ namespace Graduation_Application.Services
             IPaymentTransactionRepository paymentTransactionRepository,
             IGenaricRepositories<VendorOrder> vendorOrderRepository,
             IInternalNotificationService internalNotificationService,
+            INotificationService notificationService,
             IGenaricRepositories<PaymentMilestone> milestoneRepository,
             IEmailService emailService,
             UserManager<ApplicationUser> userManager,
@@ -39,6 +41,7 @@ namespace Graduation_Application.Services
             _paymentTransactionRepository = paymentTransactionRepository;
             _vendorOrderRepository = vendorOrderRepository;
             _internalNotificationService = internalNotificationService;
+            _notificationService = notificationService;
             _milestoneRepository = milestoneRepository;
             _emailService = emailService;
             _userManager = userManager;
@@ -86,6 +89,7 @@ namespace Graduation_Application.Services
 
                 if (milestones.Any())
                 {
+                    bool customerFirstPaymentSent = false;
                     foreach (var milestone in milestones)
                     {
                         if (milestone.IsPaid) continue; // Skip already paid milestones
@@ -125,12 +129,23 @@ namespace Graduation_Application.Services
                             if (vo.Workshop != null && !string.IsNullOrWhiteSpace(vo.Workshop.UserId))
                             {
                                 await _internalNotificationService.CreateAsync(vo.Workshop.UserId, NotificationType.VendorMilestonePaid, $"{milestone.MilestoneStatus}|{milestone.Amount}|{vo.Id}");
+
+                                if (milestone.MilestoneStatus == VendorOrderStatus.PendingPayment || milestone.MilestoneStatus == VendorOrderStatus.Shipped)
+                                {
+                                    await _notificationService.SendVendorAfterPaymentAsync(vo.Workshop.UserId, vo.Id, milestone.Amount);
+                                }
                             }
 
                             // Email to Customer
                             if (user != null && !string.IsNullOrWhiteSpace(user.Email))
                             {
                                 await _emailService.SendMilestonePaymentSuccessEmailAsync(user.Email, vo.Id, milestone.MilestoneStatus.ToString(), milestone.Amount, lang);
+                            }
+
+                            if (milestone.MilestoneStatus == VendorOrderStatus.PendingPayment && !customerFirstPaymentSent)
+                            {
+                                await _notificationService.SendCustomerFirstPaymentAsync(userId, vo.MasterOrderId, t.Amount);
+                                customerFirstPaymentSent = true;
                             }
                         }
                         catch (Exception ex)
@@ -158,6 +173,7 @@ namespace Graduation_Application.Services
                             .Include(vo => vo.StatusHistory)
                             .ToListAsync();
 
+                        bool customerFirstPaymentSentLegacy = false;
                         foreach (var vo in pendingPaymentVendorOrders)
                         {
                             var oldStatus = vo.Status.ToString();
@@ -169,6 +185,12 @@ namespace Graduation_Application.Services
                                 OldStatus = oldStatus,
                                 NewStatus = VendorOrderStatus.Confirmed.ToString()
                             });
+
+                            if (!customerFirstPaymentSentLegacy)
+                            {
+                                await _notificationService.SendCustomerFirstPaymentAsync(o.UserId, o.Id, t.Amount);
+                                customerFirstPaymentSentLegacy = true;
+                            }
                         }
 
                         var allVendorOrders = await _vendorOrderRepository
