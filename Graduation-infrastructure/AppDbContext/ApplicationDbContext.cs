@@ -53,6 +53,10 @@ namespace Graduation_infrastructure.AppDbContext
         public DbSet<VendorMaterialOption> VendorMaterialOptions { get; set; }
         public DbSet<ProductMaterialOption> ProductMaterialOptions { get; set; }
 
+        // ── Marketplace Commission & Vendor Wallet ─────────────────────────
+        public DbSet<VendorWallet> VendorWallets { get; set; }
+        public DbSet<VendorWithdrawal> VendorWithdrawals { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -392,6 +396,60 @@ namespace Graduation_infrastructure.AppDbContext
                 entity.Property(pt => pt.PaymentToken).HasMaxLength(4000);
                 entity.Property(pt => pt.FailureReason).HasMaxLength(500);
                 entity.Property(pt => pt.Status).HasConversion<string>().HasMaxLength(20);
+                // Marketplace commission fields (nullable — null for pre-feature rows)
+                entity.Property(pt => pt.CommissionAmount).HasColumnType("decimal(18,2)");
+                entity.Property(pt => pt.VendorNetAmount).HasColumnType("decimal(18,2)");
+            });
+
+            // ── VendorWallet ─────────────────────────────────────────────────────
+            builder.Entity<VendorWallet>(entity =>
+            {
+                entity.ToTable("VendorWallets");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.AvailableBalance)
+                      .HasColumnType("decimal(18,2)")
+                      .IsRequired()
+                      .HasDefaultValue(0m);
+                entity.Property(e => e.TotalWithdrawn)
+                      .HasColumnType("decimal(18,2)")
+                      .IsRequired()
+                      .HasDefaultValue(0m);
+                entity.Property(e => e.UpdatedAt).IsRequired();
+
+                entity.HasOne(e => e.Workshop)
+                      .WithOne(w => w.Wallet)
+                      .HasForeignKey<VendorWallet>(e => e.WorkshopId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                // Each workshop has exactly one wallet
+                entity.HasIndex(e => e.WorkshopId).IsUnique();
+            });
+
+            // ── VendorWithdrawal ────────────────────────────────────────────────
+            builder.Entity<VendorWithdrawal>(entity =>
+            {
+                entity.ToTable("VendorWithdrawals");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Amount)
+                      .HasColumnType("decimal(18,2)")
+                      .IsRequired();
+                entity.Property(e => e.WalletNumber)
+                      .HasMaxLength(50)
+                      .IsRequired();
+                entity.Property(e => e.Status)
+                      .HasConversion<string>()
+                      .HasMaxLength(20)
+                      .IsRequired();
+                entity.Property(e => e.TransactionReference).HasMaxLength(200);
+                entity.Property(e => e.CreatedAt).IsRequired();
+
+                entity.HasOne(e => e.Workshop)
+                      .WithMany(w => w.Withdrawals)
+                      .HasForeignKey(e => e.WorkshopId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(e => e.WorkshopId);
+                entity.HasIndex(e => e.Status);
             });
 
             builder.Entity<PaymentWebhookLog>(entity =>

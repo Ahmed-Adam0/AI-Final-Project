@@ -1,0 +1,264 @@
+@model IEnumerable<Graduation_Application.DTOs.WalletDTO.AdminWithdrawalDto>
+@using Graduation_Application.IServices.Admin
+@inject ILocalizationService LocalizationService
+@{
+    var currentCulture = LocalizationService.GetCurrentCulture();
+    var isArabic = currentCulture == "ar";
+    ViewData["Title"] = isArabic ? "طلبات سحب أرباح البائعين" : "Vendor Wallet Withdrawals";
+}
+
+@functions {
+    string ToArabicDigits(string input)
+    {
+        var utf8 = new System.Text.UTF8Encoding();
+        var englishDigits = new[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
+        var arabicDigits = new[] { '٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩' };
+        for (var i = 0; i < englishDigits.Length; i++)
+        {
+            input = input.Replace(englishDigits[i], arabicDigits[i]);
+        }
+        return input;
+    }
+
+    string FormatCurrency(decimal amount, bool isArabic)
+    {
+        var numStr = amount.ToString("N2");
+        if (isArabic) numStr = ToArabicDigits(numStr);
+        return isArabic ? $"{numStr} ج.م" : $"{numStr} EGP";
+    }
+
+    string FormatDate(DateTime dt, bool isArabic)
+    {
+        if (isArabic)
+        {
+            var arCulture = new System.Globalization.CultureInfo("ar-EG");
+            var formatted = dt.ToString("dd MMMM yyyy - HH:mm", arCulture);
+            return ToArabicDigits(formatted);
+        }
+        return dt.ToString("yyyy-MM-dd HH:mm");
+    }
+
+    string LocalStatus(string status, bool isArabic) => status switch
+    {
+        "Pending"   => isArabic ? "معلق" : "Pending",
+        "Completed" => isArabic ? "مكتمل" : "Completed",
+        "Failed"    => isArabic ? "فشل" : "Failed",
+        _           => status
+    };
+}
+
+<div class="row align-items-center mb-4">
+    <div class="col-md-8">
+        <h1 class="display-font text-light mb-1">
+            @(isArabic ? "طلبات سحب أرباح البائعين" : "Vendor Wallet Withdrawals")
+        </h1>
+        <p class="text-muted mb-0">
+            @(isArabic ? "مراجعة واعتماد طلبات تحويل الأرباح للمحافظ الإلكترونية الخاصة بورش البائعين." : "Approve, reject, and process mobile wallet payout requests from vendor workshops.")
+        </p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <div class="glass-card px-3 py-2 d-inline-flex align-items-center gap-3">
+            <span class="text-muted small">@(isArabic ? "إجمالي الطلبات:" : "Total Requests:")</span>
+            <span class="badge bg-indigo fs-6 font-monospace" style="background-color: var(--accent-primary);">
+                @(isArabic ? ToArabicDigits(Model.Count().ToString()) : Model.Count().ToString())
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- TempData Message Alerts -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show border-0 shadow-xs mb-4" role="alert" style="background-color: rgba(16, 185, 129, 0.15); color: #10b981;">
+        <i class="fa-solid fa-circle-check me-2"></i>
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="filter: invert(1);"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-xs mb-4" role="alert" style="background-color: rgba(239, 68, 68, 0.15); color: #ef4444;">
+        <i class="fa-solid fa-triangle-exclamation me-2"></i>
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="filter: invert(1);"></button>
+    </div>
+}
+
+<!-- Search & Status Filters -->
+<div class="row g-3 mb-4 align-items-center">
+    <div class="col-md-7">
+        <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-premium btn-premium-primary px-4 filter-btn active" onclick="filterStatus('all', this)">
+                @(isArabic ? "عرض الكل" : "Show All")
+            </button>
+            <button class="btn btn-sm btn-premium btn-premium-secondary px-4 filter-btn" onclick="filterStatus('Pending', this)">
+                @(isArabic ? "طلبات السحب المعلقة فقط" : "Pending Requests Only")
+            </button>
+        </div>
+    </div>
+    <div class="col-md-5 text-md-end">
+        <div class="d-inline-block w-100" style="max-width: 350px;">
+            <input type="text" id="workshopSearchInput" onkeyup="filterBySearch()" class="form-control form-control-premium" placeholder="@(isArabic ? "ابحث باسم الورشة..." : "Search by workshop name...")" />
+        </div>
+    </div>
+</div>
+
+<div class="glass-card p-4">
+    <div class="table-responsive">
+        <table class="table table-premium mb-0">
+            <thead>
+                <tr>
+                    <th>@(isArabic ? "اسم الورشة" : "Workshop Name")</th>
+                    <th>@(isArabic ? "المبلغ المطلوبة" : "Requested Amount")</th>
+                    <th>@(isArabic ? "رقم المحفظة الإلكترونية" : "Mobile Wallet")</th>
+                    <th>@(isArabic ? "الحالة" : "Status")</th>
+                    <th>@(isArabic ? "المرجع" : "Reference")</th>
+                    <th>@(isArabic ? "تاريخ الطلب" : "Request Date")</th>
+                    <th class="text-end">@(isArabic ? "الإجراءات" : "Actions")</th>
+                </tr>
+            </thead>
+            <tbody class="text-light">
+                @foreach (var item in Model)
+                {
+                    <tr class="align-middle" data-status="@item.Status" data-name-en="@item.WorkshopNameEn" data-name-ar="@item.WorkshopNameAr">
+                        <td>
+                            <div class="fw-semibold text-light">@(isArabic ? item.WorkshopNameAr : item.WorkshopNameEn)</div>
+                            <small class="text-muted">Workshop ID: @item.WorkshopId</small>
+                        </td>
+                        <td class="fw-bold text-light">
+                            @FormatCurrency(item.Amount, isArabic)
+                        </td>
+                        <td class="font-monospace">
+                            @item.WalletNumber
+                        </td>
+                        <td>
+                            @{
+                                var statusClass = item.Status switch
+                                {
+                                    "Pending" => "bg-warning",
+                                    "Completed" => "bg-success",
+                                    "Failed" => "bg-danger",
+                                    _ => "bg-secondary"
+                                };
+                            }
+                            <span class="badge @statusClass rounded-pill px-2.5 py-1">
+                                @LocalStatus(item.Status, isArabic)
+                            </span>
+                        </td>
+                        <td class="font-monospace small text-muted">
+                            @(item.TransactionReference ?? "—")
+                        </td>
+                        <td class="small">
+                            @FormatDate(item.CreatedAt, isArabic)
+                        </td>
+                        <td class="text-end">
+                            @if (item.Status == "Pending")
+                            {
+                                <div class="d-inline-flex gap-2">
+                                    <form asp-area="Admin" asp-controller="Withdrawals" asp-action="Complete" asp-route-id="@item.Id" method="post">
+                                        <button type="submit" class="btn btn-sm btn-premium btn-premium-primary py-1 px-3">
+                                            <i class="fa-solid fa-circle-check me-1"></i>
+                                            @(isArabic ? "اعتماد وصرف" : "Approve")
+                                        </button>
+                                    </form>
+                                    <form asp-area="Admin" asp-controller="Withdrawals" asp-action="Reject" asp-route-id="@item.Id" method="post">
+                                        <button type="submit" class="btn btn-sm btn-premium btn-premium-secondary py-1 px-3">
+                                            <i class="fa-solid fa-circle-xmark me-1"></i>
+                                            @(isArabic ? "رفض" : "Reject")
+                                        </button>
+                                    </form>
+                                </div>
+                            }
+                            else if (item.Status == "Completed")
+                            {
+                                <span class="text-success small fw-semibold"><i class="fa-solid fa-circle-check me-1"></i> @(isArabic ? "تم التحويل" : "Completed")</span>
+                            }
+                            else if (item.Status == "Failed")
+                            {
+                                <span class="text-danger small fw-semibold"><i class="fa-solid fa-circle-xmark me-1"></i> @(isArabic ? "مرفوض / ملغي" : "Failed / Rejected")</span>
+                            }
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr id="noRequestsRow">
+                        <td colspan="7" class="py-5 text-center text-muted border-0">
+                            @(isArabic ? "لا توجد طلبات سحب أرباح مسجلة." : "No withdrawal requests registered in the system.")
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var currentStatusFilter = 'all';
+
+        function filterStatus(status, button) {
+            currentStatusFilter = status;
+            
+            // Update active state of buttons
+            var buttons = document.querySelectorAll('.filter-btn');
+            buttons.forEach(function(btn) {
+                btn.classList.remove('btn-premium-primary', 'active');
+                btn.classList.add('btn-premium-secondary');
+            });
+            button.classList.remove('btn-premium-secondary');
+            button.classList.add('btn-premium-primary', 'active');
+
+            applyCombinedFilter();
+        }
+
+        function filterBySearch() {
+            applyCombinedFilter();
+        }
+
+        function applyCombinedFilter() {
+            var searchVal = document.getElementById('workshopSearchInput').value.toLowerCase().trim();
+            var rows = document.querySelectorAll('tbody tr:not(#noRequestsRow):not(#dynamicNoRequestsRow)');
+            var visibleCount = 0;
+
+            rows.forEach(function(row) {
+                var rowStatus = row.getAttribute('data-status');
+                var nameEn = (row.getAttribute('data-name-en') || '').toLowerCase();
+                var nameAr = (row.getAttribute('data-name-ar') || '').toLowerCase();
+                
+                var matchesStatus = (currentStatusFilter === 'all' || rowStatus === currentStatusFilter);
+                var matchesSearch = (searchVal === '' || nameEn.includes(searchVal) || nameAr.includes(searchVal));
+
+                if (matchesStatus && matchesSearch) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Handle empty state
+            var emptyRow = document.getElementById('noRequestsRow');
+            if (emptyRow) {
+                emptyRow.style.display = visibleCount === 0 ? '' : 'none';
+            }
+            
+            var tbody = document.querySelector('tbody');
+            var dynamicRow = document.getElementById('dynamicNoRequestsRow');
+            
+            if (visibleCount === 0) {
+                if (!dynamicRow) {
+                    dynamicRow = document.createElement('tr');
+                    dynamicRow.id = 'dynamicNoRequestsRow';
+                    dynamicRow.innerHTML = `<td colspan="7" class="py-5 text-center text-muted border-0">@(isArabic ? "لا توجد نتائج تطابق البحث." : "No results match the search.")</td>`;
+                    tbody.appendChild(dynamicRow);
+                }
+                dynamicRow.style.display = '';
+            } else {
+                if (dynamicRow) {
+                    dynamicRow.style.display = 'none';
+                }
+            }
+        }
+    </script>
+}

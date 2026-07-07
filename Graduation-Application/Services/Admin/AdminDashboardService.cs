@@ -158,6 +158,11 @@ namespace Graduation_Application.Services.Admin
                 })
                 .ToList();
 
+            // ── Total Platform Profit = SUM(CommissionAmount) from PaymentTransactions ──
+            var totalPlatformProfit = await _paymentTransactionRepository
+                .GetAllAsNoTracking()
+                .SumAsync(t => (decimal?)t.CommissionAmount) ?? 0m;
+
             return new AdminDashboardDto
             {
                 SummaryCards = new List<AdminSummaryCardDto>
@@ -204,6 +209,14 @@ namespace Graduation_Application.Services.Admin
                         Value = completedOrdersCount.ToString("N0"),
                         IconClass = "fa-solid fa-circle-check",
                         TrendText = "Fulfilled",
+                        TrendClass = "text-success",
+                    },
+                    new()
+                    {
+                        Title = "Total Platform Profit",
+                        Value = $"{totalPlatformProfit:N2} EGP",
+                        IconClass = "fa-solid fa-sack-dollar",
+                        TrendText = "Cumulative 10% marketplace commission",
                         TrendClass = "text-success",
                     },
                 },
