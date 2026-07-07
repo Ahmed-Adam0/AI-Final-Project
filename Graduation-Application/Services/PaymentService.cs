@@ -24,6 +24,9 @@ namespace Graduation_Application.Services
         private readonly IEmailService _emailService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<PaymentService> _logger;
+        private readonly IVendorWalletRepository _vendorWalletRepository;
+
+        private const decimal CommissionRate = 0.10m;
 
         public PaymentService(
             IOrderRepository orderRepository,
@@ -34,7 +37,8 @@ namespace Graduation_Application.Services
             IGenaricRepositories<PaymentMilestone> milestoneRepository,
             IEmailService emailService,
             UserManager<ApplicationUser> userManager,
-            ILogger<PaymentService> logger
+            ILogger<PaymentService> logger,
+            IVendorWalletRepository vendorWalletRepository
         )
         {
             _orderRepository = orderRepository;
@@ -46,6 +50,7 @@ namespace Graduation_Application.Services
             _emailService = emailService;
             _userManager = userManager;
             _logger = logger;
+            _vendorWalletRepository = vendorWalletRepository;
         }
 
         public async Task ProcessPaymentAsync(
@@ -162,6 +167,24 @@ namespace Graduation_Application.Services
                     var derivedStatus = CalculateMasterOrderStatus(allStatuses);
                     masterOrder.Status = derivedStatus;
                     masterOrder.UpdatedAt = DateTime.UtcNow;
+
+                    // ── Commission & Wallet Credit (milestone path) ──────────────
+                    // Calculate commission per paid milestone and credit each vendor wallet.
+                    decimal totalCommission = 0m;
+                    decimal totalVendorNet  = 0m;
+                    foreach (var milestone in milestones.Where(m => m.IsPaid))
+                    {
+                        var commission = Math.Round(milestone.Amount * CommissionRate, 2);
+                        var vendorNet  = milestone.Amount - commission;
+                        totalCommission += commission;
+                        totalVendorNet  += vendorNet;
+                        await CreditVendorWalletAsync(milestone.VendorOrder.WorkshopId, vendorNet);
+                    }
+                    t.CommissionAmount = (t.CommissionAmount ?? 0m) + totalCommission;
+                    t.VendorNetAmount  = (t.VendorNetAmount  ?? 0m) + totalVendorNet;
+                    _logger.LogInformation(
+                        "Commission calculated (milestone path): Commission={Commission}, VendorNet={VendorNet}, TransactionId={TransactionId}",
+                        totalCommission, totalVendorNet, t.Id);
                 }
                 else
                 {
@@ -207,6 +230,30 @@ namespace Graduation_Application.Services
                             NotificationType.OrderConfirmed,
                             o.Id.ToString()
                         );
+
+                        // ── Commission & Wallet Credit (legacy full-payment path) ─
+                        // Split payment proportionally across vendor orders by TotalPrice.
+                        var masterTotal = pendingPaymentVendorOrders.Sum(vo => vo.TotalPrice);
+                        decimal legacyTotalCommission = 0m;
+                        decimal legacyTotalVendorNet  = 0m;
+                        if (masterTotal > 0)
+                        {
+                            foreach (var vo in pendingPaymentVendorOrders)
+                            {
+                                var proportion  = vo.TotalPrice / masterTotal;
+                                var vendorShare = Math.Round(t.Amount * proportion, 2);
+                                var commission  = Math.Round(vendorShare * CommissionRate, 2);
+                                var vendorNet   = vendorShare - commission;
+                                legacyTotalCommission += commission;
+                                legacyTotalVendorNet  += vendorNet;
+                                await CreditVendorWalletAsync(vo.WorkshopId, vendorNet);
+                            }
+                        }
+                        t.CommissionAmount = (t.CommissionAmount ?? 0m) + legacyTotalCommission;
+                        t.VendorNetAmount  = (t.VendorNetAmount  ?? 0m) + legacyTotalVendorNet;
+                        _logger.LogInformation(
+                            "Commission calculated (legacy path): Commission={Commission}, VendorNet={VendorNet}, TransactionId={TransactionId}",
+                            legacyTotalCommission, legacyTotalVendorNet, t.Id);
                     }
                 }
             }
@@ -453,6 +500,47 @@ namespace Graduation_Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to send milestone creation notifications.");
+            }
+        }
+
+        // ── Private helpers ───────────────────────────────────────────────────
+
+        /// <summary>
+        /// Credits the vendor wallet for the given workshop with the specified net amount.
+        /// Creates the wallet record if one does not already exist (upsert pattern).
+        /// Business logic stays here; the repository performs only data access.
+        /// </summary>
+        private async Task CreditVendorWalletAsync(int workshopId, decimal vendorNetAmount)
+        {
+            try
+            {
+                var wallet = await _vendorWalletRepository.GetByWorkshopIdAsync(workshopId);
+                if (wallet == null)
+                {
+                    wallet = new VendorWallet
+                    {
+                        WorkshopId       = workshopId,
+                        AvailableBalance = 0m,
+                        TotalWithdrawn   = 0m,
+                        UpdatedAt        = DateTime.UtcNow
+                    };
+                    await _vendorWalletRepository.AddAsync(wallet);
+                }
+
+                wallet.AvailableBalance += vendorNetAmount;
+                wallet.UpdatedAt        = DateTime.UtcNow;
+                await _vendorWalletRepository.SaveChangesAsync();
+
+                _logger.LogInformation(
+                    "VendorWallet credited: WorkshopId={WorkshopId}, Amount={Amount}, NewBalance={NewBalance}",
+                    workshopId, vendorNetAmount, wallet.AvailableBalance);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Failed to credit VendorWallet for WorkshopId={WorkshopId}, Amount={Amount}",
+                    workshopId, vendorNetAmount);
+                // Do not rethrow — wallet credit failure must not roll back the payment.
             }
         }
 

@@ -207,11 +207,27 @@ namespace Graduation_Application.Services
                     .ThenInclude(i => i.Product)
                         .ThenInclude(p => p.Images)
                 .Include(v => v.StatusHistory)
+                .Include(v => v.PaymentMilestones)
                 .FirstOrDefaultAsync();
 
             if (vo == null)
             {
                 throw new Exception("Order not found or unauthorized");
+            }
+
+            // Check if 40% payment (MilestoneStatus == Shipped) is completed.
+            // For legacy full-payment (where there are no milestones), check if order is confirmed/paid.
+            bool isFortyPercentPaid = false;
+            if (vo.PaymentMilestones != null && vo.PaymentMilestones.Any())
+            {
+                isFortyPercentPaid = vo.PaymentMilestones.Any(m => m.MilestoneStatus == VendorOrderStatus.Shipped && m.IsPaid);
+            }
+            else
+            {
+                isFortyPercentPaid = vo.Status == VendorOrderStatus.Confirmed
+                                  || vo.Status == VendorOrderStatus.InProgress
+                                  || vo.Status == VendorOrderStatus.Shipped
+                                  || vo.Status == VendorOrderStatus.Delivered;
             }
 
             return new VendorOrderDetailsDto
@@ -224,17 +240,13 @@ namespace Graduation_Application.Services
                     && string.IsNullOrWhiteSpace(vo.MasterOrder.LastName)
                         ? (vo.MasterOrder.User != null ? vo.MasterOrder.User.FullName : "Customer")
                         : $"{vo.MasterOrder.FirstName} {vo.MasterOrder.LastName}".Trim(),
-                CustomerPhone =
-                    (
-                        vo.Status == VendorOrderStatus.Shipped
-                        || vo.Status == VendorOrderStatus.Delivered
+                CustomerPhone = isFortyPercentPaid
+                    ? (
+                        vo.MasterOrder.PhoneNumber
+                        ?? (vo.MasterOrder.User != null ? vo.MasterOrder.User.PhoneNumber : "")
+                        ?? ""
                     )
-                        ? (
-                            vo.MasterOrder.PhoneNumber
-                            ?? (vo.MasterOrder.User != null ? vo.MasterOrder.User.PhoneNumber : "")
-                            ?? ""
-                        )
-                        : "",
+                    : "",
                 TotalPrice = vo.Items.Sum(oi => oi.SnapshotUnitPrice * oi.Quantity),
                 Status = vo.Status.ToString(),
                 Address = vo.MasterOrder.Address ?? "",

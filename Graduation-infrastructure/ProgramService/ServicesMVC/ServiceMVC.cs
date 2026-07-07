@@ -115,6 +115,11 @@ namespace Graduation_infrastructure.ProgramService.ServicesMVC
             services.AddScoped<IPaymentGateway, PaymobService>();
             services.AddScoped<IPaymobHmacValidator, PaymobHmacValidator>();
             services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepository>();
+
+            // ── Marketplace Commission, Vendor Wallet ───────────────────────────
+            services.AddScoped<IVendorWalletRepository, VendorWalletRepository>();
+            services.AddScoped<IPayoutGateway,          PaymobPayoutService>();
+            services.AddScoped<IAdminWithdrawalsService,AdminWithdrawalsService>();
         }
     }
 }

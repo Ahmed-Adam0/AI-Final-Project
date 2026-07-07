@@ -54,5 +54,9 @@ namespace Graduation_domain.Entities
 
         public List<VendorVerificationHistory>? VerificationHistory { get; set; }
         public List<VendorAccountStatusHistory>? AccountStatusHistory { get; set; }
+
+        // ── Wallet & Withdrawals ──────────────────────────────────────────────
+        public VendorWallet? Wallet { get; set; }
+        public List<VendorWithdrawal>? Withdrawals { get; set; }
     }
 }

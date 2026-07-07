@@ -10,6 +10,8 @@ namespace Graduation_domain.Entities
         public string? TransactionId { get; set; }
         public PaymentStatus Status { get; set; } = PaymentStatus.Unpaid;
         public decimal Amount { get; set; }
+        public decimal? CommissionAmount { get; set; }   // 10% marketplace commission
+        public decimal? VendorNetAmount  { get; set; }   // 90% net amount credited to vendor wallet
         public string Currency { get; set; } = "EGP";
         public DateTime? PaidAt { get; set; }
         public string? FailureReason { get; set; }

@@ -8,6 +8,7 @@ using Graduation_Application.IRepositories;
 using Graduation_Application.IServices;
 using Graduation_Application.IServices.Admin;
 using Graduation_Application.IServices.Vendor;
+using Graduation_Application.IRepositories;
 using Graduation_Application.Mapper.CategoryMapping;
 using Graduation_Application.Mapper.FavoriteMapping;
 using Graduation_Application.Mapper.InspirationMapping;
@@ -297,6 +298,12 @@ namespace Graduation_infrastructure.ProgramService.ServicesAPI
             services.AddScoped<IPaymentGateway, PaymobService>();
             services.AddScoped<IPaymobHmacValidator, PaymobHmacValidator>();
             services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepository>();
+
+            // ── Marketplace Commission, Vendor Wallet & Withdrawals ────────────────
+            services.AddScoped<IVendorWalletRepository, VendorWalletRepository>();
+            services.AddScoped<IVendorWalletService,    VendorWalletService>();
+            services.AddScoped<IPayoutGateway,          PaymobPayoutService>();
+            services.AddScoped<IAdminWithdrawalsService,AdminWithdrawalsService>();
 
             services.AddAuthorization();
         }

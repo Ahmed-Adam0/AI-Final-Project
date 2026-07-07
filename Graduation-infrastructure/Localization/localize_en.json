@@ -77,6 +77,7 @@
       "orders": "Orders",
       "inspirations": "Inspirations",
       "vendors": "Vendors",
+      "withdrawals": "Vendor Withdrawals",
       "customers": "Customers",
       "analytics": "Analytics",
       "reports": "Reports",
@@ -90,8 +91,13 @@
       "reportedReviews": "Reported Reviews",
       "faqs": "FAQs",
       "system": "System",
-      "auditLogs": "Audit Logs",
       "mainSite": "Main Site"
+    },
+    "payout": {
+      "completeSuccess": "Payout completed successfully and wallet balance has been deducted.",
+      "completeFail": "Payout failed. Please verify the gateway connection and vendor balance.",
+      "rejectSuccess": "Payout request rejected successfully.",
+      "rejectFail": "Failed to reject payout request."
     },
     "dashboard": {
       "Admin Dashboard": "Admin Dashboard",
