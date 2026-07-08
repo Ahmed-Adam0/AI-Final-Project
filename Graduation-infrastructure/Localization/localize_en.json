@@ -91,7 +91,8 @@
       "reportedReviews": "Reported Reviews",
       "faqs": "FAQs",
       "system": "System",
-      "mainSite": "Main Site"
+      "mainSite": "Main Site",
+      "auditLogs": "Audit Logs"
     },
     "payout": {
       "completeSuccess": "Payout completed successfully and wallet balance has been deducted.",
@@ -128,6 +129,8 @@
       "No orders yet": "No orders yet",
       "No reviews yet": "No reviews yet",
       "No reports yet": "No reports yet",
+      "Total Platform Profit": "Total Platform Profit",
+      "Cumulative 10% marketplace commission": "Cumulative 10% marketplace commission",
       "Pending": "Pending",
       "Confirmed": "Processing",
       "Delivered": "Completed",
