@@ -91,7 +91,8 @@
       "reportedReviews": "التقييمات المبلغ عنها",
       "faqs": "الأسئلة الشائعة",
       "system": "النظام",
-      "mainSite": "الموقع الرئيسي"
+      "mainSite": "الموقع الرئيسي",
+      "auditLogs": "سجلات التدقيق"
     },
     "payout": {
       "completeSuccess": "تم اعتماد وصرف السحب بنجاح وخصم المبلغ من محفظة التاجر.",
@@ -128,6 +129,8 @@
       "No orders yet": "لا توجد طلبات بعد",
       "No reviews yet": "لا توجد تقييمات بعد",
       "No reports yet": "لا توجد بلاغات بعد",
+      "Total Platform Profit": "إجمالي أرباح المنصة",
+      "Cumulative 10% marketplace commission": "عمولة السوق التراكمية 10%",
       "Pending": "قيد الانتظار",
       "Confirmed": "مؤكد",
       "Delivered": "تم التوصيل",
